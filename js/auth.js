@@ -6,6 +6,8 @@ const supabaseClient = supabase.createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY
 );
+console.log("VYRO SUPABASE URL:", SUPABASE_URL);
+console.log("VYRO SUPABASE CLIENT:", supabaseClient);
 
 console.log("VYRO Supabase connection initialized.");
 
