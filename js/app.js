@@ -1,4 +1,12 @@
 // =========================================================
+// FIREBASE CONNECTION TEST
+// =========================================================
+
+console.log("VYRO Firebase:", firebaseApp);
+console.log("VYRO Firebase Auth:", firebaseAuth);
+console.log("VYRO Firebase Firestore:", firebaseDB);
+
+// =========================================================
 // VYRO — App Navigation
 // =========================================================
 
@@ -375,4 +383,4 @@ const savedUsername = localStorage.getItem("vyro_username");
 if (savedUsername) {
     document.querySelector(".receive-username").textContent =
         "@" + savedUsername.replace(/^@/, "");
-}
+                                                    }
