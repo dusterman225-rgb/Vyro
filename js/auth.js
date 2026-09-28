@@ -10,13 +10,6 @@ console.log("VYRO SUPABASE URL:", SUPABASE_URL);
 console.log("VYRO SUPABASE CLIENT:", supabaseClient);
 
 console.log("VYRO Supabase connection initialized.");
-
-fetch(SUPABASE_URL + "/auth/v1/settings")
-    .then(function(response) {
-        alert("NO-HEADER TEST: " + response.status);
-    })
-    .catch(function(error) {
-        alert("NO-HEADER TEST FAILED: " + error.message);
     });
 
 // =========================================================
