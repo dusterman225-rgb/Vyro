@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <meta name="theme-color" content="#050505">
+
+    <title>VYRO</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <main id="app">
+
+        <section id="welcome-screen" class="screen active">
+
+            <div class="logo">
+                VYRO
+            </div>
+
+            <div class="welcome-content">
+
+                <h1>Crypto.<br>Simple.</h1>
+
+                <p>
+                    Send and receive crypto using a username.
+                </p>
+
+                <button id="get-started-btn" class="primary-button">
+                    GET STARTED
+                </button>
+
+                <button id="login-btn" class="secondary-button">
+                    LOG IN
+                </button>
+
+            </div>
+
+            <div class="welcome-footer">
+                <span>NON-CUSTODIAL</span>
+                <span>•</span>
+                <span>YOUR WALLET</span>
+            </div>
+
+        </section>
+        
+        <!-- =========================
+     CREATE ACCOUNT
+     ========================= -->
+
+<section id="create-account-screen" class="screen">
+
+    <div class="auth-header">
+
+        <button
+            id="create-account-back"
+            class="back-button"
+            type="button"
+        >
+            ‹
+        </button>
+
+        <div class="auth-logo">
+            VYRO
+        </div>
+
+    </div>
+
+
+    <div class="auth-content">
+
+        <h1>Create Account</h1>
+
+        <p class="auth-subtitle">
+            Create your VYRO account to get started.
+        </p>
+
+
+        <div class="form-group">
+
+            <label for="username">
+                Username
+            </label>
+
+            <div class="input-wrapper">
+
+                <span class="input-prefix">@</span>
+
+                <input
+                    id="username"
+                    type="text"
+                    placeholder="username"
+                    autocomplete="username"
+                    autocapitalize="none"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="email">
+                Email
+            </label>
+
+            <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+            >
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="password">
+                Password
+            </label>
+
+            <input
+                id="password"
+                type="password"
+                placeholder="Create a password"
+                autocomplete="new-password"
+            >
+
+               </div>
+
+
+        <div class="form-group">
+
+            <label for="verification-word">
+                Verification Word
+            </label>
+
+            <input
+                id="verification-word"
+                type="text"
+                placeholder="Choose your word"
+                autocomplete="off"
+            >
+
+            <small>
+                Used to help verify who you're paying.
+            </small>
+
+        </div>
+
+
+        <button
+            id="continue-registration-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            CONTINUE
+        </button>
+
+    </div>
+
+
+    <div class="auth-footer">
+        <span>YOUR WALLET</span>
+        <span>•</span>
+        <span>YOUR CRYPTO</span>
+    </div>
+
+</section>
+
+<!-- =========================
+     LOGIN
+     ========================= -->
+
+<section id="login-screen" class="screen">
+
+    <div class="auth-header">
+
+        <button
+            id="login-back"
+            class="back-button"
+            type="button"
+        >
+            ‹
+        </button>
+
+        <div class="auth-logo">
+            VYRO
+        </div>
+
+    </div>
+
+
+    <div class="auth-content">
+
+        <h1>Welcome Back</h1>
+
+        <p class="auth-subtitle">
+            Log in to your VYRO account.
+        </p>
+
+
+        <div class="form-group">
+
+            <label for="login-email">
+                Email
+            </label>
+
+            <input
+                id="login-email"
+                type="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="login-password">
+                Password
+            </label>
+
+            <input
+                id="login-password"
+                type="password"
+                placeholder="Your password"
+                autocomplete="current-password"
+            >
+
+        </div>
+
+
+        <button
+            id="login-submit-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            LOG IN
+        </button>
+
+
+        <button
+            id="forgot-password-btn"
+            class="text-button"
+            type="button"
+        >
+            Forgot password?
+        </button>
+
+    </div>
+
+
+    <div class="auth-footer">
+        <span>SECURE</span>
+        <span>•</span>
+        <span>NON-CUSTODIAL</span>
+    </div>
+
+</section>
+
+<!-- =========================
+     EMAIL VERIFICATION
+     ========================= -->
+
+<section id="email-verification-screen" class="screen">
+
+    <div class="auth-header">
+
+        <button
+            id="email-verification-back"
+            class="back-button"
+            type="button"
+        >
+            ‹
+        </button>
+
+        <div class="auth-logo">
+            VYRO
+        </div>
+
+    </div>
+
+
+    <div class="auth-content">
+
+        <h1>Verify Your Email</h1>
+
+        <p class="auth-subtitle">
+            Enter the verification code we sent to your email.
+        </p>
+
+
+        <div class="form-group">
+
+            <label for="email-code">
+                Verification Code
+            </label>
+
+            <input
+                id="email-code"
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                placeholder="Enter 6-digit code"
+                autocomplete="one-time-code"
+            >
+
+        </div>
+
+
+        <button
+            id="verify-email-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            VERIFY EMAIL
+        </button>
+
+
+        <button
+            id="resend-email-btn"
+            class="text-button"
+            type="button"
+        >
+            Resend code
+        </button>
+
+    </div>
+
+
+    <div class="auth-footer">
+        <span>SECURE</span>
+        <span>•</span>
+        <span>VYRO</span>
+    </div>
+
+</section>
+
+<!-- =========================
+     TWO-FACTOR AUTHENTICATION
+     ========================= -->
+
+<section id="two-factor-screen" class="screen">
+
+    <div class="auth-header">
+
+        <button
+            id="two-factor-back"
+            class="back-button"
+            type="button"
+        >
+            ‹
+        </button>
+
+        <div class="auth-logo">
+            VYRO
+        </div>
+
+    </div>
+
+
+    <div class="auth-content">
+
+        <h1>Secure Your Account</h1>
+
+        <p class="auth-subtitle">
+            Set up two-factor authentication to protect your VYRO account.
+        </p>
+        
+        <div class="two-factor-setup">
+
+    <div class="qr-placeholder">
+        <span>VYRO</span>
+        <small>QR CODE</small>
+    </div>
+
+    <p class="two-factor-instruction">
+        Scan this QR code with your authenticator app.
+    </p>
+
+    <div class="setup-key">
+        <span>SETUP KEY</span>
+        <strong>WILL BE PROVIDED BY VYRO</strong>
+    </div>
+
+</div>
+
+
+        <div class="form-group">
+
+            <label for="two-factor-code">
+                Authentication Code
+            </label>
+
+            <input
+                id="two-factor-code"
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                placeholder="Enter 6-digit code"
+                autocomplete="one-time-code"
+            >
+
+        </div>
+
+
+        <button
+            id="enable-two-factor-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            ENABLE 2FA
+        </button>
+
+    </div>
+
+
+    <div class="auth-footer">
+        <span>SECURITY</span>
+        <span>•</span>
+        <span>VYRO</span>
+    </div>
+
+</section>
+
+<!-- =========================
+     HOME
+     ========================= -->
+
+<section id="home-screen" class="screen">
+
+    <div class="home-header">
+
+    <div></div>
+
+    <button
+        id="home-logo-btn"
+        class="home-logo-button"
+        type="button"
+    >
+        VYRO
+    </button>
+
+</div>
+
+    <div class="home-content">
+
+        <p class="balance-label">TOTAL BALANCE</p>
+
+        <h1 class="balance-amount">$0.00</h1>
+
+        <p class="balance-subtitle">USDC</p>
+
+        <div class="home-actions">
+
+            <button
+                id="send-btn"
+                class="primary-button"
+                type="button"
+            >
+                SEND
+            </button>
+
+            <button
+                id="receive-btn"
+                class="secondary-button"
+                type="button"
+            >
+                RECEIVE
+            </button>
+
+        </div>
+
+        <div class="activity-section">
+
+            <div class="activity-header">
+                <span>RECENT ACTIVITY</span>
+                <span>VIEW ALL</span>
+            </div>
+
+            <div class="empty-activity">
+                <div class="empty-icon">V</div>
+
+                <p>No transactions yet</p>
+
+                <small>
+                    Your VYRO activity will appear here.
+                </small>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- =========================
+     SEND
+     ========================= -->
+
+<section id="send-screen" class="screen">
+
+    <div class="internal-header">
+
+        <button
+            id="send-back-btn"
+            class="back-button"
+            type="button"
+        >
+            ‹
+        </button>
+
+        <button
+            id="send-home-logo-btn"
+            class="home-logo-button"
+            type="button"
+        >
+            VYRO
+        </button>
+
+    </div>
+
+    <div class="send-content">
+
+        <h1>Send</h1>
+
+        <p class="auth-subtitle">
+            Send crypto to another VYRO user.
+        </p>
+
+        <div class="form-group">
+
+            <label for="send-asset">
+                Asset
+            </label>
+
+            <select id="send-asset">
+                <option value="usdc">USDC</option>
+            </select>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="send-network">
+                Network
+            </label>
+
+            <select id="send-network">
+                <option value="solana">Solana</option>
+            </select>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="send-recipient">
+                Recipient
+            </label>
+
+            <div class="input-wrapper">
+
+                <span class="input-prefix">@</span>
+
+                <input
+                    id="send-recipient"
+                    type="text"
+                    placeholder="username"
+                    autocomplete="off"
+                    autocapitalize="none"
+                >
+
+            </div>
+            
+            <div
+    id="recipient-result"
+    class="recipient-result"
+>
+
+    <div class="recipient-status">
+        VYRO USER
+    </div>
+
+    <strong id="recipient-display">
+        @username
+    </strong>
+
+    <small>
+        Recipient found
+    </small>
+
+</div>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="send-amount">
+                Amount
+            </label>
+
+            <input
+                id="send-amount"
+                type="number"
+                inputmode="decimal"
+                placeholder="0.00"
+                min="0"
+                step="any"
+            >
+
+        </div>
+
+        <button
+            id="continue-send-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            CONTINUE
+        </button>
+
+    </div>
+
+</section>
+
+<!-- =========================
+     CONFIRM PAYMENT
+     ========================= -->
+
+<section id="confirm-payment-screen" class="screen">
+
+    <div class="internal-header">
+
+        <button
+            id="confirm-back-btn"
+            class="back-button"
+            type="button"
+        >
+            ‹
+        </button>
+
+        <button
+            id="confirm-home-logo-btn"
+            class="home-logo-button"
+            type="button"
+        >
+            VYRO
+        </button>
+
+    </div>
+
+    <div class="confirm-content">
+
+        <h1>Confirm Payment</h1>
+
+        <p class="auth-subtitle">
+            Review the payment before continuing.
+        </p>
+
+        <div class="payment-summary">
+
+            <div class="summary-row">
+                <span>SEND TO</span>
+                <strong id="confirm-recipient">@username</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>AMOUNT</span>
+                <strong id="confirm-amount">0.00 USDC</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>NETWORK</span>
+                <strong id="confirm-network">Solana</strong>
+            </div>
+
+        </div>
+
+        <div class="verification-box">
+
+            <div class="verification-title">
+                VERIFICATION
+            </div>
+
+            <p>
+                Ask the recipient for their VYRO
+                verification word before confirming.
+            </p>
+
+            <div class="form-group">
+
+                <label for="verification-word-confirm">
+                    Verification Word
+                </label>
+
+                <input
+                    id="verification-word-confirm"
+                    type="text"
+                    placeholder="Enter verification word"
+                    autocomplete="off"
+                >
+
+            </div>
+
+        </div>
+
+        <button
+            id="confirm-payment-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            CONFIRM PAYMENT
+        </button>
+
+    </div>
+
+</section>
+
+<!-- =========================
+     RECEIVE
+     ========================= -->
+
+<section id="receive-screen" class="screen">
+
+    <div class="internal-header">
+
+        <button
+            id="receive-back-btn"
+            class="back-button"
+            type="button"
+        >
+            ‹
+        </button>
+
+        <button
+            id="receive-home-logo-btn"
+            class="home-logo-button"
+            type="button"
+        >
+            VYRO
+        </button>
+
+    </div>
+
+    <div class="receive-content">
+
+        <h1>Receive</h1>
+
+        <p class="auth-subtitle">
+            Receive crypto directly to your wallet.
+        </p>
+
+        <div class="receive-card">
+
+            <div class="receive-label">
+                YOUR VYRO USERNAME
+            </div>
+
+            <div class="receive-username">
+                @username
+            </div>
+
+            <div class="receive-divider"></div>
+
+            <div class="receive-label">
+                ASSET
+            </div>
+
+            <strong class="receive-asset">
+                USDC
+            </strong>
+
+            <div class="receive-label receive-network-label">
+                NETWORK
+            </div>
+
+            <strong class="receive-network">
+                Solana
+            </strong>
+           
+ 
+        </div>
+
+        <div class="qr-placeholder receive-qr">
+
+            <span>VYRO</span>
+
+            <small>QR CODE</small>
+
+        </div>
+
+        <p class="receive-note">
+            Your wallet address and QR code will appear here
+            once your wallet is connected.
+        </p>
+
+        <button
+            id="copy-receive-btn"
+            class="secondary-button auth-button"
+            type="button"
+        >
+            COPY USERNAME
+        </button>
+
+    </div>
+
+</section>
+
+    </main>
+    
+  <script src="js/config.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="js/auth.js"></script>
+<script src="js/wallet.js"></script>
+<script src="js/payments.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

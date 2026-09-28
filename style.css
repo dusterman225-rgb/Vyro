@@ -1,0 +1,1212 @@
+/* =========================================================
+   VYRO — Global Design System
+   ========================================================= */
+
+:root {
+    --black: #050505;
+    --black-soft: #0b0b0b;
+    --card: #11110f;
+    --card-light: #171713;
+
+    --gold: #f5c95b;
+    --gold-light: #ffe9a3;
+    --gold-bright: #fff1b8;
+    --gold-dark: #9b7424;
+
+    --text: #f7f7f4;
+    --text-muted: #999993;
+
+    --border: rgba(245, 201, 91, 0.42);
+    --border-soft: rgba(245, 201, 91, 0.18);
+
+    --radius: 18px;
+}
+
+/* =========================================================
+   Reset
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    background: var(--black);
+}
+
+body {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
+    color: var(--text);
+    overflow-x: hidden;
+}
+
+/* =========================================================
+   App
+   ========================================================= */
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    background:
+        radial-gradient(
+            circle at 50% 18%,
+            rgba(245, 201, 91, 0.08),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 50% 100%,
+            rgba(245, 201, 91, 0.06),
+            transparent 35%
+        ),
+        #050505;
+}
+
+/* =========================================================
+   Screens
+   ========================================================= */
+
+.screen {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    display: none;
+    flex-direction: column;
+
+    position: relative;
+    box-sizing: border-box;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* =========================================================
+   Welcome Screen
+   ========================================================= */
+
+#welcome-screen {
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    padding:
+        max(34px, env(safe-area-inset-top))
+        26px
+        max(28px, env(safe-area-inset-bottom));
+
+    text-align: center;
+
+    background:
+        radial-gradient(
+            ellipse at 50% 35%,
+            rgba(245, 201, 91, 0.09),
+            transparent 38%
+        ),
+        radial-gradient(
+            ellipse at 50% 82%,
+            rgba(245, 201, 91, 0.07),
+            transparent 30%
+        ),
+        #050505;
+}
+
+/* =========================================================
+   Logo
+   ========================================================= */
+
+.logo {
+    margin-top: 12px;
+
+    font-size: clamp(42px, 13vw, 68px);
+    font-weight: 300;
+    letter-spacing: 0.28em;
+
+    padding-left: 0.28em;
+
+    color: var(--gold-bright);
+
+    background:
+        linear-gradient(
+            180deg,
+            #fff8d9 0%,
+            #ffe89a 35%,
+            #d9a83d 75%,
+            #fff0ae 100%
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    filter:
+        drop-shadow(0 0 7px rgba(245, 201, 91, 0.45))
+        drop-shadow(0 0 22px rgba(245, 201, 91, 0.16));
+}
+
+/* =========================================================
+   Welcome Content
+   ========================================================= */
+
+.welcome-content {
+    width: 100%;
+    max-width: 390px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    margin-top: -30px;
+}
+
+.welcome-content h1 {
+    font-size: clamp(42px, 12vw, 62px);
+    line-height: 0.98;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+
+    margin-bottom: 20px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #ffffff 0%,
+            #f5e8bd 45%,
+            #d9b457 100%
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.welcome-content p {
+    max-width: 290px;
+
+    color: var(--text-muted);
+
+    font-size: 15px;
+    line-height: 1.6;
+
+    margin-bottom: 34px;
+}
+
+/* =========================================================
+   Buttons
+   ========================================================= */
+
+button {
+    width: 100%;
+
+    border: none;
+    outline: none;
+
+    font: inherit;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        opacity 0.15s ease;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+.primary-button {
+    min-height: 58px;
+
+    border-radius: 30px;
+
+    color: #111;
+
+    background:
+        linear-gradient(
+            180deg,
+            #fff1b2 0%,
+            #f5c95b 45%,
+            #dcae3e 100%
+        );
+
+    box-shadow:
+        0 0 10px rgba(245, 201, 91, 0.25),
+        0 8px 30px rgba(245, 201, 91, 0.13);
+
+    letter-spacing: 0.03em;
+}
+
+.primary-button:active {
+    box-shadow:
+        0 0 6px rgba(245, 201, 91, 0.2);
+}
+
+.secondary-button {
+    min-height: 58px;
+
+    margin-top: 12px;
+
+    border-radius: 30px;
+
+    color: var(--text);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.025),
+            rgba(255, 255, 255, 0.008)
+        );
+
+    border: 1px solid var(--border);
+
+    box-shadow:
+        inset 0 0 18px rgba(245, 201, 91, 0.025);
+}
+
+/* =========================================================
+   Footer
+   ========================================================= */
+
+.welcome-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    color: #756a4d;
+
+    font-size: 9px;
+    font-weight: 600;
+
+    letter-spacing: 0.22em;
+}
+
+/* =========================================================
+   Gold Glow
+   ========================================================= */
+
+.welcome-content::after {
+    content: "";
+
+    position: absolute;
+
+    width: 220px;
+    height: 70px;
+
+    bottom: 85px;
+
+    background:
+        radial-gradient(
+            ellipse,
+            rgba(245, 201, 91, 0.18),
+            transparent 70%
+        );
+
+    filter: blur(15px);
+
+    pointer-events: none;
+}
+
+/* =========================================================
+   Small Phones
+   ========================================================= */
+
+@media (max-height: 680px) {
+
+    #welcome-screen {
+        padding-top: 24px;
+    }
+
+    .logo {
+        font-size: 42px;
+    }
+
+    .welcome-content {
+        margin-top: -10px;
+    }
+
+    .welcome-content h1 {
+        font-size: 40px;
+        margin-bottom: 14px;
+    }
+
+    .welcome-content p {
+        margin-bottom: 22px;
+    }
+
+    .primary-button,
+    .secondary-button {
+        min-height: 52px;
+    }
+}
+
+/* =========================================================
+   Larger Screens
+   ========================================================= */
+
+@media (min-width: 600px) {
+
+    #app {
+        max-width: 480px;
+        margin: 0 auto;
+
+        border-left: 1px solid rgba(245, 201, 91, 0.08);
+        border-right: 1px solid rgba(245, 201, 91, 0.08);
+
+        box-shadow:
+            0 0 80px rgba(0, 0, 0, 0.8);
+    }
+}
+/* =========================================================
+   CREATE ACCOUNT SCREEN
+   ========================================================= */
+
+#create-account-screen {
+    flex-direction: column;
+    padding:
+        max(22px, env(safe-area-inset-top))
+        24px
+        max(24px, env(safe-area-inset-bottom));
+
+    background:
+        radial-gradient(
+            ellipse at 50% 15%,
+            rgba(245, 201, 91, 0.09),
+            transparent 38%
+        ),
+        #050505;
+}
+
+/* Header */
+
+.auth-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+
+    min-height: 54px;
+}
+
+.auth-logo {
+    font-size: 25px;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    padding-left: 0.25em;
+
+    background:
+        linear-gradient(
+            180deg,
+            #fff8d9 0%,
+            #ffe89a 40%,
+            #d9a83d 100%
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    filter:
+        drop-shadow(0 0 8px rgba(245, 201, 91, 0.3));
+}
+
+.back-button {
+    position: absolute;
+    left: 0;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+
+    color: var(--gold-light);
+
+    background: rgba(245, 201, 91, 0.04);
+
+    border: 1px solid var(--border-soft);
+
+    font-size: 30px;
+    font-weight: 300;
+    line-height: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Main form */
+
+.auth-content {
+    width: 100%;
+    max-width: 390px;
+
+    margin: auto;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-content h1 {
+    font-size: 38px;
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+
+    margin-bottom: 10px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #ffffff 0%,
+            #f5e8bd 50%,
+            #d9b457 100%
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.auth-subtitle {
+    color: var(--text-muted);
+
+    font-size: 14px;
+    line-height: 1.5;
+
+    margin-bottom: 30px;
+}
+
+/* Form fields */
+
+.form-group {
+    width: 100%;
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #d7d2c3;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    letter-spacing: 0.05em;
+}
+
+.form-group input,
+.input-wrapper {
+    width: 100%;
+    height: 56px;
+
+    border-radius: 15px;
+
+    color: var(--text);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.035),
+            rgba(255, 255, 255, 0.012)
+        );
+
+    border: 1px solid var(--border-soft);
+
+    outline: none;
+
+    font-size: 16px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.form-group input {
+    padding: 0 16px;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input {
+    height: 100%;
+
+    border: none;
+    background: transparent;
+
+    padding: 0 14px 0 4px;
+
+    flex: 1;
+
+    outline: none;
+}
+
+.input-prefix {
+    color: var(--gold);
+
+    font-size: 18px;
+    font-weight: 600;
+
+    padding-left: 16px;
+}
+
+.form-group input::placeholder {
+    color: #5f5d57;
+}
+
+.form-group input:focus,
+.input-wrapper:focus-within {
+    border-color: rgba(245, 201, 91, 0.65);
+
+    box-shadow:
+        0 0 0 3px rgba(245, 201, 91, 0.06),
+        0 0 18px rgba(245, 201, 91, 0.06);
+}
+
+.form-group small {
+    display: block;
+
+    margin-top: 7px;
+    padding-left: 3px;
+
+    color: #69665d;
+
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+/* Continue button */
+
+.auth-button {
+    margin-top: 8px;
+}
+
+/* Footer */
+
+.auth-footer {
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 9px;
+
+    color: #756a4d;
+
+    font-size: 8px;
+    font-weight: 600;
+
+    letter-spacing: 0.2em;
+}
+
+/* Small screens */
+
+@media (max-height: 700px) {
+
+    .auth-content {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .auth-content h1 {
+        font-size: 34px;
+    }
+
+    .auth-subtitle {
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    .form-group input,
+    .input-wrapper {
+        height: 51px;
+    }
+}
+
+/* =========================================================
+   LOGIN SCREEN
+   ========================================================= */
+
+#login-screen {
+    flex-direction: column;
+    padding:
+        max(22px, env(safe-area-inset-top))
+        24px
+        max(24px, env(safe-area-inset-bottom));
+
+    background:
+        radial-gradient(
+            ellipse at 50% 15%,
+            rgba(245, 201, 91, 0.09),
+            transparent 38%
+        ),
+        #050505;
+}
+
+.text-button {
+    width: auto;
+    margin: 20px auto 0;
+
+    color: var(--gold);
+
+    background: transparent;
+
+    font-size: 13px;
+    font-weight: 500;
+
+    border: none;
+}
+
+.text-button:active {
+    opacity: 0.7;
+}
+
+/* =========================================================
+   2FA SETUP
+   ========================================================= */
+
+.two-factor-setup {
+    margin-top: 24px;
+    text-align: center;
+}
+
+.qr-placeholder {
+    width: 170px;
+    height: 170px;
+    margin: 0 auto 18px;
+
+    border: 1px solid var(--border);
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(245, 201, 91, 0.08),
+            rgba(0, 0, 0, 0.4)
+        );
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--gold);
+
+    box-shadow:
+        0 0 25px rgba(245, 201, 91, 0.08);
+}
+
+.qr-placeholder span {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 4px;
+}
+
+.qr-placeholder small {
+    margin-top: 8px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+}
+
+.two-factor-instruction {
+    margin: 0 auto 20px;
+    max-width: 280px;
+
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.setup-key {
+    padding: 14px;
+
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.setup-key span {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: var(--text-muted);
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+.setup-key strong {
+    color: var(--gold-light);
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+/* =========================================================
+   VYRO HOME
+   ========================================================= */
+
+#home-screen {
+    padding: 24px 20px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.home-header {
+    width: 100%;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.home-logo-button {
+    border: none;
+    background: transparent;
+    padding: 8px 0;
+
+    color: var(--gold);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 4px;
+
+    cursor: pointer;
+}
+
+.home-logo-button:active {
+    opacity: 0.7;
+}
+
+.home-content {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 55px;
+    box-sizing: border-box;
+}
+
+.balance-label {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.balance-amount {
+    margin: 8px 0 0;
+    color: var(--text);
+    font-size: 46px;
+    font-weight: 600;
+    letter-spacing: -1px;
+    text-align: center;
+}
+
+.balance-subtitle {
+    margin: 4px 0 30px;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.home-actions {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.home-actions button {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-section {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 45px;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    box-sizing: border-box;
+
+    color: var(--text-muted);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+}
+
+.activity-header span:last-child {
+    color: var(--gold);
+}
+
+.empty-activity {
+    width: 100%;
+    box-sizing: border-box;
+
+    margin-top: 18px;
+    padding: 30px 20px;
+
+    text-align: center;
+
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+
+    background: var(--card);
+}
+
+.empty-icon {
+    width: 42px;
+    height: 42px;
+
+    margin: 0 auto 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.empty-activity p {
+    margin: 0 0 6px;
+    color: var(--text);
+}
+
+.empty-activity small {
+    color: var(--text-muted);
+}
+
+/* =========================================================
+   HOME LOGO BUTTON
+   ========================================================= */
+
+.home-logo-button {
+    border: none;
+    background: transparent;
+    padding: 8px 0;
+
+    color: var(--gold);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 4px;
+
+    cursor: pointer;
+}
+
+.home-logo-button:active {
+    opacity: 0.7;
+}
+
+/* =========================================================
+   VYRO SEND
+   ========================================================= */
+
+#send-screen {
+    padding: 24px 20px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.internal-header {
+    width: 100%;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.send-content {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 35px;
+    box-sizing: border-box;
+}
+
+.send-content h1 {
+    margin: 0 0 8px;
+
+    color: var(--text);
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.send-content .auth-subtitle {
+    margin-bottom: 30px;
+}
+
+.send-content select,
+.send-content input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.send-content select {
+    appearance: none;
+    -webkit-appearance: none;
+
+    padding: 15px 42px 15px 14px;
+
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+
+    background:
+        linear-gradient(
+            45deg,
+            transparent 50%,
+            var(--gold) 50%
+        ) calc(100% - 20px) 21px / 6px 6px no-repeat,
+        linear-gradient(
+            135deg,
+            var(--gold) 50%,
+            transparent 50%
+        ) calc(100% - 16px) 21px / 6px 6px no-repeat,
+        var(--card);
+
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+}
+
+.send-content select:focus,
+.send-content input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(245, 201, 91, 0.08);
+}
+
+#send-amount {
+    font-size: 20px;
+    font-weight: 500;
+}
+
+#send-recipient {
+    padding-left: 38px;
+}
+
+/* =========================================================
+   VYRO CONFIRM PAYMENT
+   ========================================================= */
+
+#confirm-payment-screen {
+    padding: 24px 20px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.confirm-content {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 35px;
+    box-sizing: border-box;
+}
+
+.confirm-content h1 {
+    margin: 0 0 8px;
+
+    color: var(--text);
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.confirm-content .auth-subtitle {
+    margin-bottom: 30px;
+}
+
+.payment-summary {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 6px 18px;
+
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+
+    background: var(--card);
+}
+
+.summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 17px 0;
+
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row span {
+    color: var(--text-muted);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+}
+
+/* =========================================================
+   RECIPIENT LOOKUP
+   ========================================================= */
+
+.recipient-result {
+    display: none;
+
+    margin-top: 10px;
+    padding: 14px 16px;
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    background: rgba(245, 201, 91, 0.04);
+}
+
+.recipient-result.visible {
+    display: block;
+}
+
+.recipient-status {
+    margin-bottom: 5px;
+
+    color: var(--gold);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+}
+
+.recipient-result strong {
+    display: block;
+
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.recipient-result small {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--text-muted);
+    font-size: 11px;
+}
+/* =========================================================
+   VYRO RECEIVE
+   ========================================================= */
+
+#receive-screen {
+    padding: 24px 20px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.receive-content {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 35px;
+    box-sizing: border-box;
+}
+
+.receive-content h1 {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.receive-content .auth-subtitle {
+    margin-bottom: 30px;
+}
+
+.receive-card {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    background: var(--card);
+}
+
+.receive-label {
+    color: var(--text-muted);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+}
+
+.receive-username {
+    margin-top: 8px;
+    color: var(--gold);
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.receive-divider {
+    height: 1px;
+    margin: 20px 0;
+    background: var(--border-soft);
+}
+
+.receive-asset,
+.receive-network {
+    display: block;
+    margin-top: 6px;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.receive-network-label {
+    margin-top: 20px;
+}
+
+.receive-qr {
+    margin-top: 22px;
+}
+
+.receive-note {
+    margin: 18px auto 0;
+    max-width: 300px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
