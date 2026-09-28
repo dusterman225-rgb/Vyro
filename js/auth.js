@@ -1,15 +1,4 @@
 // =========================================================
-// SUPABASE CONNECTION TEST
-// =========================================================
-
-const supabaseClient = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
-
-console.log("VYRO Supabase connection initialized.");
-
-// =========================================================
 // VYRO REGISTRATION
 // =========================================================
 
