@@ -11,22 +11,13 @@ console.log("VYRO SUPABASE CLIENT:", supabaseClient);
 
 console.log("VYRO Supabase connection initialized.");
 
-fetch(SUPABASE_URL + "/auth/v1/settings", {
-    method: "GET",
-    headers: {
-        "apikey": SUPABASE_ANON_KEY
-    }
-})
-.then(function(response) {
-    alert("SUPABASE TEST STATUS: " + response.status);
-    return response.text();
-})
-.then(function(data) {
-    console.log("SUPABASE TEST RESPONSE:", data);
-})
-.catch(function(error) {
-    alert("SUPABASE TEST ERROR: " + error.message);
-});
+fetch(SUPABASE_URL + "/auth/v1/settings")
+    .then(function(response) {
+        alert("NO-HEADER TEST: " + response.status);
+    })
+    .catch(function(error) {
+        alert("NO-HEADER TEST FAILED: " + error.message);
+    });
 
 // =========================================================
 // VYRO REGISTRATION
