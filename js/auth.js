@@ -17,6 +17,8 @@ if (continueRegistrationButton) {
     continueRegistrationButton.addEventListener(
         "click",
         async function () {
+            
+            alert("LOGIN BUTTON CLICKED");
 
             const username =
                 document.getElementById(
@@ -257,12 +259,7 @@ console.log(
 const loginSubmitButton =
     document.getElementById(
         "login-submit-btn"
-    ); 
-
-console.log(
-    "VYRO LOGIN BUTTON FOUND:",
-    loginSubmitButton
-);
+    );
 
 
 if (loginSubmitButton) {
