@@ -644,6 +644,27 @@ const VYROWallet = (function () {
                 "connected-wallet-address"
             );
 
+const providerElement =
+    document.getElementById(
+        "connected-wallet-provider"
+    );
+
+
+if (providerElement) {
+
+    if (walletType === "trust-wallet") {
+
+        providerElement.textContent =
+            "Trust Wallet";
+
+    } else {
+
+        providerElement.textContent =
+            "External Wallet";
+
+    }
+
+}
 
         if (addressElement) {
 
@@ -730,6 +751,87 @@ const VYROWallet = (function () {
     // =====================================================
 
     async function restoreConnection() {
+
+// =====================================================
+// RESTORE TRUST WALLET CONNECTION
+// =====================================================
+
+if (
+    window.trustwallet &&
+    window.trustwallet.solana
+) {
+
+    try {
+
+        const trustWallet =
+            window.trustwallet.solana;
+
+
+        const connectFeature =
+            trustWallet.features &&
+            trustWallet.features[
+                "standard:connect"
+            ];
+
+
+        if (
+            connectFeature &&
+            typeof connectFeature.connect === "function"
+        ) {
+
+            const result =
+                await connectFeature.connect({
+                    silent: true
+                });
+
+
+            const accounts =
+                result &&
+                result.accounts;
+
+
+            if (
+                accounts &&
+                accounts.length
+            ) {
+
+                const address =
+                    accounts[0].address;
+
+
+                if (address) {
+
+                    setConnectedWallet(
+                        address,
+                        "trust-wallet",
+                        null
+                    );
+
+
+                    console.log(
+                        "VYRO: Saved Trust Wallet restored."
+                    );
+
+
+                    return address;
+
+                }
+
+            }
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.log(
+            "VYRO: No silent Trust Wallet connection available."
+        );
+
+    }
+
+}
 
         const savedAddress =
             localStorage.getItem(
