@@ -2,6 +2,27 @@
 // VYRO AUTHENTICATION — FIREBASE
 // =========================================================
 
+// =========================================================
+// KEEP USERS LOGGED IN
+// =========================================================
+
+firebaseAuth.setPersistence(
+    firebase.auth.Auth.Persistence.LOCAL
+).then(function () {
+
+    console.log(
+        "VYRO Firebase login persistence enabled."
+    );
+
+}).catch(function (error) {
+
+    console.error(
+        "VYRO AUTH PERSISTENCE ERROR:",
+        error
+    );
+
+});
+
 
 // =========================================================
 // CREATE ACCOUNT
@@ -242,7 +263,6 @@ if (forgotPasswordButton) {
 
 }
 
-
 // =========================================================
 // AUTH — APP READY
 // =========================================================
@@ -461,4 +481,169 @@ if (loginSubmitButton) {
         }
     );
 
+}
+
+
+// =========================================================
+// RESTORE EXISTING FIREBASE LOGIN SESSION
+// =========================================================
+
+let vyroInitialAuthCheck = true;
+
+firebaseAuth.onAuthStateChanged(
+    async function (user) {
+
+        // Only perform this check when VYRO first loads.
+        // Do not interfere with the normal LOGIN button.
+        if (!vyroInitialAuthCheck) {
+
+            return;
+
+        }
+
+        vyroInitialAuthCheck = false;
+
+
+        // No existing login session.
+        if (!user) {
+
+            console.log(
+                "VYRO: No existing login session."
+            );
+
+            return;
+        }
+
+
+        console.log(
+            "VYRO: Existing login session detected."
+        );
+
+
+        try {
+
+            // Refresh Firebase user information.
+
+            await user.reload();
+
+
+            const currentUser =
+                firebaseAuth.currentUser;
+
+
+            if (!currentUser) {
+
+                return;
+
+            }
+
+
+            // =====================================================
+            // CHECK EMAIL VERIFICATION
+            // =====================================================
+
+            if (!currentUser.emailVerified) {
+
+                localStorage.setItem(
+                    "vyro_pending_user_id",
+                    currentUser.uid
+                );
+
+                showScreen(
+                    document.getElementById(
+                        "email-verification-screen"
+                    )
+                );
+
+                return;
+            }
+
+
+            // =====================================================
+            // GET VYRO PROFILE
+            // =====================================================
+
+            const userDocument =
+                await firebaseDB
+                    .collection("users")
+                    .doc(currentUser.uid)
+                    .get();
+
+
+            let userData = {};
+
+
+            if (userDocument.exists) {
+
+                userData =
+                    userDocument.data();
+
+
+                if (
+                    userData.username
+                ) {
+
+                    localStorage.setItem(
+                        "vyro_username",
+                        userData.username
+                    );
+
                 }
+
+            }
+
+
+            // =====================================================
+            // SECURITY SETUP
+            // =====================================================
+
+            if (
+                userData.securitySetupComplete !== true
+            ) {
+
+                showScreen(
+                    document.getElementById(
+                        "two-factor-screen"
+                    )
+                );
+
+                return;
+            }
+
+
+            // =====================================================
+            // CHECK 2FA
+            // =====================================================
+
+            if (
+                userData.twoFactorEnabled === true
+            ) {
+
+                showScreen(
+                    document.getElementById(
+                        "two-factor-screen"
+                    )
+                );
+
+            } else {
+
+                showScreen(
+                    document.getElementById(
+                        "home-screen"
+                    )
+                );
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "VYRO SESSION RESTORE ERROR:",
+                error
+            );
+
+        }
+
+    }
+);
