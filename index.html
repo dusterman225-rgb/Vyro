@@ -1310,6 +1310,7 @@
 >
 
     <div class="auth-top">
+
         <button
             id="wallets-back-btn"
             class="back-button"
@@ -1317,7 +1318,9 @@
         >
             ←
         </button>
+
     </div>
+
 
     <div class="auth-content">
 
@@ -1327,87 +1330,77 @@
             Manage the external wallets connected to VYRO.
         </p>
 
+
+        <!-- =================================================
+             SOLANA WALLET STATUS
+             ================================================= -->
+
         <div class="auth-card">
 
             <div class="auth-card-title">
                 SOLANA
             </div>
 
-            <p class="auth-card-text">
+            <p
+                id="no-wallet-connected"
+                class="auth-card-text"
+            >
                 No wallet connected.
             </p>
-            
-            <div id="saved-wallet-card" class="auth-card" style="display:none;">
 
-    <p class="auth-card-label">
-        CONNECTED WALLET
-    </p>
-
-    <p id="saved-wallet-provider" class="auth-card-text">
-        Trust Wallet
-    </p>
-
-    <p id="saved-wallet-network" class="auth-card-text">
-        SOLANA
-    </p>
-
-<div class="auth-card">
-
-    <div class="auth-card-title">
-        SOLANA
-    </div>
-
-    <p
-        id="no-wallet-connected"
-        class="auth-card-text"
-    >
-        No wallet connected.
-    </p>
-
-</div>
+        </div>
 
 
-<div
-    id="saved-wallet-card"
-    class="auth-card"
-    style="display:none;"
->
+        <!-- =================================================
+             SAVED / CONNECTED WALLET
+             ================================================= -->
 
-    <div class="auth-card-title">
-        CONNECTED WALLET
-    </div>
+        <div
+            id="saved-wallet-card"
+            class="auth-card"
+            style="display:none;"
+        >
 
-    <p
-        id="saved-wallet-provider"
-        class="auth-card-text"
-    >
-        Trust Wallet
-    </p>
+            <div class="auth-card-title">
+                CONNECTED WALLET
+            </div>
 
-    <p
-        id="saved-wallet-network"
-        class="auth-card-text"
-    >
-        SOLANA
-    </p>
+            <p
+                id="saved-wallet-provider"
+                class="auth-card-text"
+            >
+                Trust Wallet
+            </p>
 
-    <p
-        id="saved-wallet-address"
-        class="auth-card-text"
-    >
-        Wallet address
-    </p>
+            <p
+                id="saved-wallet-network"
+                class="auth-card-text"
+            >
+                SOLANA
+            </p>
 
-</div>
+            <p
+                id="saved-wallet-address"
+                class="auth-card-text"
+            >
+                Wallet address
+            </p>
+
+        </div>
 
 
-<button
-    id="connect-wallet-btn"
-    class="primary-button"
-    type="button"
->
-    CONNECT WALLET
-</button>
+        <!-- =================================================
+             CONNECT WALLET BUTTON
+             ================================================= -->
+
+        <button
+            id="connect-wallet-btn"
+            class="primary-button"
+            type="button"
+        >
+            CONNECT WALLET
+        </button>
+
 
     </div>
 
@@ -2169,4 +2162,4 @@
 
 </body>
 
-            </html>
+        </html>
