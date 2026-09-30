@@ -171,6 +171,60 @@ const VYROWallet = (function () {
             WALLET_TYPE_KEY,
             type
         );
+        
+        const savedWalletCard =
+    document.getElementById(
+        "saved-wallet-card"
+    );
+
+const savedWalletProvider =
+    document.getElementById(
+        "saved-wallet-provider"
+    );
+
+const savedWalletNetwork =
+    document.getElementById(
+        "saved-wallet-network"
+    );
+
+const savedWalletAddress =
+    document.getElementById(
+        "saved-wallet-address"
+    );
+
+
+if (savedWalletCard) {
+
+    savedWalletCard.style.display =
+        "block";
+
+}
+
+
+if (savedWalletProvider) {
+
+    savedWalletProvider.textContent =
+        type === "trust-wallet"
+            ? "Trust Wallet"
+            : "External Wallet";
+
+}
+
+
+if (savedWalletNetwork) {
+
+    savedWalletNetwork.textContent =
+        "SOLANA";
+
+}
+
+
+if (savedWalletAddress) {
+
+    savedWalletAddress.textContent =
+        address;
+
+}
 
     }
 
@@ -846,23 +900,78 @@ if (
 
 
         if (
-            savedAddress &&
-            savedWalletType
-        ) {
+    savedAddress &&
+    savedWalletType
+) {
 
-            publicAddress =
-                savedAddress;
+    publicAddress =
+        savedAddress;
 
-            walletType =
-                savedWalletType;
+    walletType =
+        savedWalletType;
 
-            connected =
-                true;
+    connected =
+        true;
 
 
-            return savedAddress;
+    const savedWalletCard =
+        document.getElementById(
+            "saved-wallet-card"
+        );
 
-        }
+    const savedWalletProvider =
+        document.getElementById(
+            "saved-wallet-provider"
+        );
+
+    const savedWalletNetwork =
+        document.getElementById(
+            "saved-wallet-network"
+        );
+
+    const savedWalletAddress =
+        document.getElementById(
+            "saved-wallet-address"
+        );
+
+
+    if (savedWalletCard) {
+
+        savedWalletCard.style.display =
+            "block";
+
+    }
+
+
+    if (savedWalletProvider) {
+
+        savedWalletProvider.textContent =
+            savedWalletType === "trust-wallet"
+                ? "Trust Wallet"
+                : "External Wallet";
+
+    }
+
+
+    if (savedWalletNetwork) {
+
+        savedWalletNetwork.textContent =
+            "SOLANA";
+
+    }
+
+
+    if (savedWalletAddress) {
+
+        savedWalletAddress.textContent =
+            savedAddress;
+
+    }
+
+
+    return savedAddress;
+
+}
 
 
         return null;
