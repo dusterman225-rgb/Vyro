@@ -820,10 +820,36 @@ button:active {
 }
 
 .home-brand {
-    color: var(--gold);
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 2px;
+
+    width: 110px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-start;
+
+}
+
+
+.home-brand img {
+
+    display: block;
+
+    width: 100%;
+
+    height: auto;
+
+    filter:
+        drop-shadow(
+            0 0 7px
+            rgba(245, 201, 91, 0.35)
+        )
+        drop-shadow(
+            0 0 18px
+            rgba(245, 201, 91, 0.10)
+        );
+
 }
 
 /* =========================================================
@@ -1714,4 +1740,181 @@ button:active {
 .view-all-button:focus-visible {
     outline: 2px solid #f5c84c;
     outline-offset: 3px;
-       }
+}
+
+/* =========================================================
+   VYRO PREMIUM HOME — HORIZON / HALF-MOON
+   ========================================================= */
+
+#home-screen {
+    overflow: hidden;
+}
+
+
+/* ---------------------------------------------------------
+   HOME HERO AREA
+   --------------------------------------------------------- */
+
+#home-screen .home-content {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* ---------------------------------------------------------
+   GLOWING PLANET HORIZON
+   --------------------------------------------------------- */
+
+#home-screen .home-content::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 155%;
+    height: 190px;
+
+    left: -27.5%;
+    top: 105px;
+
+    border-radius: 50% 50% 0 0;
+
+    border-top:
+        1px solid
+        rgba(255, 225, 140, 0.9);
+
+    background:
+        radial-gradient(
+            ellipse at 50% 100%,
+            rgba(245, 201, 91, 0.22) 0%,
+            rgba(245, 201, 91, 0.09) 28%,
+            rgba(245, 201, 91, 0.025) 48%,
+            transparent 72%
+        );
+
+    box-shadow:
+        0 -2px 10px
+        rgba(255, 224, 130, 0.55),
+
+        0 -8px 35px
+        rgba(245, 201, 91, 0.18),
+
+        0 18px 55px
+        rgba(245, 201, 91, 0.08);
+
+    pointer-events: none;
+
+    z-index: -1;
+
+}
+
+
+/* ---------------------------------------------------------
+   HORIZON LIGHT
+   --------------------------------------------------------- */
+
+#home-screen .home-content::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 110%;
+    height: 70px;
+
+    left: -5%;
+    top: 185px;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(255, 226, 137, 0.34) 0%,
+            rgba(245, 201, 91, 0.12) 28%,
+            transparent 70%
+        );
+
+    filter: blur(9px);
+
+    pointer-events: none;
+
+    z-index: -1;
+
+}
+
+
+/* ---------------------------------------------------------
+   KEEP BALANCE ABOVE THE GRAPHIC
+   --------------------------------------------------------- */
+
+#home-screen .balance-label,
+#home-screen .balance-amount,
+#home-screen .balance-subtitle {
+
+    position: relative;
+
+    z-index: 2;
+
+}
+
+
+/* ---------------------------------------------------------
+   PREMIUM HOME BALANCE
+   --------------------------------------------------------- */
+
+#home-screen .balance-amount {
+
+    text-shadow:
+        0 0 12px
+        rgba(255, 255, 255, 0.08),
+
+        0 0 28px
+        rgba(245, 201, 91, 0.10);
+
+}
+
+
+/* ---------------------------------------------------------
+   GOLD USDC LABEL
+   --------------------------------------------------------- */
+
+#home-screen .balance-subtitle {
+
+    text-shadow:
+        0 0 12px
+        rgba(245, 201, 91, 0.35);
+
+}
+
+/* =========================================================
+   VYRO WORDMARK LOGO
+   ========================================================= */
+
+#welcome-screen .logo {
+
+    width: min(82vw, 360px);
+
+    margin-top: 12px;
+
+    padding: 0;
+
+    filter:
+        drop-shadow(
+            0 0 10px
+            rgba(245, 201, 91, 0.35)
+        )
+        drop-shadow(
+            0 0 25px
+            rgba(245, 201, 91, 0.12)
+        );
+
+}
+
+
+#welcome-screen .logo img {
+
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+   }
