@@ -3,15 +3,10 @@
 // =========================================================
 
 let initialized = false;
-
 let connected = false;
-
 let publicAddress = null;
-
 let walletType = null;
-
 let signClient = null;
-
 let session = null;
 
 
@@ -27,7 +22,36 @@ const WALLET_TYPE_KEY =
 
 
 // =========================================================
-// WALLET ADDRESS FROM WALLETCONNECT SESSION
+// FORMAT WALLET ADDRESS FOR DISPLAY
+// =========================================================
+
+function formatWalletAddress(address) {
+
+    if (!address) {
+
+        return "Wallet address";
+
+    }
+
+    if (address.length <= 12) {
+
+        return address;
+
+    }
+
+    return (
+        address.substring(0, 6) +
+        "..." +
+        address.substring(
+            address.length - 6
+        )
+    );
+
+}
+
+
+// =========================================================
+// GET ADDRESS FROM WALLETCONNECT SESSION
 // =========================================================
 
 function getAddressFromSession(
@@ -147,8 +171,6 @@ function setConnectedWallet(
         );
 
 
-    // Hide "No wallet connected."
-
     if (noWalletConnected) {
 
         noWalletConnected.style.display =
@@ -157,8 +179,6 @@ function setConnectedWallet(
     }
 
 
-    // Show saved wallet card.
-
     if (savedWalletCard) {
 
         savedWalletCard.style.display =
@@ -166,8 +186,6 @@ function setConnectedWallet(
 
     }
 
-
-    // Show wallet provider.
 
     if (savedWalletProvider) {
 
@@ -179,8 +197,6 @@ function setConnectedWallet(
     }
 
 
-    // Show network.
-
     if (savedWalletNetwork) {
 
         savedWalletNetwork.textContent =
@@ -189,11 +205,14 @@ function setConnectedWallet(
     }
 
 
-    // Show public wallet address.
-
     if (savedWalletAddress) {
 
         savedWalletAddress.textContent =
+            formatWalletAddress(
+                address
+            );
+
+        savedWalletAddress.dataset.fullAddress =
             address;
 
     }
@@ -228,10 +247,6 @@ function clearWalletState() {
         WALLET_TYPE_KEY
     );
 
-
-    // =====================================================
-    // UPDATE WALLETS SCREEN
-    // =====================================================
 
     const noWalletConnected =
         document.getElementById(
@@ -283,20 +298,10 @@ function showConnectedWallet(
 
     if (providerElement) {
 
-        if (
-            walletType ===
-            "trust-wallet"
-        ) {
-
-            providerElement.textContent =
-                "Trust Wallet";
-
-        } else {
-
-            providerElement.textContent =
-                "External Wallet";
-
-        }
+        providerElement.textContent =
+            walletType === "trust-wallet"
+                ? "Trust Wallet"
+                : "External Wallet";
 
     }
 
@@ -473,10 +478,7 @@ async function connect() {
                     url:
                         window.location.origin,
 
-                    icons: [
-                        window.location.origin +
-                        "/assets/icon.png"
-                    ]
+                    icons: []
 
                 }
 
@@ -532,10 +534,6 @@ async function connect() {
         );
 
 
-        // =================================================
-        // OPEN TRUST WALLET
-        // =================================================
-
         const trustWalletUrl =
             "https://link.trustwallet.com/wc?uri=" +
             encodeURIComponent(uri);
@@ -547,10 +545,6 @@ async function connect() {
             "noreferrer noopener"
         );
 
-
-        // =================================================
-        // WAIT FOR WALLET APPROVAL
-        // =================================================
 
         const approvedSession =
             await connection.approval();
@@ -611,7 +605,6 @@ async function connect() {
             "VYRO: WalletConnect connection error:",
             error
         );
-
 
         throw error;
 
@@ -877,6 +870,11 @@ async function restoreConnection() {
         if (savedWalletAddress) {
 
             savedWalletAddress.textContent =
+                formatWalletAddress(
+                    savedAddress
+                );
+
+            savedWalletAddress.dataset.fullAddress =
                 savedAddress;
 
         }
@@ -893,6 +891,72 @@ async function restoreConnection() {
 
 
     return null;
+
+}
+
+
+// =========================================================
+// COPY WALLET ADDRESS
+// =========================================================
+
+function copyWalletAddress() {
+
+    const addressElement =
+        document.getElementById(
+            "saved-wallet-address"
+        );
+
+
+    if (
+        !addressElement ||
+        !addressElement.dataset.fullAddress
+    ) {
+
+        return;
+
+    }
+
+
+    const fullAddress =
+        addressElement.dataset.fullAddress;
+
+
+    if (
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+    ) {
+
+        navigator.clipboard.writeText(
+            fullAddress
+        ).then(function () {
+
+            const button =
+                document.getElementById(
+                    "copy-wallet-address-btn"
+                );
+
+
+            if (button) {
+
+                button.textContent =
+                    "COPIED";
+
+
+                setTimeout(
+                    function () {
+
+                        button.textContent =
+                            "COPY ADDRESS";
+
+                    },
+                    1500
+                );
+
+            }
+
+        });
+
+    }
 
 }
 
@@ -1006,6 +1070,26 @@ async function init() {
     }
 
 
+    // =====================================================
+    // COPY ADDRESS BUTTON
+    // =====================================================
+
+    const copyWalletAddressButton =
+        document.getElementById(
+            "copy-wallet-address-btn"
+        );
+
+
+    if (copyWalletAddressButton) {
+
+        copyWalletAddressButton.addEventListener(
+            "click",
+            copyWalletAddress
+        );
+
+    }
+
+
     console.log(
         "VYRO: Wallet system initialized."
     );
@@ -1077,4 +1161,4 @@ if (
 
     VYROWallet.init();
 
-        }
+}
