@@ -269,6 +269,132 @@ const VYROWallet = (function () {
 
     async function connect() {
 
+    // =====================================================
+    // TRUST WALLET DAPP BROWSER
+    // =====================================================
+
+    if (
+        window.trustwallet &&
+        window.trustwallet.solana
+    ) {
+
+        console.log(
+            "VYRO: Trust Wallet DApp browser detected."
+        );
+
+        try {
+
+            const trustWallet =
+                window.trustwallet.solana;
+
+
+            // Trust Wallet's Solana provider
+            // follows the Wallet Standard.
+
+            const connectFeature =
+                trustWallet.features &&
+                trustWallet.features[
+                    "standard:connect"
+                ];
+
+
+            if (
+                !connectFeature ||
+                typeof connectFeature.connect !== "function"
+            ) {
+
+                throw new Error(
+                    "Trust Wallet Solana connect feature was not found."
+                );
+
+            }
+
+
+            console.log(
+                "VYRO: Requesting Trust Wallet Solana account..."
+            );
+
+
+            const result =
+                await connectFeature.connect();
+
+
+            const accounts =
+                result &&
+                result.accounts;
+
+
+            if (
+                !accounts ||
+                !accounts.length
+            ) {
+
+                throw new Error(
+                    "Trust Wallet did not return a Solana account."
+                );
+
+            }
+
+
+            const address =
+                accounts[0].address;
+
+
+            if (!address) {
+
+                throw new Error(
+                    "Trust Wallet returned an invalid Solana address."
+                );
+
+            }
+
+
+            console.log(
+                "VYRO: Trust Wallet Solana account connected."
+            );
+
+
+            setConnectedWallet(
+                address,
+                "trust-wallet",
+                null
+            );
+
+
+            showConnectedWallet(
+                address
+            );
+
+
+            return address;
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "VYRO Trust Wallet connection error:",
+                error
+            );
+
+
+            alert(
+                "Unable to connect Trust Wallet."
+            );
+
+
+            return null;
+
+        }
+
+    }
+
+
+    // =====================================================
+    // NORMAL MOBILE BROWSER
+    // USE WALLETCONNECT
+    // =====================================================
+
     try {
 
         console.log(
