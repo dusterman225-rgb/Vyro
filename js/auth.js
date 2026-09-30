@@ -18,7 +18,6 @@ if (continueRegistrationButton) {
         "click",
         async function () {
             
-            alert("LOGIN BUTTON CLICKED");
 
             const username =
                 document.getElementById(
@@ -462,4 +461,4 @@ if (loginSubmitButton) {
         }
     );
 
-        }
+                }
