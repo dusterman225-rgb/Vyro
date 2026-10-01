@@ -23,7 +23,6 @@
 
     --radius: 18px;
 
-    /* Consistent page spacing */
     --page-padding: 20px;
 }
 
@@ -114,10 +113,98 @@ body {
     padding-bottom: 24px;
 
     box-sizing: border-box;
+
+    overflow-x: hidden;
 }
 
 .screen.active {
     display: flex;
+}
+
+
+/* =========================================================
+   UNIVERSAL SCREEN HORIZON
+   Every screen except Welcome gets the VYRO half-moon.
+   ========================================================= */
+
+.screen:not(#welcome-screen)::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 155%;
+    height: 190px;
+
+    left: -27.5%;
+    top: 105px;
+
+    border-radius: 50% 50% 0 0;
+
+    border-top:
+        1px solid
+        rgba(255, 225, 140, 0.9);
+
+    background:
+        radial-gradient(
+            ellipse at 50% 100%,
+            rgba(245, 201, 91, 0.22) 0%,
+            rgba(245, 201, 91, 0.09) 28%,
+            rgba(245, 201, 91, 0.025) 48%,
+            transparent 72%
+        );
+
+    box-shadow:
+        0 -2px 10px
+        rgba(255, 224, 130, 0.55),
+
+        0 -8px 35px
+        rgba(245, 201, 91, 0.18),
+
+        0 18px 55px
+        rgba(245, 201, 91, 0.08);
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
+
+.screen:not(#welcome-screen)::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 110%;
+    height: 70px;
+
+    left: -5%;
+    top: 185px;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(255, 226, 137, 0.34) 0%,
+            rgba(245, 201, 91, 0.12) 28%,
+            transparent 70%
+        );
+
+    filter: blur(9px);
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
+
+/* Keep all normal screen content above the horizon */
+
+.screen:not(#welcome-screen) > * {
+
+    position: relative;
+
+    z-index: 1;
 }
 
 
@@ -154,7 +241,7 @@ body {
 
 
 /* =========================================================
-   LOGO
+   WELCOME LOGO
    ========================================================= */
 
 .logo {
@@ -194,6 +281,35 @@ body {
             0 0 22px
             rgba(245, 201, 91, 0.16)
         );
+}
+
+
+#welcome-screen .logo {
+
+    width: min(82vw, 360px);
+
+    margin-top: 12px;
+
+    padding: 0;
+
+    filter:
+        drop-shadow(
+            0 0 10px
+            rgba(245, 201, 91, 0.35)
+        )
+        drop-shadow(
+            0 0 25px
+            rgba(245, 201, 91, 0.12)
+        );
+}
+
+
+#welcome-screen .logo img {
+
+    display: block;
+
+    width: 100%;
+    height: auto;
 }
 
 
@@ -346,14 +462,15 @@ button:active {
     display: flex;
 
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 
     position: relative;
 }
 
 
 /* =========================================================
-   AUTH LOGO
+   OLD AUTH LOGO
+   Kept for compatibility, but the new PNG home logo is used.
    ========================================================= */
 
 .auth-logo {
@@ -388,53 +505,68 @@ button:active {
 
 
 /* =========================================================
-   UNIVERSAL BACK BUTTON
+   VYRO HOME BUTTON
+   Used on every screen except Welcome.
    ========================================================= */
 
-.back-button {
+.screen-home-button {
 
-    position: absolute;
+    width: auto;
 
-    left: 0;
+    min-width: 44px;
+    min-height: 44px;
 
-    width: 44px;
-    height: 44px;
+    padding: 5px 0;
 
-    padding: 0;
+    border: none;
 
-    border-radius: 50%;
-
-    color: var(--gold-light);
-
-    background:
-        rgba(245, 201, 91, 0.055);
-
-    border:
-        1px solid
-        var(--border-soft);
-
-    font-size: 27px;
-
-    font-weight: 300;
-
-    line-height: 1;
+    background: transparent;
 
     display: flex;
 
     align-items: center;
-    justify-content: center;
 
-    box-shadow:
-        0 0 12px
-        rgba(245, 201, 91, 0.04);
+    justify-content: flex-start;
+
+    cursor: pointer;
 }
 
-.back-button:active {
 
-    background:
-        rgba(245, 201, 91, 0.12);
+.screen-home-button img {
 
-    transform: scale(0.94);
+    display: block;
+
+    width: 82px;
+
+    height: auto;
+
+    filter:
+        drop-shadow(
+            0 0 7px
+            rgba(245, 201, 91, 0.35)
+        )
+        drop-shadow(
+            0 0 18px
+            rgba(245, 201, 91, 0.10)
+        );
+}
+
+
+.screen-home-button:active img {
+
+    transform: scale(0.95);
+}
+
+
+/* =========================================================
+   UNIVERSAL BACK BUTTON
+   Kept in DOM for existing JavaScript compatibility.
+   Hidden from the user.
+   ========================================================= */
+
+.back-button {
+
+    display: none !important;
 }
 
 
@@ -447,8 +579,7 @@ button:active {
     width: 100%;
     max-width: 390px;
 
-    margin:
-        auto;
+    margin: auto;
 
     display: flex;
 
@@ -612,8 +743,7 @@ button:active {
 
 .form-group input {
 
-    padding:
-        0 16px;
+    padding: 0 16px;
 }
 
 
@@ -633,8 +763,7 @@ button:active {
 
     background: transparent;
 
-    padding:
-        0 14px 0 4px;
+    padding: 0 14px 0 4px;
 
     flex: 1;
 
@@ -685,8 +814,7 @@ button:active {
 
     height: 64px;
 
-    padding:
-        0 18px;
+    padding: 0 18px;
 
     border:
         1px solid
@@ -758,8 +886,7 @@ button:active {
 
     width: auto;
 
-    margin:
-        20px auto 0;
+    margin: 20px auto 0;
 
     color: var(--gold);
 
@@ -808,16 +935,26 @@ button:active {
     padding-top: 24px;
 
     padding-bottom: 24px;
+
+    overflow: hidden;
 }
 
+
 .home-header {
+
     width: 100%;
+
     height: 44px;
+
     display: flex;
+
     align-items: center;
+
     justify-content: space-between;
+
     position: relative;
 }
+
 
 .home-brand {
 
@@ -828,7 +965,6 @@ button:active {
     align-items: center;
 
     justify-content: flex-start;
-
 }
 
 
@@ -849,8 +985,8 @@ button:active {
             0 0 18px
             rgba(245, 201, 91, 0.10)
         );
-
 }
+
 
 /* =========================================================
    PROFILE AVATAR + DROPDOWN
@@ -861,19 +997,30 @@ button:active {
 }
 
 .profile-avatar-button {
+
     width: 38px;
     height: 38px;
+
     border-radius: 50%;
+
     border: 1px solid var(--gold);
+
     background: var(--black-soft);
+
     color: var(--gold);
+
     display: flex;
+
     align-items: center;
     justify-content: center;
+
     font-size: 15px;
     font-weight: 700;
+
     cursor: pointer;
+
     padding: 0;
+
     transition: all 0.2s ease;
 }
 
@@ -881,73 +1028,127 @@ button:active {
     transform: scale(0.94);
 }
 
+
 .profile-dropdown {
+
     position: absolute;
+
     top: 48px;
     right: 0;
+
     width: 210px;
+
     background: var(--card);
+
     border: 1px solid var(--border);
+
     border-radius: 16px;
+
     padding: 8px;
-    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.55);
+
+    box-shadow:
+        0 14px 35px
+        rgba(0, 0, 0, 0.55);
+
     z-index: 1000;
 
     opacity: 0;
+
     visibility: hidden;
+
     transform: translateY(-6px);
+
     transition:
         opacity 0.18s ease,
         transform 0.18s ease,
         visibility 0.18s ease;
 }
 
+
 .profile-dropdown.open {
+
     opacity: 1;
+
     visibility: visible;
+
     transform: translateY(0);
 }
 
+
 .profile-dropdown-header {
+
     padding: 10px 12px 12px;
+
     color: var(--gold);
+
     font-size: 14px;
+
     font-weight: 600;
+
     word-break: break-word;
 }
 
+
 .profile-menu-item {
+
     width: 100%;
+
     min-height: 44px;
+
     border: none;
+
     background: transparent;
+
     color: var(--text);
+
     text-align: left;
+
     padding: 0 12px;
+
     border-radius: 10px;
+
     font-size: 13px;
+
     font-weight: 600;
+
     letter-spacing: 0.5px;
+
     cursor: pointer;
 }
 
+
 .profile-menu-item:active {
+
     background: var(--card-light);
 }
 
+
 .profile-menu-divider {
+
     height: 1px;
+
     background: var(--border-soft);
+
     margin: 6px 4px;
 }
 
+
 .profile-menu-item.logout {
+
     color: #ff5c5c;
 }
 
+
 .profile-menu-item.logout:active {
-    background: rgba(255, 92, 92, 0.10);
+
+    background:
+        rgba(255, 92, 92, 0.10);
 }
+
+
+/* =========================================================
+   OLD HOME LOGO BUTTON
+   ========================================================= */
 
 .home-logo-button {
 
@@ -969,11 +1170,19 @@ button:active {
 }
 
 
+/* =========================================================
+   HOME CONTENT
+   ========================================================= */
+
 .home-content {
 
     width: 100%;
 
     margin-top: 55px;
+
+    position: relative;
+
+    z-index: 1;
 }
 
 
@@ -991,8 +1200,7 @@ button:active {
 
 .balance-amount {
 
-    margin:
-        8px 0 0;
+    margin: 8px 0 0;
 
     color: var(--text);
 
@@ -1008,8 +1216,7 @@ button:active {
 
 .balance-subtitle {
 
-    margin:
-        4px 0 30px;
+    margin: 4px 0 30px;
 
     color: var(--gold);
 
@@ -1096,8 +1303,7 @@ button:active {
     width: 42px;
     height: 42px;
 
-    margin:
-        0 auto 12px;
+    margin: 0 auto 12px;
 
     border:
         1px solid
@@ -1138,7 +1344,7 @@ button:active {
 
     width: 100%;
 
-    height: 44px;
+    min-height: 44px;
 
     display: flex;
 
@@ -1149,7 +1355,7 @@ button:active {
 
 
 /* =========================================================
-   SEND
+   SEND / CONFIRM / RECEIVE
    ========================================================= */
 
 .send-content,
@@ -1166,8 +1372,7 @@ button:active {
 .confirm-content h1,
 .receive-content h1 {
 
-    margin:
-        0 0 8px;
+    margin: 0 0 8px;
 
     color: var(--text);
 
@@ -1199,8 +1404,7 @@ button:active {
     appearance: none;
     -webkit-appearance: none;
 
-    padding:
-        15px 42px 15px 14px;
+    padding: 15px 42px 15px 14px;
 
     border:
         1px solid
@@ -1263,6 +1467,70 @@ button:active {
 
 
 /* =========================================================
+   UNIVERSAL SELECT
+   Wallet selectors and future selectors
+   ========================================================= */
+
+.vyro-select {
+
+    width: 100%;
+
+    min-height: 56px;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    padding: 15px 42px 15px 14px;
+
+    border:
+        1px solid
+        var(--border-soft);
+
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            45deg,
+            transparent 50%,
+            var(--gold) 50%
+        )
+        calc(100% - 20px)
+        22px / 6px 6px
+        no-repeat,
+
+        linear-gradient(
+            135deg,
+            var(--gold) 50%,
+            transparent 50%
+        )
+        calc(100% - 16px)
+        22px / 6px 6px
+        no-repeat,
+
+        var(--card);
+
+    color: var(--text);
+
+    font-size: 15px;
+
+    outline: none;
+}
+
+
+.vyro-select:focus {
+
+    border-color: var(--gold);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(245, 201, 91, 0.06),
+
+        0 0 18px
+        rgba(245, 201, 91, 0.06);
+}
+
+
+/* =========================================================
    CONFIRM PAYMENT
    ========================================================= */
 
@@ -1270,8 +1538,7 @@ button:active {
 
     width: 100%;
 
-    padding:
-        6px 18px;
+    padding: 6px 18px;
 
     border:
         1px solid
@@ -1293,8 +1560,7 @@ button:active {
 
     gap: 20px;
 
-    padding:
-        17px 0;
+    padding: 17px 0;
 
     border-bottom:
         1px solid
@@ -1318,6 +1584,19 @@ button:active {
 }
 
 
+.summary-row strong,
+.summary-row p {
+
+    color: var(--text);
+
+    font-size: 14px;
+
+    text-align: right;
+
+    word-break: break-word;
+}
+
+
 /* =========================================================
    RECIPIENT LOOKUP
    ========================================================= */
@@ -1328,8 +1607,7 @@ button:active {
 
     margin-top: 10px;
 
-    padding:
-        14px 16px;
+    padding: 14px 16px;
 
     border:
         1px solid
@@ -1430,8 +1708,7 @@ button:active {
 
     height: 1px;
 
-    margin:
-        20px 0;
+    margin: 20px 0;
 
     background:
         var(--border-soft);
@@ -1467,8 +1744,7 @@ button:active {
 
 .receive-note {
 
-    margin:
-        18px auto 0;
+    margin: 18px auto 0;
 
     max-width: 300px;
 
@@ -1479,6 +1755,443 @@ button:active {
     line-height: 1.5;
 
     text-align: center;
+}
+
+
+/* =========================================================
+   WALLET SYSTEM
+   ========================================================= */
+
+.wallet-list {
+
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+}
+
+
+.wallet-list-empty {
+
+    width: 100%;
+
+    padding: 22px 18px;
+
+    border:
+        1px dashed
+        var(--border-soft);
+
+    border-radius: var(--radius);
+
+    background:
+        rgba(245, 201, 91, 0.025);
+
+    text-align: center;
+}
+
+
+.wallet-list-empty strong {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: var(--gold);
+
+    font-size: 13px;
+
+    letter-spacing: 0.8px;
+}
+
+
+.wallet-list-empty span {
+
+    display: block;
+
+    color: var(--text-muted);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+.wallet-card {
+
+    width: 100%;
+
+    padding: 18px;
+
+    border:
+        1px solid
+        var(--border-soft);
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.035),
+            rgba(255, 255, 255, 0.01)
+        );
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.wallet-card.active {
+
+    border-color:
+        rgba(245, 201, 91, 0.65);
+
+    background:
+        rgba(245, 201, 91, 0.045);
+
+    box-shadow:
+        0 0 18px
+        rgba(245, 201, 91, 0.06);
+}
+
+
+.wallet-card-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 10px;
+}
+
+
+.wallet-provider {
+
+    color: var(--gold);
+
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+
+.wallet-active-label {
+
+    color: var(--gold-light);
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.2px;
+}
+
+
+.wallet-network {
+
+    margin-bottom: 7px;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+
+    letter-spacing: 1.4px;
+}
+
+
+.wallet-address {
+
+    color: var(--text);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+    word-break: break-all;
+}
+
+
+.wallet-card-actions {
+
+    display: flex;
+
+    gap: 8px;
+
+    margin-top: 14px;
+}
+
+
+.wallet-card-actions button {
+
+    min-height: 40px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    letter-spacing: 0.6px;
+}
+
+
+.wallet-select-button {
+
+    color: #111;
+
+    background:
+        linear-gradient(
+            180deg,
+            #fff1b2,
+            #f5c95b
+        );
+}
+
+
+.wallet-copy-button {
+
+    color: var(--gold);
+
+    background:
+        rgba(245, 201, 91, 0.04);
+
+    border:
+        1px solid
+        var(--border-soft);
+}
+
+
+.wallet-security-note {
+
+    width: 100%;
+
+    margin-top: 18px;
+
+    padding: 15px 16px;
+
+    border:
+        1px solid
+        rgba(245, 201, 91, 0.14);
+
+    border-radius: 14px;
+
+    background:
+        rgba(245, 201, 91, 0.025);
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+
+    line-height: 1.55;
+
+    text-align: center;
+}
+
+
+.wallet-security-note strong {
+
+    color: var(--gold-light);
+
+    font-weight: 600;
+}
+
+
+#saved-wallet-address {
+
+    word-break: break-all;
+}
+
+
+/* =========================================================
+   CONNECTED WALLET
+   ========================================================= */
+
+.connected-wallet-card {
+
+    width: 100%;
+
+    padding: 20px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: var(--radius);
+
+    background:
+        rgba(245, 201, 91, 0.035);
+
+    text-align: center;
+}
+
+
+.connected-wallet-card .wallet-address {
+
+    margin-top: 10px;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   NON-CUSTODIAL NOTICE
+   ========================================================= */
+
+.non-custodial-notice {
+
+    width: 100%;
+
+    margin-top: 18px;
+
+    padding: 15px 16px;
+
+    border:
+        1px solid
+        var(--border-soft);
+
+    border-radius: 14px;
+
+    background:
+        rgba(245, 201, 91, 0.025);
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+
+    line-height: 1.55;
+
+    text-align: center;
+}
+
+
+.non-custodial-notice strong {
+
+    color: var(--gold);
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   VIEW ALL ACTIVITY BUTTON
+   ========================================================= */
+
+.view-all-button {
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    background: transparent;
+
+    border:
+        1px solid
+        rgba(212, 175, 55, 0.65);
+
+    color: #f5c84c;
+
+    font-family: inherit;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.5px;
+
+    padding: 8px 16px;
+
+    border-radius: 20px;
+
+    cursor: pointer;
+
+    min-height: 36px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.view-all-button:hover {
+
+    background:
+        rgba(212, 175, 55, 0.10);
+
+    border-color: #f5c84c;
+
+    color: #ffd966;
+}
+
+
+.view-all-button:active {
+
+    transform: scale(0.97);
+
+    background:
+        rgba(212, 175, 55, 0.16);
+}
+
+
+.view-all-button:focus {
+
+    outline: none;
+}
+
+
+.view-all-button:focus-visible {
+
+    outline:
+        2px solid
+        #f5c84c;
+
+    outline-offset: 3px;
+}
+
+
+/* =========================================================
+   PREMIUM HOME BALANCE
+   ========================================================= */
+
+#home-screen .balance-label,
+#home-screen .balance-amount,
+#home-screen .balance-subtitle {
+
+    position: relative;
+
+    z-index: 2;
+}
+
+
+#home-screen .balance-amount {
+
+    text-shadow:
+        0 0 12px
+        rgba(255, 255, 255, 0.08),
+
+        0 0 28px
+        rgba(245, 201, 91, 0.10);
+}
+
+
+#home-screen .balance-subtitle {
+
+    text-shadow:
+        0 0 12px
+        rgba(245, 201, 91, 0.35);
 }
 
 
@@ -1656,6 +2369,23 @@ button:active {
 
         font-size: 20px;
     }
+
+    .screen-home-button img {
+
+        width: 74px;
+    }
+
+    .screen:not(#welcome-screen)::before {
+
+        top: 92px;
+
+        height: 170px;
+    }
+
+    .screen:not(#welcome-screen)::after {
+
+        top: 160px;
+    }
 }
 
 
@@ -1686,235 +2416,507 @@ button:active {
 }
 
 /* =========================================================
-   VYRO — VIEW ALL ACTIVITY BUTTON
+   VYRO STAGE 1
+   Visual / Navigation Foundation
    ========================================================= */
 
-.view-all-button {
-    appearance: none;
-    -webkit-appearance: none;
+/* ---------------------------------------------------------
+   Internal page header foundation
+   --------------------------------------------------------- */
 
-    background: transparent;
-    border: 1px solid rgba(212, 175, 55, 0.65);
-
-    color: #f5c84c;
-
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-
-    padding: 8px 16px;
-
-    border-radius: 20px;
-
-    cursor: pointer;
-
-    min-height: 36px;
-
-    display: inline-flex;
+.internal-header {
+    width: 100%;
+    max-width: 390px;
+    min-height: 44px;
+    margin: 0 auto 18px;
+    display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
+}
 
+/* Keep existing back buttons in their current position
+   while establishing a consistent header structure. */
+
+.internal-header .back-button {
+    position: relative;
+    left: auto;
+    top: auto;
+    flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------
+   VYRO header button foundation
+   --------------------------------------------------------- */
+
+.home-logo-button {
+    border: 0;
+    background: transparent;
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    padding: 8px 0;
+    margin-left: auto;
+    cursor: pointer;
     transition:
-        background 0.2s ease,
-        border-color 0.2s ease,
         color 0.2s ease,
+        opacity 0.2s ease,
         transform 0.2s ease;
 }
 
-.view-all-button:hover {
-    background: rgba(212, 175, 55, 0.10);
-    border-color: #f5c84c;
-    color: #ffd966;
+.home-logo-button:hover {
+    color: var(--gold-light);
 }
 
-.view-all-button:active {
-    transform: scale(0.97);
-    background: rgba(212, 175, 55, 0.16);
+.home-logo-button:active {
+    transform: scale(0.96);
+    opacity: 0.8;
 }
 
-.view-all-button:focus {
-    outline: none;
+.home-logo-button:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 4px;
+    border-radius: 4px;
 }
 
-.view-all-button:focus-visible {
-    outline: 2px solid #f5c84c;
-    outline-offset: 3px;
+/* ---------------------------------------------------------
+   Internal screen content alignment
+   --------------------------------------------------------- */
+
+.internal-header + .send-content,
+.internal-header + .confirm-content,
+.internal-header + .receive-content {
+    margin-top: 0;
+}
+
+/* ---------------------------------------------------------
+   Keep VYRO internal screens visually consistent
+   --------------------------------------------------------- */
+
+#send-screen,
+#confirm-payment-screen,
+#receive-screen {
+    overflow-x: hidden;
+}
+
+/* ---------------------------------------------------------
+   Small-screen protection
+   --------------------------------------------------------- */
+
+@media (max-width: 599px) {
+    .internal-header {
+        max-width: 100%;
+        margin-bottom: 16px;
+    }
+
+    .home-logo-button {
+        font-size: 18px;
+    }
 }
 
 /* =========================================================
-   VYRO PREMIUM HOME — HORIZON / HALF-MOON
+   VYRO STAGE 2
+   Universal Home Button + Half-Moon Foundation
    ========================================================= */
 
-#home-screen {
+/* ---------------------------------------------------------
+   Universal VYRO Home Button
+   --------------------------------------------------------- */
+
+.vyro-universal-home {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    width: auto;
+    min-width: 64px;
+    height: 34px;
+    padding: 0 4px;
+    
+    border: 0;
+    background: transparent;
+    
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    
+    cursor: pointer;
+    
+    transition:
+        color 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.vyro-universal-home:hover {
+    color: var(--gold-light);
+}
+
+.vyro-universal-home:active {
+    transform: scale(0.94);
+    opacity: 0.8;
+}
+
+.vyro-universal-home:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+/* ---------------------------------------------------------
+   Internal screen half-moon / horizon
+   --------------------------------------------------------- */
+
+.screen:not(#welcome-screen) {
     overflow: hidden;
 }
 
+/* Horizon line */
+.screen:not(#welcome-screen)::before {
+    content: "";
+    position: absolute;
+    left: -15%;
+    right: -15%;
+    bottom: 18%;
+    height: 1px;
+    
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(245, 201, 91, 0.08) 18%,
+        rgba(245, 201, 91, 0.55) 50%,
+        rgba(245, 201, 91, 0.08) 82%,
+        transparent 100%
+    );
+    
+    box-shadow:
+        0 0 10px rgba(245, 201, 91, 0.18),
+        0 0 28px rgba(245, 201, 91, 0.10);
+    
+    pointer-events: none;
+    z-index: 0;
+}
 
-/* ---------------------------------------------------------
-   HOME HERO AREA
-   --------------------------------------------------------- */
+/* Half-moon glow */
+.screen:not(#welcome-screen)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: calc(18% - 1px);
+    
+    width: min(92vw, 520px);
+    height: min(46vw, 260px);
+    
+    transform: translateX(-50%);
+    
+    border-radius: 520px 520px 0 0;
+    
+    background:
+        radial-gradient(
+            ellipse at center bottom,
+            rgba(245, 201, 91, 0.16) 0%,
+            rgba(245, 201, 91, 0.07) 32%,
+            rgba(245, 201, 91, 0.025) 52%,
+            transparent 74%
+        );
+    
+    pointer-events: none;
+    z-index: 0;
+}
 
-#home-screen .home-content {
+/* Keep screen content above the visual effect */
+.screen:not(#welcome-screen) > * {
     position: relative;
     z-index: 1;
 }
 
-
-/* ---------------------------------------------------------
-   GLOWING PLANET HORIZON
-   --------------------------------------------------------- */
-
-#home-screen .home-content::before {
-
-    content: "";
-
-    position: absolute;
-
-    width: 155%;
-    height: 190px;
-
-    left: -27.5%;
-    top: 105px;
-
-    border-radius: 50% 50% 0 0;
-
-    border-top:
-        1px solid
-        rgba(255, 225, 140, 0.9);
-
-    background:
-        radial-gradient(
-            ellipse at 50% 100%,
-            rgba(245, 201, 91, 0.22) 0%,
-            rgba(245, 201, 91, 0.09) 28%,
-            rgba(245, 201, 91, 0.025) 48%,
-            transparent 72%
-        );
-
-    box-shadow:
-        0 -2px 10px
-        rgba(255, 224, 130, 0.55),
-
-        0 -8px 35px
-        rgba(245, 201, 91, 0.18),
-
-        0 18px 55px
-        rgba(245, 201, 91, 0.08);
-
-    pointer-events: none;
-
-    z-index: -1;
-
+/* Keep the universal Home button above everything */
+.screen:not(#welcome-screen) .vyro-universal-home {
+    z-index: 100;
 }
 
-
 /* ---------------------------------------------------------
-   HORIZON LIGHT
+   Mobile adjustment
    --------------------------------------------------------- */
 
-#home-screen .home-content::after {
+@media (max-width: 599px) {
+    .vyro-universal-home {
+        top: 16px;
+        right: 16px;
+        min-width: 58px;
+        font-size: 16px;
+    }
 
-    content: "";
+    .screen:not(#welcome-screen)::before {
+        bottom: 16%;
+    }
 
-    position: absolute;
-
-    width: 110%;
-    height: 70px;
-
-    left: -5%;
-    top: 185px;
-
-    background:
-        radial-gradient(
-            ellipse at center,
-            rgba(255, 226, 137, 0.34) 0%,
-            rgba(245, 201, 91, 0.12) 28%,
-            transparent 70%
-        );
-
-    filter: blur(9px);
-
-    pointer-events: none;
-
-    z-index: -1;
-
-}
-
-
-/* ---------------------------------------------------------
-   KEEP BALANCE ABOVE THE GRAPHIC
-   --------------------------------------------------------- */
-
-#home-screen .balance-label,
-#home-screen .balance-amount,
-#home-screen .balance-subtitle {
-
-    position: relative;
-
-    z-index: 2;
-
-}
-
-
-/* ---------------------------------------------------------
-   PREMIUM HOME BALANCE
-   --------------------------------------------------------- */
-
-#home-screen .balance-amount {
-
-    text-shadow:
-        0 0 12px
-        rgba(255, 255, 255, 0.08),
-
-        0 0 28px
-        rgba(245, 201, 91, 0.10);
-
-}
-
-
-/* ---------------------------------------------------------
-   GOLD USDC LABEL
-   --------------------------------------------------------- */
-
-#home-screen .balance-subtitle {
-
-    text-shadow:
-        0 0 12px
-        rgba(245, 201, 91, 0.35);
-
+    .screen:not(#welcome-screen)::after {
+        bottom: calc(16% - 1px);
+    }
 }
 
 /* =========================================================
-   VYRO WORDMARK LOGO
+   VYRO STAGE 1
+   Visual / Navigation Foundation
    ========================================================= */
 
-#welcome-screen .logo {
+/* ---------------------------------------------------------
+   Internal page header foundation
+   --------------------------------------------------------- */
 
-    width: min(82vw, 360px);
-
-    margin-top: 12px;
-
-    padding: 0;
-
-    filter:
-        drop-shadow(
-            0 0 10px
-            rgba(245, 201, 91, 0.35)
-        )
-        drop-shadow(
-            0 0 25px
-            rgba(245, 201, 91, 0.12)
-        );
-
+.internal-header {
+    width: 100%;
+    max-width: 390px;
+    min-height: 44px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
 }
 
+/* Keep existing back buttons in their current position
+   while establishing a consistent header structure. */
 
-#welcome-screen .logo img {
+.internal-header .back-button {
+    position: relative;
+    left: auto;
+    top: auto;
+    flex-shrink: 0;
+}
 
-    display: block;
+/* ---------------------------------------------------------
+   VYRO header button foundation
+   --------------------------------------------------------- */
 
-    width: 100%;
-    height: auto;
+.home-logo-button {
+    border: 0;
+    background: transparent;
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    padding: 8px 0;
+    margin-left: auto;
+    cursor: pointer;
+    transition:
+        color 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
 
-   }
+.home-logo-button:hover {
+    color: var(--gold-light);
+}
+
+.home-logo-button:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+}
+
+.home-logo-button:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+/* ---------------------------------------------------------
+   Internal screen content alignment
+   --------------------------------------------------------- */
+
+.internal-header + .send-content,
+.internal-header + .confirm-content,
+.internal-header + .receive-content {
+    margin-top: 0;
+}
+
+/* ---------------------------------------------------------
+   Keep VYRO internal screens visually consistent
+   --------------------------------------------------------- */
+
+#send-screen,
+#confirm-payment-screen,
+#receive-screen {
+    overflow-x: hidden;
+}
+
+/* ---------------------------------------------------------
+   Small-screen protection
+   --------------------------------------------------------- */
+
+@media (max-width: 599px) {
+    .internal-header {
+        max-width: 100%;
+        margin-bottom: 16px;
+    }
+
+    .home-logo-button {
+        font-size: 18px;
+    }
+}
+
+/* =========================================================
+   VYRO STAGE 2
+   Universal Home Button + Half-Moon Foundation
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Universal VYRO Home Button
+   --------------------------------------------------------- */
+
+.vyro-universal-home {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    width: auto;
+    min-width: 64px;
+    height: 34px;
+    padding: 0 4px;
+    
+    border: 0;
+    background: transparent;
+    
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    
+    cursor: pointer;
+    
+    transition:
+        color 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.vyro-universal-home:hover {
+    color: var(--gold-light);
+}
+
+.vyro-universal-home:active {
+    transform: scale(0.94);
+    opacity: 0.8;
+}
+
+.vyro-universal-home:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+/* ---------------------------------------------------------
+   Internal screen half-moon / horizon
+   --------------------------------------------------------- */
+
+.screen:not(#welcome-screen) {
+    overflow: hidden;
+}
+
+/* Horizon line */
+.screen:not(#welcome-screen)::before {
+    content: "";
+    position: absolute;
+    left: -15%;
+    right: -15%;
+    bottom: 18%;
+    height: 1px;
+    
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(245, 201, 91, 0.08) 18%,
+        rgba(245, 201, 91, 0.55) 50%,
+        rgba(245, 201, 91, 0.08) 82%,
+        transparent 100%
+    );
+    
+    box-shadow:
+        0 0 10px rgba(245, 201, 91, 0.18),
+        0 0 28px rgba(245, 201, 91, 0.10);
+    
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Half-moon glow */
+.screen:not(#welcome-screen)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: calc(18% - 1px);
+    
+    width: min(92vw, 520px);
+    height: min(46vw, 260px);
+    
+    transform: translateX(-50%);
+    
+    border-radius: 520px 520px 0 0;
+    
+    background:
+        radial-gradient(
+            ellipse at center bottom,
+            rgba(245, 201, 91, 0.16) 0%,
+            rgba(245, 201, 91, 0.07) 32%,
+            rgba(245, 201, 91, 0.025) 52%,
+            transparent 74%
+        );
+    
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Keep screen content above the visual effect */
+.screen:not(#welcome-screen) > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Keep the universal Home button above everything */
+.screen:not(#welcome-screen) .vyro-universal-home {
+    z-index: 100;
+}
+
+/* ---------------------------------------------------------
+   Mobile adjustment
+   --------------------------------------------------------- */
+
+@media (max-width: 599px) {
+    .vyro-universal-home {
+        top: 16px;
+        right: 16px;
+        min-width: 58px;
+        font-size: 16px;
+    }
+
+    .screen:not(#welcome-screen)::before {
+        bottom: 16%;
+    }
+
+    .screen:not(#welcome-screen)::after {
+        bottom: calc(16% - 1px);
+    }
+}
