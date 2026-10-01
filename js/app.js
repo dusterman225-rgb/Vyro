@@ -154,6 +154,231 @@ function showScreen(screen) {
 
 }
 
+// =========================================================
+// VYRO STAGE 5
+// WALLET SELECTORS — SEND / RECEIVE
+// =========================================================
+
+function formatWalletForSelector(wallet) {
+    
+    if (!wallet) {
+        return "Select wallet";
+    }
+    
+    const provider =
+        wallet.provider ||
+        "External Wallet";
+    
+    const address =
+        wallet.address ||
+        "";
+    
+    if (!address) {
+        return provider;
+    }
+    
+    return (
+        provider +
+        " • " +
+        address.slice(0, 6) +
+        "..." +
+        address.slice(-4)
+    );
+}
+
+
+// =========================================================
+// POPULATE WALLET SELECTORS
+// =========================================================
+
+function populateWalletSelectors() {
+    
+    if (
+        typeof VYROWallet ===
+        "undefined"
+    ) {
+        return;
+    }
+    
+    const wallets =
+        VYROWallet.getWallets();
+    
+    const activeWallet =
+        VYROWallet.getActiveWallet();
+    
+    
+    const sendWallet =
+        document.getElementById(
+            "send-wallet"
+        );
+    
+    const receiveWallet =
+        document.getElementById(
+            "receive-wallet"
+        );
+    
+    
+    function populateSelect(select) {
+        
+        if (!select) {
+            return;
+        }
+        
+        const previousValue =
+            select.value;
+        
+        select.innerHTML = "";
+        
+        
+        const placeholder =
+            document.createElement(
+                "option"
+            );
+        
+        placeholder.value = "";
+        
+        placeholder.textContent =
+            "Select wallet";
+        
+        select.appendChild(
+            placeholder
+        );
+        
+        
+        wallets.forEach(
+            function(wallet) {
+                
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+                
+                option.value =
+                    wallet.address;
+                
+                option.textContent =
+                    formatWalletForSelector(
+                        wallet
+                    );
+                
+                select.appendChild(
+                    option
+                );
+            }
+        );
+        
+        
+        if (
+            previousValue &&
+            wallets.some(
+                function(wallet) {
+                    return (
+                        wallet.address ===
+                        previousValue
+                    );
+                }
+            )
+        ) {
+            
+            select.value =
+                previousValue;
+            
+        } else if (
+            activeWallet
+        ) {
+            
+            select.value =
+                activeWallet.address;
+        }
+    }
+    
+    
+    populateSelect(
+        sendWallet
+    );
+    
+    populateSelect(
+        receiveWallet
+    );
+}
+
+
+// =========================================================
+// UPDATE RECEIVE WALLET ADDRESS
+// =========================================================
+
+function updateReceiveWalletDisplay() {
+    
+    const receiveWallet =
+        document.getElementById(
+            "receive-wallet"
+        );
+    
+    const receiveAddress =
+        document.getElementById(
+            "receive-wallet-address"
+        );
+    
+    
+    if (
+        !receiveWallet ||
+        !receiveAddress
+    ) {
+        return;
+    }
+    
+    
+    const address =
+        receiveWallet.value;
+    
+    
+    if (!address) {
+        
+        receiveAddress.textContent =
+            "Select a wallet";
+        
+        return;
+    }
+    
+    
+    receiveAddress.textContent =
+        address.slice(0, 8) +
+        "..." +
+        address.slice(-6);
+}
+
+
+// =========================================================
+// RECEIVE WALLET SELECTION
+// =========================================================
+
+const receiveWalletSelector =
+    document.getElementById(
+        "receive-wallet"
+    );
+
+if (receiveWalletSelector) {
+    
+    receiveWalletSelector.addEventListener(
+        "change",
+        function() {
+            
+            updateReceiveWalletDisplay();
+            
+        }
+    );
+}
+
+
+
+// =========================================================
+// VYRO — ANDROID / BROWSER BACK BUTTON
+// =========================================================
+
+window.addEventListener("popstate", function () {
+    showScreen(homeScreen);
+});
+
 
 // =========================================================
 // WELCOME → CREATE ACCOUNT
@@ -381,10 +606,14 @@ const sendButton = document.getElementById(
 
 sendButton.addEventListener(
     "click",
-    function () {
-
-        showScreen(sendScreen);
-
+    function() {
+        
+        populateWalletSelectors();
+        
+        showScreen(
+            sendScreen
+        );
+        
     }
 );
 
@@ -1623,26 +1852,41 @@ const profileMenuWallets =
         "profile-menu-wallets"
     );
 
-
 if (profileMenuWallets) {
-
+    
     profileMenuWallets.addEventListener(
         "click",
-        function () {
-
+        function() {
+            
             if (profileDropdown) {
                 profileDropdown.classList.remove(
                     "open"
                 );
             }
-
+            
+            if (
+                typeof VYROWallet !==
+                "undefined"
+            ) {
+                
+                const activeWallet =
+                    VYROWallet.getActiveWallet();
+                
+                if (
+                    typeof updateWalletScreen ===
+                    "function"
+                ) {
+                    updateWalletScreen(
+                        activeWallet
+                    );
+                }
+            }
+            
             showScreen(
                 walletsScreen
             );
-
         }
     );
-
 }
 
 
