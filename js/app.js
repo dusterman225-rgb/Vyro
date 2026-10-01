@@ -132,139 +132,25 @@ const walletsScreen =
 
 
 // =========================================================
-// VYRO — SHOW SCREEN + BROWSER HISTORY
+// VYRO — SHOW SCREEN
 // =========================================================
 
-let vyroHandlingBrowserBack = false;
-
-
-function showScreen(
-    screen,
-    addToHistory = true
-) {
+function showScreen(screen) {
 
     if (!screen) {
-        console.error(
-            "VYRO: Screen not found."
-        );
-
+        console.error("VYRO: Screen not found.");
         return;
     }
-
 
     document
         .querySelectorAll(".screen")
         .forEach(function (item) {
 
-            item.classList.remove(
-                "active"
-            );
+            item.classList.remove("active");
 
         });
 
-
-    screen.classList.add(
-        "active"
-    );
-
-
-    // ---------------------------------------------------------
-    // SAVE SCREEN TO BROWSER HISTORY
-    // ---------------------------------------------------------
-
-    if (
-        addToHistory &&
-        !vyroHandlingBrowserBack
-    ) {
-
-        const currentState =
-            history.state;
-
-
-        // Prevent duplicate history entries
-        if (
-            !currentState ||
-            currentState.vyroScreen !== screen.id
-        ) {
-
-            history.pushState(
-                {
-                    vyroScreen:
-                        screen.id
-                },
-                "",
-                window.location.href
-            );
-
-        }
-
-    }
-
-}
-
-
-// =========================================================
-// VYRO — ANDROID / BROWSER BACK BUTTON
-// =========================================================
-
-window.addEventListener(
-    "popstate",
-    function (event) {
-
-        vyroHandlingBrowserBack =
-            true;
-
-
-        if (
-            event.state &&
-            event.state.vyroScreen
-        ) {
-
-            const previousScreen =
-                document.getElementById(
-                    event.state.vyroScreen
-                );
-
-
-            if (previousScreen) {
-
-                showScreen(
-                    previousScreen,
-                    false
-                );
-
-            }
-
-        }
-
-
-        vyroHandlingBrowserBack =
-            false;
-
-    }
-);
-
-
-// =========================================================
-// VYRO — INITIAL SCREEN HISTORY
-// =========================================================
-
-const initialActiveScreen =
-    document.querySelector(
-        ".screen.active"
-    );
-
-
-if (initialActiveScreen) {
-
-    history.replaceState(
-        {
-            vyroScreen:
-                initialActiveScreen.id
-        },
-        "",
-        window.location.href
-    );
+    screen.classList.add("active");
 
 }
 
