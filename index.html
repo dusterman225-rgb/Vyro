@@ -45,12 +45,12 @@
 
 <section id="welcome-screen" class="screen active">
 
-<div class="logo">
-    <img
-        src="assets/vyro-wordmark.png"
-        alt="VYRO"
-    >
-</div>
+    <div class="logo">
+        <img
+            src="assets/vyro-wordmark.png"
+            alt="VYRO"
+        >
+    </div>
 
     <div class="welcome-content">
 
@@ -106,13 +106,22 @@
             id="create-account-back"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ‹
         </button>
 
-        <div class="auth-logo">
-            VYRO
-        </div>
+        <button
+            id="create-account-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
 
     </div>
 
@@ -232,13 +241,22 @@
             id="login-back"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ‹
         </button>
 
-        <div class="auth-logo">
-            VYRO
-        </div>
+        <button
+            id="login-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
 
     </div>
 
@@ -331,13 +349,22 @@
             id="email-verification-back"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ‹
         </button>
 
-        <div class="auth-logo">
-            VYRO
-        </div>
+        <button
+            id="email-verification-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
 
     </div>
 
@@ -421,29 +448,42 @@
      TWO-FACTOR AUTHENTICATION
      ========================================================= -->
 
-<!-- =========================================================
-     2FA CHOICE SCREEN
-========================================================= -->
-
 <section
     id="two-factor-screen"
     class="screen"
 >
 
     <div class="auth-top">
+
         <button
             id="two-factor-back"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
         </button>
+
+        <button
+            id="two-factor-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
+
     </div>
 
 
     <div class="auth-content">
 
-        <h1>Secure Your Account</h1>
+        <h1>
+            Secure Your Account
+        </h1>
 
         <p class="auth-subtitle">
             Two-factor authentication adds an extra layer of
@@ -487,9 +527,10 @@
 
 </section>
 
+
 <!-- =========================================================
      2FA CODE SCREEN
-========================================================= -->
+     ========================================================= -->
 
 <section
     id="two-factor-code-screen"
@@ -502,8 +543,21 @@
             id="two-factor-code-back"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="two-factor-code-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -511,7 +565,9 @@
 
     <div class="auth-content">
 
-        <h1>Enter Security Code</h1>
+        <h1>
+            Enter Security Code
+        </h1>
 
         <p class="auth-subtitle">
             Enter the 6-digit code sent to your VYRO email address.
@@ -570,85 +626,97 @@
 
 <section id="home-screen" class="screen">
 
-<div class="home-header">
+    <div class="home-header">
 
-<div class="home-brand">
-    <img
-        src="assets/vyro-wordmark.png"
-        alt="VYRO"
-    >
-</div>
+        <div class="home-brand">
 
-    <div class="profile-menu">
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
 
-        <button
-            id="profile-menu-btn"
-            class="profile-avatar-button"
-            type="button"
-            aria-expanded="false"
-            aria-label="Open profile menu"
-        >
-            <span id="profile-avatar-initial">V</span>
-        </button>
+        </div>
 
-        <div
-            id="profile-dropdown"
-            class="profile-dropdown"
-        >
 
-            <div class="profile-dropdown-header">
-                <span id="profile-menu-username">
-                    @username
-                </span>
+        <div class="profile-menu">
+
+            <button
+                id="profile-menu-btn"
+                class="profile-avatar-button"
+                type="button"
+                aria-expanded="false"
+                aria-label="Open profile menu"
+            >
+                <span id="profile-avatar-initial">V</span>
+            </button>
+
+
+            <div
+                id="profile-dropdown"
+                class="profile-dropdown"
+            >
+
+                <div class="profile-dropdown-header">
+
+                    <span id="profile-menu-username">
+                        @username
+                    </span>
+
+                </div>
+
+
+                <button
+                    id="profile-menu-profile"
+                    class="profile-menu-item"
+                    type="button"
+                >
+                    PROFILE
+                </button>
+
+
+                <button
+                    id="profile-menu-settings"
+                    class="profile-menu-item"
+                    type="button"
+                >
+                    SETTINGS
+                </button>
+
+
+                <button
+                    id="profile-menu-security"
+                    class="profile-menu-item"
+                    type="button"
+                >
+                    SECURITY
+                </button>
+
+
+                <button
+                    id="profile-menu-wallets"
+                    class="profile-menu-item"
+                    type="button"
+                >
+                    WALLETS
+                </button>
+
+
+                <div class="profile-menu-divider"></div>
+
+
+                <button
+                    id="logout-btn"
+                    class="profile-menu-item logout"
+                    type="button"
+                >
+                    LOG OUT
+                </button>
+
             </div>
-
-            <button
-                id="profile-menu-profile"
-                class="profile-menu-item"
-                type="button"
-            >
-                PROFILE
-            </button>
-
-            <button
-                id="profile-menu-settings"
-                class="profile-menu-item"
-                type="button"
-            >
-                SETTINGS
-            </button>
-
-            <button
-                id="profile-menu-security"
-                class="profile-menu-item"
-                type="button"
-            >
-                SECURITY
-            </button>
-
-            <button
-                id="profile-menu-wallets"
-                class="profile-menu-item"
-                type="button"
-            >
-                WALLETS
-            </button>
-
-            <div class="profile-menu-divider"></div>
-
-            <button
-                id="logout-btn"
-                class="profile-menu-item logout"
-                type="button"
-            >
-                LOG OUT
-            </button>
 
         </div>
 
     </div>
-
-</div>
 
 
     <div class="home-content">
@@ -692,21 +760,22 @@
 
         <div class="activity-section">
 
-<div class="activity-header">
+            <div class="activity-header">
 
-    <span>
-        RECENT ACTIVITY
-    </span>
+                <span>
+                    RECENT ACTIVITY
+                </span>
 
-    <button
-        id="view-all-activity-btn"
-        class="view-all-button"
-        type="button"
-    >
-        VIEW ALL
-    </button>
 
-</div>
+                <button
+                    id="view-all-activity-btn"
+                    class="view-all-button"
+                    type="button"
+                >
+                    VIEW ALL
+                </button>
+
+            </div>
 
 
             <div class="empty-activity">
@@ -744,6 +813,7 @@
             id="send-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ‹
         </button>
@@ -753,8 +823,12 @@
             id="send-home-logo-btn"
             class="home-logo-button"
             type="button"
+            aria-label="Go to Home"
         >
-            VYRO
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -769,6 +843,27 @@
         <p class="auth-subtitle">
             Send crypto to another VYRO user.
         </p>
+
+
+        <!-- =================================================
+             WALLET TO SEND FROM
+             ================================================= -->
+
+        <div class="form-group">
+
+            <label for="send-wallet">
+                FROM WALLET
+            </label>
+
+            <select id="send-wallet">
+
+                <option value="">
+                    Select wallet
+                </option>
+
+            </select>
+
+        </div>
 
 
         <div class="form-group">
@@ -895,6 +990,7 @@
             id="confirm-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ‹
         </button>
@@ -904,8 +1000,12 @@
             id="confirm-home-logo-btn"
             class="home-logo-button"
             type="button"
+            aria-label="Go to Home"
         >
-            VYRO
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -923,6 +1023,20 @@
 
 
         <div class="payment-summary">
+
+
+            <div class="summary-row">
+
+                <span>
+                    FROM WALLET
+                </span>
+
+                <strong id="confirm-wallet">
+                    Select wallet
+                </strong>
+
+            </div>
+
 
             <div class="summary-row">
 
@@ -1023,6 +1137,7 @@
             id="receive-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ‹
         </button>
@@ -1032,8 +1147,12 @@
             id="receive-home-logo-btn"
             class="home-logo-button"
             type="button"
+            aria-label="Go to Home"
         >
-            VYRO
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1049,6 +1168,27 @@
         <p class="auth-subtitle">
             Receive crypto directly to your wallet.
         </p>
+
+
+        <!-- =================================================
+             WALLET TO RECEIVE INTO
+             ================================================= -->
+
+        <div class="form-group">
+
+            <label for="receive-wallet">
+                RECEIVE WITH
+            </label>
+
+            <select id="receive-wallet">
+
+                <option value="">
+                    Select wallet
+                </option>
+
+            </select>
+
+        </div>
 
 
         <div class="receive-card">
@@ -1085,6 +1225,19 @@
                 Solana
             </strong>
 
+
+            <div class="receive-label receive-network-label">
+                WALLET
+            </div>
+
+
+            <strong
+                id="receive-wallet-address"
+                class="receive-network"
+            >
+                Select a wallet
+            </strong>
+
         </div>
 
 
@@ -1119,6 +1272,7 @@
 
 </section>
 
+
 <!-- =========================================================
      PROFILE SCREEN
      ========================================================= -->
@@ -1129,18 +1283,36 @@
 >
 
     <div class="auth-top">
+
         <button
             id="profile-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
         </button>
+
+        <button
+            id="profile-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
+
     </div>
+
 
     <div class="auth-content">
 
-        <h1>Profile</h1>
+        <h1>
+            Profile
+        </h1>
 
         <p class="auth-subtitle">
             Manage your VYRO profile.
@@ -1187,18 +1359,36 @@
 >
 
     <div class="auth-top">
+
         <button
             id="settings-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
         </button>
+
+        <button
+            id="settings-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
+
     </div>
+
 
     <div class="auth-content">
 
-        <h1>Settings</h1>
+        <h1>
+            Settings
+        </h1>
 
         <p class="auth-subtitle">
             Manage your VYRO account settings.
@@ -1251,18 +1441,36 @@
 >
 
     <div class="auth-top">
+
         <button
             id="security-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
         </button>
+
+        <button
+            id="security-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
+
     </div>
+
 
     <div class="auth-content">
 
-        <h1>Security</h1>
+        <h1>
+            Security
+        </h1>
 
         <p class="auth-subtitle">
             Manage your VYRO account security.
@@ -1321,8 +1529,21 @@
             id="wallets-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="wallets-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1330,21 +1551,118 @@
 
     <div class="auth-content">
 
-        <h1>Wallets</h1>
+        <h1>
+            Wallets
+        </h1>
 
         <p class="auth-subtitle">
             Manage the external wallets connected to VYRO.
+            VYRO never holds your private keys or funds.
         </p>
 
 
         <!-- =================================================
-             SOLANA WALLET STATUS
+             CONNECTED WALLET LIST
              ================================================= -->
 
-        <div class="auth-card">
+        <div
+            id="wallet-list"
+            class="wallet-list"
+        >
+
+            <!-- Existing connected wallet -->
+            <div
+                id="saved-wallet-card"
+                class="auth-card wallet-card"
+                style="display:none;"
+            >
+
+                <div class="wallet-card-header">
+
+                    <div>
+
+                        <div class="auth-card-title">
+                            CONNECTED WALLET
+                        </div>
+
+                        <p
+                            id="saved-wallet-provider"
+                            class="auth-card-text"
+                        >
+                            Trust Wallet
+                        </p>
+
+                    </div>
+
+
+                    <span
+                        id="saved-wallet-selected"
+                        class="wallet-selected-badge"
+                        style="display:none;"
+                    >
+                        SELECTED
+                    </span>
+
+                </div>
+
+
+                <p
+                    id="saved-wallet-network"
+                    class="auth-card-text"
+                >
+                    SOLANA
+                </p>
+
+
+                <p
+                    id="saved-wallet-address"
+                    class="auth-card-text wallet-address-display"
+                >
+                    Wallet address
+                </p>
+
+
+                <button
+                    id="select-wallet-btn"
+                    class="primary-button"
+                    type="button"
+                >
+                    USE THIS WALLET
+                </button>
+
+
+                <button
+                    id="copy-wallet-address-btn"
+                    class="secondary-button"
+                    type="button"
+                >
+                    COPY ADDRESS
+                </button>
+
+            </div>
+
+
+            <!-- Future multi-wallet entries can be rendered here -->
+            <div
+                id="additional-wallets"
+                class="wallet-list"
+            >
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             NO WALLET MESSAGE
+             ================================================= -->
+
+        <div
+            id="no-wallet-card"
+            class="auth-card"
+        >
 
             <div class="auth-card-title">
-                SOLANA
+                YOUR WALLETS
             </div>
 
             <p
@@ -1358,53 +1676,7 @@
 
 
         <!-- =================================================
-             SAVED / CONNECTED WALLET
-             ================================================= -->
-
-        <div
-            id="saved-wallet-card"
-            class="auth-card"
-            style="display:none;"
-        >
-
-            <div class="auth-card-title">
-                CONNECTED WALLET
-            </div>
-
-            <p
-                id="saved-wallet-provider"
-                class="auth-card-text"
-            >
-                Trust Wallet
-            </p>
-
-            <p
-                id="saved-wallet-network"
-                class="auth-card-text"
-            >
-                SOLANA
-            </p>
-
-<p
-    id="saved-wallet-address"
-    class="auth-card-text wallet-address-display"
->
-    Wallet address
-</p>
-
-<button
-    id="copy-wallet-address-btn"
-    class="secondary-button"
-    type="button"
->
-    COPY ADDRESS
-</button>
-
-        </div>
-
-
-        <!-- =================================================
-             CONNECT WALLET BUTTON
+             ADD WALLET
              ================================================= -->
 
         <button
@@ -1412,7 +1684,7 @@
             class="primary-button"
             type="button"
         >
-            CONNECT WALLET
+            ADD WALLET
         </button>
 
 
@@ -1436,8 +1708,21 @@
             id="transaction-history-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="transaction-history-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1493,8 +1778,21 @@
             id="transaction-details-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="transaction-details-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1618,8 +1916,21 @@
             id="change-email-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="change-email-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1700,8 +2011,21 @@
             id="change-password-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="change-password-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1798,8 +2122,21 @@
             id="change-verification-word-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="change-verification-word-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1866,8 +2203,21 @@
             id="delete-account-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="delete-account-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1926,8 +2276,21 @@
             id="connect-wallet-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="connect-wallet-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -1936,24 +2299,30 @@
     <div class="auth-content">
 
         <h1>
-            Connect Wallet
+            Add Wallet
         </h1>
 
         <p class="auth-subtitle">
-            Connect your external wallet to VYRO.
+            Connect an external wallet to VYRO.
         </p>
 
 
         <div class="auth-card">
 
             <div class="auth-card-title">
-                SOLANA
+                NON-CUSTODIAL
             </div>
 
             <p class="auth-card-text">
-                VYRO does not hold your private keys or seed phrase.
-                Your external wallet remains in control of your funds.
+                VYRO never receives your private keys or seed phrase,
+                never holds your funds, and never signs transactions.
+                Your external wallet remains in control.
             </p>
+
+
+            <div class="auth-card-title">
+                SOLANA
+            </div>
 
 
             <button
@@ -1986,8 +2355,21 @@
             id="wallet-connected-back-btn"
             class="back-button"
             type="button"
+            aria-label="Go back"
         >
             ←
+        </button>
+
+        <button
+            id="wallet-connected-home-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
         </button>
 
     </div>
@@ -2010,18 +2392,28 @@
                 SOLANA WALLET
             </div>
 
+
             <p
                 id="connected-wallet-address"
                 class="auth-card-text"
             >
                 Wallet address will appear here.
             </p>
-            
-            
-            <p id="connected-wallet-provider" class="auth-card-text">
-    Trust Wallet
-</p>
-            
+
+
+            <p
+                id="connected-wallet-provider"
+                class="auth-card-text"
+            >
+                Trust Wallet
+            </p>
+
+
+            <p class="auth-card-text">
+                VYRO does not sign transactions or control
+                your wallet. Your external wallet remains
+                in control of all approvals.
+            </p>
 
 
             <button
@@ -2047,6 +2439,23 @@
     id="payment-success-screen"
     class="screen"
 >
+
+    <div class="auth-top">
+
+        <button
+            id="payment-success-home-logo-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
+
+    </div>
+
 
     <div class="auth-content">
 
@@ -2096,11 +2505,28 @@
     class="screen"
 >
 
+    <div class="auth-top">
+
+        <button
+            id="payment-failed-home-logo-btn"
+            class="internal-home-button"
+            type="button"
+            aria-label="Go to Home"
+        >
+            <img
+                src="assets/vyro-wordmark.png"
+                alt="VYRO"
+            >
+        </button>
+
+    </div>
+
+
     <div class="auth-content">
 
         <div class="verification-message">
 
-           <div class="verification-icon">
+            <div class="verification-icon">
                 !
             </div>
 
@@ -2176,4 +2602,4 @@
 
 </body>
 
-            </html>
+    </html>
