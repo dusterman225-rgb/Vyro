@@ -728,6 +728,24 @@ function setActiveWallet(
         return false;
 
     }
+    
+    // Only wallets already saved by VYRO
+    // can become the active wallet.
+    if (!wallet.address) {
+        return false;
+    }
+    
+    if (
+        wallet.network &&
+        wallet.network !== "solana"
+    ) {
+        console.warn(
+            "VYRO: Unsupported wallet network:",
+            wallet.network
+        );
+        
+        return false;
+    }
 
 
     wallet.lastUsedAt =
@@ -872,6 +890,32 @@ function removeWalletFromList(
 
             const nextWallet =
                 updatedWallets[0];
+                
+                if (
+            nextWallet &&
+            nextWallet.address
+        ) {
+            nextWallet.lastUsedAt =
+                Date.now();
+            
+            const nextWallets =
+                updatedWallets.map(
+                    function(wallet) {
+                        if (
+                            wallet.address ===
+                            nextWallet.address
+                        ) {
+                            return nextWallet;
+                        }
+                        
+                        return wallet;
+                    }
+                );
+            
+            saveWalletList(
+                nextWallets
+            );
+        }
 
             localStorage.setItem(
                 ACTIVE_WALLET_KEY,
@@ -2131,6 +2175,163 @@ function copyWalletAddress() {
 
 
 // =========================================================
+// VYRO — EXTERNAL WALLET SIGNING BRIDGE
+// STAGE 4
+// =========================================================
+//
+// IMPORTANT:
+// VYRO NEVER signs transactions itself.
+//
+// This function only passes a prepared transaction
+// to the connected external wallet.
+//
+// The external wallet controls the private key and
+// performs the actual signing.
+// =========================================================
+
+async function signSolanaTransaction(
+    transaction
+) {
+
+    if (!transaction) {
+        throw new Error(
+            "No Solana transaction was provided."
+        );
+    }
+
+    if (!connected) {
+        throw new Error(
+            "No wallet is connected."
+        );
+    }
+
+
+    // =====================================================
+    // TRUST WALLET — INJECTED PROVIDER
+    // =====================================================
+
+    if (
+        walletType === "trust-wallet" &&
+        window.trustwallet &&
+        window.trustwallet.solana
+    ) {
+
+        const trustWallet =
+            window.trustwallet.solana;
+
+        // -----------------------------------------------
+        // Wallet Standard signing feature
+        // -----------------------------------------------
+
+        const signFeature =
+            trustWallet.features &&
+            (
+                trustWallet.features[
+                    "solana:signTransaction"
+                ] ||
+                trustWallet.features[
+                    "standard:signTransaction"
+                ]
+            );
+
+        if (
+            signFeature &&
+            typeof signFeature.signTransaction ===
+            "function"
+        ) {
+
+            const result =
+                await signFeature.signTransaction(
+                    transaction
+                );
+
+            return result;
+        }
+
+        throw new Error(
+            "The connected Trust Wallet does not currently expose Solana transaction signing."
+        );
+    }
+
+
+    // =====================================================
+    // WALLETCONNECT
+    // =====================================================
+
+    if (
+        walletType === "walletconnect"
+    ) {
+
+        if (!signClient) {
+
+            await initializeWalletConnect();
+
+        }
+
+        if (!signClient) {
+
+            throw new Error(
+                "WalletConnect is not available."
+            );
+
+        }
+
+        if (!session) {
+
+            throw new Error(
+                "The WalletConnect wallet session is unavailable."
+            );
+
+        }
+
+
+        // -------------------------------------------------
+        // The transaction must already be prepared.
+        //
+        // VYRO does NOT construct or sign it here.
+        // -------------------------------------------------
+
+        const result =
+            await signClient.request({
+
+                topic:
+                    session.topic,
+
+                chainId:
+                    SOLANA_CHAIN_ID,
+
+                request: {
+
+                    method:
+                        "solana_signTransaction",
+
+                    params: {
+
+                        transaction:
+                            transaction
+
+                    }
+
+                }
+
+            });
+
+        return result;
+    }
+
+
+    // =====================================================
+    // UNSUPPORTED EXTERNAL WALLET
+    // =====================================================
+
+    throw new Error(
+        "This wallet does not currently support Solana transaction signing through VYRO."
+    );
+
+}
+
+
+// =========================================================
 // INITIALIZE VYRO WALLET SYSTEM
 // =========================================================
 
@@ -2277,6 +2478,9 @@ window.VYROWallet = {
 
     connect:
         connect,
+        
+            signSolanaTransaction:
+        signSolanaTransaction,
 
     disconnect:
         disconnect,
@@ -2299,6 +2503,35 @@ window.VYROWallet = {
             return connected;
 
         },
+        
+        getConnectionState:
+    function () {
+        const activeWallet =
+            getActiveWallet();
+
+        return {
+            connected:
+                connected,
+
+            hasWallet:
+                getWalletList().length > 0,
+
+            address:
+                activeWallet
+                    ? activeWallet.address
+                    : null,
+
+            provider:
+                activeWallet
+                    ? activeWallet.provider
+                    : null,
+
+            network:
+                activeWallet
+                    ? activeWallet.network
+                    : null
+        };
+    },
 
 
     getWalletType:
@@ -2306,6 +2539,70 @@ window.VYROWallet = {
 
             return walletType;
 
+        },
+        
+    // =====================================================
+    // V1 WALLET INFORMATION API
+    // Used by Send, Receive, Confirm Payment and future
+    // transaction systems.
+    // =====================================================
+    
+    getProvider:
+        function() {
+            const activeWallet = getActiveWallet();
+            
+            if (!activeWallet) {
+                return null;
+            }
+            
+            return activeWallet.provider || "External Wallet";
+        },
+        
+        getNetwork:
+        function() {
+            const activeWallet = getActiveWallet();
+            
+            if (!activeWallet) {
+                return null;
+            }
+            
+            return activeWallet.network || "solana";
+        },
+        
+        getActiveAddress:
+        function() {
+            const activeWallet = getActiveWallet();
+            
+            if (!activeWallet) {
+                return null;
+            }
+            
+            return activeWallet.address || null;
+        },
+        
+        hasWallet:
+        function() {
+            return getWalletList().length > 0;
+        },
+        
+        getWalletCount:
+        function() {
+            return getWalletList().length;
+        },
+        
+        isActiveWallet:
+        function(address) {
+            if (!address) {
+                return false;
+            }
+            
+            const activeWallet =
+                getActiveWallet();
+            
+            return !!(
+                activeWallet &&
+                activeWallet.address === address
+            );
         },
 
 
