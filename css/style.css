@@ -2920,3 +2920,211 @@ button:active {
         bottom: calc(16% - 1px);
     }
 }
+
+/* =========================================================
+   VYRO V1 — STAGE 1
+   VISUAL / NAVIGATION FOUNDATION
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   INTERNAL HEADER LAYER
+   Keeps the VYRO home button above the screen artwork.
+   --------------------------------------------------------- */
+
+.internal-header,
+.auth-header,
+.auth-top {
+    position: relative;
+    z-index: 20;
+}
+
+/* ---------------------------------------------------------
+   INTERNAL VYRO HOME BUTTON
+   --------------------------------------------------------- */
+
+.internal-home-button,
+.home-logo-button {
+    width: auto;
+    min-width: 72px;
+    min-height: 44px;
+    padding: 6px 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    box-shadow: none;
+}
+
+.internal-home-button img,
+.home-logo-button img {
+    display: block;
+    width: 82px;
+    height: auto;
+    max-width: 82px;
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    filter:
+        drop-shadow(
+            0 0 7px
+            rgba(245, 201, 91, 0.35)
+        )
+        drop-shadow(
+            0 0 18px
+            rgba(245, 201, 91, 0.10)
+        );
+}
+
+.internal-home-button:active img,
+.home-logo-button:active img {
+    transform: scale(0.95);
+}
+
+/* ---------------------------------------------------------
+   HOME HEADER STACKING
+   The profile menu must sit ABOVE the balance/buttons.
+   --------------------------------------------------------- */
+
+.home-header {
+    position: relative;
+    z-index: 50;
+}
+
+.home-brand,
+.profile-menu {
+    position: relative;
+    z-index: 51;
+}
+
+.profile-dropdown {
+    z-index: 1000;
+}
+
+/* ---------------------------------------------------------
+   RECEIVE SELECT
+   Match Receive with the VYRO Send selector style.
+   --------------------------------------------------------- */
+
+.receive-content select {
+    width: 100%;
+    min-height: 56px;
+    box-sizing: border-box;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    padding: 15px 42px 15px 14px;
+
+    border:
+        1px solid
+        var(--border-soft);
+
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            45deg,
+            transparent 50%,
+            var(--gold) 50%
+        )
+        calc(100% - 20px)
+        22px / 6px 6px
+        no-repeat,
+
+        linear-gradient(
+            135deg,
+            var(--gold) 50%,
+            transparent 50%
+        )
+        calc(100% - 16px)
+        22px / 6px 6px
+        no-repeat,
+
+        var(--card);
+
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+
+    box-shadow: none;
+}
+
+.receive-content select:focus {
+    border-color: var(--gold);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(245, 201, 91, 0.06),
+
+        0 0 18px
+        rgba(245, 201, 91, 0.06);
+}
+
+/* ---------------------------------------------------------
+   ALL VYRO SELECTS
+   Keeps future selectors visually consistent.
+   --------------------------------------------------------- */
+
+.form-group select {
+    font-family: inherit;
+    color: var(--text);
+}
+
+.form-group select option {
+    background: var(--card);
+    color: var(--text);
+}
+
+/* ---------------------------------------------------------
+   AUTH / INTERNAL LOGO CLEANUP
+   Prevents button styling from affecting the logo area.
+   --------------------------------------------------------- */
+
+.auth-header .internal-home-button,
+.auth-top .internal-home-button {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.auth-header .internal-home-button img,
+.auth-top .internal-home-button img {
+    display: block;
+    background: transparent;
+}
+
+/* ---------------------------------------------------------
+   MOBILE SPACING
+   --------------------------------------------------------- */
+
+@media (max-width: 599px) {
+
+    .internal-header,
+    .auth-header,
+    .auth-top {
+        min-height: 48px;
+    }
+
+    .internal-home-button,
+    .home-logo-button {
+        min-width: 68px;
+        min-height: 44px;
+    }
+
+    .internal-home-button img,
+    .home-logo-button img {
+        width: 76px;
+        max-width: 76px;
+    }
+
+    .profile-dropdown {
+        right: 0;
+        max-width: calc(100vw - 40px);
+    }
+
+}
