@@ -164,6 +164,8 @@ function showScreen(screen, options) {
     }
 }
 
+// Make navigation helpers available to the other VYRO modules.
+window.showScreen = showScreen;
 // =========================================================
 // VYRO STAGE 5
 // WALLET SELECTORS — SEND / RECEIVE
@@ -317,6 +319,8 @@ function populateWalletSelectors() {
 // UPDATE RECEIVE WALLET ADDRESS
 // =========================================================
 
+window.populateWalletSelectors = populateWalletSelectors;
+
 function updateReceiveWalletDisplay() {
     
     const receiveWallet =
@@ -456,6 +460,8 @@ const createAccountBackButton = document.getElementById(
 );
 
 
+if (getStartedButton) {
+
 getStartedButton.addEventListener(
     "click",
     function () {
@@ -464,7 +470,11 @@ getStartedButton.addEventListener(
 
     }
 );
+}
 
+
+
+if (createAccountBackButton) {
 
 createAccountBackButton.addEventListener(
     "click",
@@ -474,6 +484,8 @@ createAccountBackButton.addEventListener(
 
     }
 );
+}
+
 
 
 // =========================================================
@@ -489,6 +501,8 @@ const loginBackButton = document.getElementById(
 );
 
 
+if (loginButton) {
+
 loginButton.addEventListener(
     "click",
     function () {
@@ -497,7 +511,11 @@ loginButton.addEventListener(
 
     }
 );
+}
 
+
+
+if (loginBackButton) {
 
 loginBackButton.addEventListener(
     "click",
@@ -507,6 +525,8 @@ loginBackButton.addEventListener(
 
     }
 );
+}
+
 
 
 // =========================================================
@@ -527,118 +547,13 @@ const emailVerificationBackButton =
     );
 
 
-// =========================================================
-// VERIFY EMAIL → 2FA
-// =========================================================
-
-verifyEmailButton.addEventListener(
-    "click",
-    async function () {
-
-        const user = firebaseAuth.currentUser;
-
-        if (!user) {
-
-            alert(
-                "Your account could not be found. Please log in again."
-            );
-
-            return;
-        }
-
-
-        try {
-
-            // Refresh Firebase user information
-            await user.reload();
-
-            const updatedUser =
-                firebaseAuth.currentUser;
-
-
-            if (!updatedUser.emailVerified) {
-
-                alert(
-                    "Your email has not been verified yet. " +
-                    "Please open the VYRO verification email " +
-                    "and tap VERIFY EMAIL."
-                );
-
-                return;
-            }
-
-
-            // Email is verified
-            showScreen(twoFactorScreen);
-
-        } catch (error) {
-
-            console.error(
-                "VYRO EMAIL VERIFICATION ERROR:",
-                error
-            );
-
-            alert(
-                "Unable to check your email verification status. " +
-                "Please try again."
-            );
-
-        }
-
-    }
-);
-
-
-// =========================================================
-// RESEND VERIFICATION EMAIL
-// =========================================================
-
-resendEmailButton.addEventListener(
-    "click",
-    async function () {
-
-        const user = firebaseAuth.currentUser;
-
-        if (!user) {
-
-            alert(
-                "Please start registration again."
-            );
-
-            return;
-        }
-
-
-        try {
-
-            await user.sendEmailVerification();
-
-            alert(
-                "A new verification email has been sent. " +
-                "Please check your inbox and your spam or junk folder."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "VYRO RESEND VERIFICATION ERROR:",
-                error
-            );
-
-            alert(
-                "Unable to resend the verification email. " +
-                "Please wait a moment and try again."
-            );
-
-        }
-
-    }
-);
-
+// Email verification handlers are owned by js/auth.js.
 
 // =========================================================
 // EMAIL VERIFICATION → CREATE ACCOUNT
 // =========================================================
+
+if (emailVerificationBackButton) {
 
 emailVerificationBackButton.addEventListener(
     "click",
@@ -648,6 +563,8 @@ emailVerificationBackButton.addEventListener(
 
     }
 );
+}
+
 
 
 // =========================================================
@@ -667,6 +584,8 @@ const sendButton = document.getElementById(
 );
 
 
+if (sendButton) {
+
 sendButton.addEventListener(
     "click",
     function() {
@@ -679,6 +598,8 @@ sendButton.addEventListener(
         
     }
 );
+}
+
 
 // =========================================================
 // 2FA NAVIGATION
@@ -785,6 +706,8 @@ const sendHomeLogoButton = document.getElementById(
 );
 
 
+if (sendBackButton) {
+
 sendBackButton.addEventListener(
     "click",
     function () {
@@ -793,7 +716,11 @@ sendBackButton.addEventListener(
 
     }
 );
+}
 
+
+
+if (sendHomeLogoButton) {
 
 sendHomeLogoButton.addEventListener(
     "click",
@@ -803,6 +730,8 @@ sendHomeLogoButton.addEventListener(
 
     }
 );
+}
+
 
 // =========================================================
 // 2FA — ENABLE
@@ -933,4 +862,2520 @@ if (continueSendButton) {
         ) {
             const switched =
                 VYROWallet.setActiveWallet(
-                    selectedWallet.
+                    selectedWallet.value
+                );
+            
+            if (!switched) {
+                alert(
+                    "Unable to select that wallet."
+                );
+                return;
+            }
+        }
+        
+        const sendingWallet =
+            VYROWallet.getActiveWallet();
+        
+        if (
+            !sendingWallet ||
+            !sendingWallet.address
+        ) {
+            alert(
+                "Unable to determine the sending wallet."
+            );
+            return;
+        }
+        
+        if (
+            sendingWallet.network &&
+            sendingWallet.network !==
+            "solana"
+        ) {
+            alert(
+                "This wallet network is not supported for VYRO V1."
+            );
+            return;
+        }
+
+            const networkInput =
+                document.getElementById(
+                    "send-network"
+                );
+
+
+            const recipient =
+                recipientInput.value.trim();
+
+            const amount =
+                amountInput.value.trim();
+
+            const network =
+                networkInput.value;
+
+
+            if (!recipient) {
+
+                alert(
+                    "Please enter a recipient."
+                );
+
+                return;
+            }
+
+
+            if (
+                !amount ||
+                Number(amount) <= 0
+            ) {
+
+                alert(
+                    "Please enter a valid amount."
+                );
+
+                return;
+            }
+
+
+            // =================================================
+// SAVE PAYMENT INFORMATION FOR CONFIRMATION
+// =================================================
+
+const pendingPayment = {
+
+    recipient:
+        "@" +
+        recipient.replace(
+            /^@/,
+            ""
+        ),
+
+    amount:
+        amount,
+
+    asset:
+        "USDC",
+
+    network:
+        network === "solana"
+            ? "Solana"
+            : network,
+
+    fromWallet:
+        sendingWallet.address,
+
+    walletType:
+        sendingWallet.type ||
+        sendingWallet.network ||
+        "solana",
+
+    walletProvider:
+        sendingWallet.provider ||
+        sendingWallet.type ||
+        "External Wallet",
+
+    type:
+        "Send"
+
+};
+
+
+localStorage.setItem(
+    "vyro_pending_payment",
+    JSON.stringify(
+        pendingPayment
+    )
+);
+
+
+// =================================================
+// UPDATE CONFIRMATION SCREEN
+// =================================================
+
+document.getElementById(
+    "confirm-recipient"
+).textContent =
+    pendingPayment.recipient;
+
+
+document.getElementById(
+    "confirm-amount"
+).textContent =
+    amount + " USDC";
+
+
+document.getElementById(
+    "confirm-network"
+).textContent =
+    pendingPayment.network;
+
+const confirmWalletElement = document.getElementById("confirm-wallet");
+if (confirmWalletElement) {
+    const walletLabel = sendingWallet.provider || sendingWallet.type || "External Wallet";
+    confirmWalletElement.textContent =
+        walletLabel + " • " +
+        sendingWallet.address.slice(0, 6) + "..." +
+        sendingWallet.address.slice(-4);
+}
+
+
+showScreen(
+    confirmPaymentScreen
+);
+
+}
+);
+}
+// =========================================================
+// CONFIRM PAYMENT → BACK TO SEND
+// =========================================================
+
+const confirmBackButton =
+    document.getElementById(
+        "confirm-back-btn"
+    );
+
+
+if (confirmBackButton) {
+
+    confirmBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                sendScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// CONFIRM PAYMENT → HOME
+// =========================================================
+
+const confirmHomeLogoButton =
+    document.getElementById(
+        "confirm-home-logo-btn"
+    );
+
+
+if (confirmHomeLogoButton) {
+
+    confirmHomeLogoButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                homeScreen
+            );
+
+        }
+    );
+
+}
+
+// =========================================================
+// CONFIRM PAYMENT → EXTERNAL WALLET HANDOFF
+// STAGE 4
+// =========================================================
+
+const confirmPaymentButton =
+    document.getElementById(
+        "confirm-payment-btn"
+    );
+
+if (confirmPaymentButton) {
+    
+    confirmPaymentButton.addEventListener(
+        "click",
+        async function() {
+            
+            try {
+                
+                // -----------------------------------------
+                // Make sure payment system is available
+                // -----------------------------------------
+                
+                if (
+                    typeof VYROPayments ===
+                    "undefined"
+                ) {
+                    
+                    alert(
+                        "Payment system is unavailable."
+                    );
+                    
+                    return;
+                }
+                
+                
+                // -----------------------------------------
+                // Prepare payment
+                // -----------------------------------------
+                
+                const paymentResult =
+                    await VYROPayments.preparePayment();
+                
+                
+                // -----------------------------------------
+                // Recipient still needs resolution
+                // -----------------------------------------
+                
+                if (
+                    paymentResult.status ===
+                    "awaiting-recipient-resolution"
+                ) {
+                    
+                    alert(
+                        "This recipient has not been connected to a wallet address yet."
+                    );
+                    
+                    return;
+                }
+                
+                
+                // -----------------------------------------
+                // Payment ready for external wallet
+                // -----------------------------------------
+                
+                if (
+                    paymentResult.status ===
+                    "ready-for-wallet"
+                ) {
+                    
+                    alert(
+                        "The payment is ready for the external wallet."
+                    );
+                    
+                    return;
+                }
+                
+                
+                // -----------------------------------------
+                // Unexpected result
+                // -----------------------------------------
+                
+                alert(
+                    "Unable to prepare this payment."
+                );
+                
+            } catch (error) {
+                
+                console.error(
+                    "VYRO: Payment handoff failed:",
+                    error
+                );
+                
+                alert(
+                    error.message ||
+                    "Unable to continue with this payment."
+                );
+                
+            }
+            
+        }
+    );
+    
+}
+
+// =========================================================
+// VYRO — RECIPIENT LOOKUP
+// =========================================================
+
+const sendRecipientInput =
+    document.getElementById(
+        "send-recipient"
+    );
+
+const recipientResult =
+    document.getElementById(
+        "recipient-result"
+    );
+
+const recipientDisplay =
+    document.getElementById(
+        "recipient-display"
+    );
+
+
+if (sendRecipientInput && recipientResult && recipientDisplay) {
+    let recipientLookupTimer = null;
+
+    sendRecipientInput.addEventListener(
+        "input",
+        function () {
+            const username =
+                this.value
+                    .trim()
+                    .replace(/^@/, "")
+                    .toLowerCase();
+
+            recipientResult.classList.remove("visible");
+
+            if (!username) {
+                return;
+            }
+
+            recipientDisplay.textContent = "@" + username;
+
+            clearTimeout(recipientLookupTimer);
+
+            recipientLookupTimer = setTimeout(async function () {
+                try {
+                    if (
+                        typeof firebaseDB === "undefined" ||
+                        !firebaseDB
+                    ) {
+                        recipientResult.classList.add("visible");
+                        return;
+                    }
+
+                    const snapshot = await firebaseDB
+                        .collection("users")
+                        .where("username", "==", username)
+                        .limit(1)
+                        .get();
+
+                    if (snapshot.empty) {
+                        recipientResult.classList.remove("visible");
+                        return;
+                    }
+
+                    recipientResult.classList.add("visible");
+                } catch (error) {
+                    console.error(
+                        "VYRO RECIPIENT LOOKUP ERROR:",
+                        error
+                    );
+                    recipientResult.classList.remove("visible");
+                }
+            }, 250);
+        }
+    );
+}
+
+
+
+
+// =========================================================
+// HOME → RECEIVE
+// =========================================================
+
+const receiveButton = document.getElementById(
+    "receive-btn"
+);
+
+
+if (receiveButton) {
+    receiveButton.addEventListener(
+        "click",
+        function () {
+            populateWalletSelectors();
+            updateReceiveWalletDisplay();
+            showScreen(receiveScreen);
+        }
+    );
+}
+
+
+// =========================================================
+// RECEIVE NAVIGATION
+// =========================================================
+
+const receiveBackButton =
+    document.getElementById(
+        "receive-back-btn"
+    );
+
+const receiveHomeLogoButton =
+    document.getElementById(
+        "receive-home-logo-btn"
+    );
+
+
+if (receiveBackButton) {
+    receiveBackButton.addEventListener(
+        "click",
+        function () {
+            showScreen(homeScreen);
+        }
+    );
+}
+
+
+if (receiveHomeLogoButton) {
+    receiveHomeLogoButton.addEventListener(
+        "click",
+        function () {
+            showScreen(homeScreen);
+        }
+    );
+}
+
+
+// =========================================================
+// =========================================================
+// RECEIVE — COPY WALLET ADDRESS
+// =========================================================
+
+const copyReceiveButton =
+    document.getElementById(
+        "copy-receive-btn"
+    );
+
+if (copyReceiveButton) {
+    copyReceiveButton.addEventListener(
+        "click",
+        async function () {
+            const receiveWallet =
+                document.getElementById("receive-wallet");
+
+            const address =
+                receiveWallet &&
+                receiveWallet.value
+                    ? receiveWallet.value
+                    : "";
+
+            if (!address) {
+                alert("Please select a connected wallet first.");
+                return;
+            }
+
+            try {
+                if (
+                    navigator.clipboard &&
+                    navigator.clipboard.writeText
+                ) {
+                    await navigator.clipboard.writeText(address);
+                } else {
+                    const helper = document.createElement("textarea");
+                    helper.value = address;
+                    helper.style.position = "fixed";
+                    helper.style.opacity = "0";
+                    document.body.appendChild(helper);
+                    helper.select();
+                    document.execCommand("copy");
+                    helper.remove();
+                }
+
+                const originalText =
+                    copyReceiveButton.textContent;
+
+                copyReceiveButton.textContent = "COPIED ✓";
+
+                setTimeout(function () {
+                    copyReceiveButton.textContent = originalText;
+                }, 1500);
+            } catch (error) {
+                console.error(
+                    "VYRO COPY WALLET ADDRESS ERROR:",
+                    error
+                );
+
+                alert("Unable to copy the wallet address.");
+            }
+        }
+    );
+}
+
+// =========================================================
+// 2FA CODE SCREEN — NAVIGATION
+// =========================================================
+
+const twoFactorCodeBackButton =
+    document.getElementById(
+        "two-factor-code-back"
+    );
+
+
+if (twoFactorCodeBackButton) {
+
+    twoFactorCodeBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                twoFactorScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// 2FA CODE — VERIFY PLACEHOLDER
+// =========================================================
+
+const verifyTwoFactorCodeButton =
+    document.getElementById(
+        "verify-two-factor-code-btn"
+    );
+
+
+if (verifyTwoFactorCodeButton) {
+
+    verifyTwoFactorCodeButton.addEventListener(
+        "click",
+        function () {
+
+            const code =
+                document.getElementById(
+                    "two-factor-code"
+                ).value.trim();
+
+
+            if (!code) {
+
+                alert(
+                    "Please enter the security code."
+                );
+
+                return;
+
+            }
+
+
+            if (code.length !== 6) {
+
+                alert(
+                    "Please enter the 6-digit security code."
+                );
+
+                return;
+
+            }
+
+
+            alert(
+                "Real email verification will be connected here."
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// 2FA CODE — RESEND PLACEHOLDER
+// =========================================================
+
+const resendTwoFactorCodeButton =
+    document.getElementById(
+        "resend-two-factor-code-btn"
+    );
+
+
+if (resendTwoFactorCodeButton) {
+
+    resendTwoFactorCodeButton.addEventListener(
+        "click",
+        function () {
+
+            alert(
+                "Real email code delivery will be connected here."
+            );
+
+        }
+    );
+
+}
+
+// =========================================================
+// VYRO — CUSTOM POPUP SYSTEM
+// =========================================================
+
+window.alert = function (message) {
+
+    const existingModal =
+        document.querySelector(
+            ".vyro-modal-overlay"
+        );
+
+    if (existingModal) {
+
+        existingModal.remove();
+
+    }
+
+
+    const overlay =
+        document.createElement(
+            "div"
+        );
+
+    overlay.className =
+        "vyro-modal-overlay";
+
+
+    const modal =
+        document.createElement(
+            "div"
+        );
+
+    modal.className =
+        "vyro-modal";
+
+
+    const logo =
+        document.createElement(
+            "div"
+        );
+
+    logo.className =
+        "vyro-modal-logo";
+
+    logo.textContent =
+        "VYRO";
+
+
+    const messageElement =
+        document.createElement(
+            "div"
+        );
+
+    messageElement.className =
+        "vyro-modal-message";
+
+    messageElement.textContent =
+        message;
+
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.className =
+        "vyro-modal-button";
+
+    button.type =
+        "button";
+
+    button.textContent =
+        "OK";
+
+
+    button.addEventListener(
+        "click",
+        function () {
+
+            overlay.remove();
+
+        }
+    );
+
+
+    modal.appendChild(
+        logo
+    );
+
+    modal.appendChild(
+        messageElement
+    );
+
+    modal.appendChild(
+        button
+    );
+
+    overlay.appendChild(
+        modal
+    );
+
+    document.body.appendChild(
+        overlay
+    );
+
+};
+
+// =========================================================
+// VYRO — PROFILE AVATAR
+// =========================================================
+
+const profileMenuButton =
+    document.getElementById(
+        "profile-menu-btn"
+    );
+
+const profileAvatarInitial =
+    document.getElementById(
+        "profile-avatar-initial"
+    );
+
+const profileMenuUsername =
+    document.getElementById(
+        "profile-menu-username"
+    );
+
+
+// =========================================================
+// LOAD USERNAME
+// =========================================================
+
+const profileUsername =
+    localStorage.getItem(
+        "vyro_username"
+    );
+
+
+if (
+    profileUsername &&
+    profileAvatarInitial
+) {
+
+    const cleanUsername =
+        profileUsername
+            .replace(/^@/, "")
+            .trim();
+
+    if (cleanUsername) {
+
+        profileAvatarInitial.textContent =
+            cleanUsername
+                .charAt(0)
+                .toUpperCase();
+
+    }
+}
+
+
+if (
+    profileUsername &&
+    profileMenuUsername
+) {
+
+    profileMenuUsername.textContent =
+        "@" +
+        profileUsername.replace(
+            /^@/,
+            ""
+        );
+
+}
+
+
+// =========================================================
+// PROFILE MENU — OPEN / CLOSE
+// =========================================================
+const profileDropdown =
+    document.getElementById("profile-dropdown");
+
+function closeProfileMenu() {
+    if (!profileDropdown) return;
+
+    profileDropdown.classList.remove("open");
+    profileDropdown.setAttribute("aria-hidden", "true");
+
+    if (profileMenuButton) {
+        profileMenuButton.setAttribute("aria-expanded", "false");
+    }
+}
+
+function positionProfileMenu() {
+    if (!profileDropdown || !profileMenuButton) return;
+    if (!profileDropdown.classList.contains("open")) return;
+
+    const rect = profileMenuButton.getBoundingClientRect();
+    const menuWidth = profileDropdown.offsetWidth || 210;
+    const gap = 10;
+
+    let left = rect.right - menuWidth;
+    let top = rect.bottom + gap;
+
+    left = Math.max(10, Math.min(left, window.innerWidth - menuWidth - 10));
+
+    if (top + profileDropdown.offsetHeight > window.innerHeight - 10) {
+        top = Math.max(10, rect.top - profileDropdown.offsetHeight - gap);
+    }
+
+    profileDropdown.style.position = "fixed";
+    profileDropdown.style.left = left + "px";
+    profileDropdown.style.right = "auto";
+    profileDropdown.style.top = top + "px";
+    profileDropdown.style.zIndex = "2147483647";
+}
+
+function openProfileMenu() {
+    if (!profileMenuButton || !profileDropdown) return;
+
+    if (profileDropdown.parentElement !== document.body) {
+        document.body.appendChild(profileDropdown);
+    }
+
+    profileDropdown.classList.add("open");
+    profileDropdown.setAttribute("aria-hidden", "false");
+    profileMenuButton.setAttribute("aria-expanded", "true");
+
+    positionProfileMenu();
+}
+
+if (profileMenuButton && profileDropdown) {
+    profileMenuButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (profileDropdown.classList.contains("open")) {
+            closeProfileMenu();
+        } else {
+            openProfileMenu();
+        }
+    });
+
+    profileDropdown.addEventListener("click", function (event) {
+        event.stopPropagation();
+    });
+
+    document.addEventListener("click", closeProfileMenu);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeProfileMenu();
+        }
+    });
+
+    window.addEventListener("resize", positionProfileMenu);
+    window.addEventListener("scroll", positionProfileMenu, true);
+}
+// =========================================================
+// VYRO — PROFILE MENU ACTIONS
+// =========================================================
+
+
+// =========================================================
+// PROFILE
+// =========================================================
+
+const profileMenuProfile =
+    document.getElementById(
+        "profile-menu-profile"
+    );
+
+const profileBackButton =
+    document.getElementById(
+        "profile-back-btn"
+    );
+
+
+if (profileMenuProfile) {
+
+    profileMenuProfile.addEventListener(
+        "click",
+        function () {
+
+            closeProfileMenu();
+
+            showScreen(
+                profileScreen
+            );
+
+            loadProfileInformation();
+
+        }
+    );
+
+}
+
+
+if (profileBackButton) {
+
+    profileBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                homeScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// PROFILE INFORMATION
+// =========================================================
+
+function loadProfileInformation() {
+
+    const usernameDisplay =
+        document.getElementById(
+            "profile-username-display"
+        );
+
+    const emailDisplay =
+        document.getElementById(
+            "profile-email-display"
+        );
+
+
+    const username =
+        localStorage.getItem(
+            "vyro_username"
+        );
+
+
+    if (
+        username &&
+        usernameDisplay
+    ) {
+
+        usernameDisplay.textContent =
+            "@" +
+            username.replace(
+                /^@/,
+                ""
+            );
+
+    }
+
+
+    const user =
+        firebaseAuth.currentUser;
+
+
+    if (
+        user &&
+        emailDisplay
+    ) {
+
+        emailDisplay.textContent =
+            user.email || "—";
+
+    }
+
+}
+
+
+// =========================================================
+// SETTINGS
+// =========================================================
+
+const profileMenuSettings =
+    document.getElementById(
+        "profile-menu-settings"
+    );
+
+const settingsBackButton =
+    document.getElementById(
+        "settings-back-btn"
+    );
+
+
+if (profileMenuSettings) {
+
+    profileMenuSettings.addEventListener(
+        "click",
+        function () {
+
+            closeProfileMenu();
+
+            showScreen(
+                settingsScreen
+            );
+
+        }
+    );
+
+}
+
+
+if (settingsBackButton) {
+
+    settingsBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                homeScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// SECURITY
+// =========================================================
+
+const profileMenuSecurity =
+    document.getElementById(
+        "profile-menu-security"
+    );
+
+const securityBackButton =
+    document.getElementById(
+        "security-back-btn"
+    );
+
+
+if (profileMenuSecurity) {
+
+    profileMenuSecurity.addEventListener(
+        "click",
+        function () {
+
+            closeProfileMenu();
+
+            showScreen(
+                securityScreen
+            );
+
+        }
+    );
+
+}
+
+
+if (securityBackButton) {
+
+    securityBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                homeScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// PROFILE MENU — WALLETS
+// =========================================================
+
+const profileMenuWallets =
+    document.getElementById(
+        "profile-menu-wallets"
+    );
+
+if (profileMenuWallets) {
+    
+    profileMenuWallets.addEventListener(
+        "click",
+        function() {
+            
+            closeProfileMenu();
+            
+            if (
+                typeof VYROWallet !==
+                "undefined"
+            ) {
+                
+                const activeWallet =
+                    VYROWallet.getActiveWallet();
+                
+                if (
+                    typeof updateWalletScreen ===
+                    "function"
+                ) {
+                    updateWalletScreen(
+                        activeWallet
+                    );
+                }
+            }
+            
+            showScreen(
+                walletsScreen
+            );
+        }
+    );
+}
+
+
+// =========================================================
+// WALLETS — BACK BUTTON
+// =========================================================
+
+const walletsBackButton =
+    document.getElementById(
+        "wallets-back-btn"
+    );
+
+
+if (walletsBackButton) {
+
+    walletsBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                homeScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// SECURITY — MANAGE 2FA
+// =========================================================
+
+const securityTwoFactorButton =
+    document.getElementById(
+        "security-2fa-btn"
+    );
+
+
+if (securityTwoFactorButton) {
+
+    securityTwoFactorButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                twoFactorScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// SECURITY — VERIFICATION WORD
+// =========================================================
+
+const changeVerificationWordButton =
+    document.getElementById(
+        "change-verification-word-btn"
+    );
+
+if (changeVerificationWordButton) {
+
+    changeVerificationWordButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                changeVerificationWordScreen
+            );
+
+        }
+    );
+
+}
+
+
+const changeVerificationWordBackButton =
+    document.getElementById(
+        "change-verification-word-back-btn"
+    );
+
+if (changeVerificationWordBackButton) {
+
+    changeVerificationWordBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                securityScreen
+            );
+
+        }
+    );
+
+}
+
+// =========================================================
+// WALLETS — CONNECT WALLET
+// =========================================================
+
+const connectWalletButton =
+    document.getElementById(
+        "connect-wallet-btn"
+    );
+
+if (connectWalletButton) {
+
+    connectWalletButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                connectWalletScreen
+            );
+
+        }
+    );
+
+}
+
+
+const connectWalletBackButton =
+    document.getElementById(
+        "connect-wallet-back-btn"
+    );
+
+if (connectWalletBackButton) {
+
+    connectWalletBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                walletsScreen
+            );
+
+        }
+    );
+
+}
+
+
+
+// =========================================================
+// VYRO WALLET SYSTEM — INITIALIZE
+// =========================================================
+
+// wallet.js initializes itself and exposes VYROWallet.
+
+
+// =========================================================
+// WALLET CONNECTED — BACK
+// =========================================================
+
+const walletConnectedBackButton =
+    document.getElementById(
+        "wallet-connected-back-btn"
+    );
+
+if (walletConnectedBackButton) {
+
+    walletConnectedBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                walletsScreen
+            );
+
+        }
+    );
+
+}
+
+
+
+
+
+// =========================================================
+// SETTINGS — CHANGE EMAIL
+// =========================================================
+
+const changeEmailButton =
+    document.getElementById(
+        "change-email-btn"
+    );
+
+if (changeEmailButton) {
+
+    changeEmailButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                changeEmailScreen
+            );
+
+        }
+    );
+
+}
+
+
+const changeEmailBackButton =
+    document.getElementById(
+        "change-email-back-btn"
+    );
+
+if (changeEmailBackButton) {
+
+    changeEmailBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                settingsScreen
+            );
+
+        }
+    );
+
+}
+
+
+
+
+// =========================================================
+// SETTINGS — CHANGE PASSWORD
+// =========================================================
+
+const changePasswordButton =
+    document.getElementById(
+        "change-password-btn"
+    );
+
+if (changePasswordButton) {
+
+    changePasswordButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                changePasswordScreen
+            );
+
+        }
+    );
+
+}
+
+
+const changePasswordBackButton =
+    document.getElementById(
+        "change-password-back-btn"
+    );
+
+if (changePasswordBackButton) {
+
+    changePasswordBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                settingsScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// SETTINGS — DELETE ACCOUNT
+// =========================================================
+
+const deleteAccountButton =
+    document.getElementById(
+        "delete-account-btn"
+    );
+
+if (deleteAccountButton) {
+
+    deleteAccountButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                deleteAccountScreen
+            );
+
+        }
+    );
+
+}
+
+
+const deleteAccountBackButton =
+    document.getElementById(
+        "delete-account-back-btn"
+    );
+
+if (deleteAccountBackButton) {
+
+    deleteAccountBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                settingsScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// LOG OUT
+// =========================================================
+
+const logoutButton =
+    document.getElementById(
+        "logout-btn"
+    );
+
+
+if (logoutButton) {
+
+    logoutButton.addEventListener(
+        "click",
+        async function () {
+
+            try {
+
+                await firebaseAuth.signOut();
+
+                localStorage.removeItem(
+                    "vyro_username"
+                );
+
+                localStorage.removeItem(
+                    "vyro_pending_username"
+                );
+
+                localStorage.removeItem(
+                    "vyro_pending_user_id"
+                );
+
+                closeProfileMenu();
+
+                showScreen(
+                    welcomeScreen
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "VYRO LOGOUT ERROR:",
+                    error
+                );
+
+                alert(
+                    "Unable to log out. Please try again."
+                );
+
+            }
+
+        }
+    );
+
+}
+
+// =========================================================
+// CHANGE EMAIL — SAVE
+// =========================================================
+
+const saveEmailButton =
+    document.getElementById(
+        "save-email-btn"
+    );
+
+
+if (saveEmailButton) {
+
+    saveEmailButton.addEventListener(
+        "click",
+        async function () {
+
+            const newEmail =
+                document.getElementById(
+                    "new-email"
+                ).value.trim();
+
+            const currentPassword =
+                document.getElementById(
+                    "current-password-email"
+                ).value;
+
+
+            // =====================================================
+            // VALIDATE NEW EMAIL
+            // =====================================================
+
+            if (!newEmail) {
+
+                alert(
+                    "Please enter your new email address."
+                );
+
+                return;
+
+            }
+
+
+            // =====================================================
+            // VALIDATE CURRENT PASSWORD
+            // =====================================================
+
+            if (!currentPassword) {
+
+                alert(
+                    "Please enter your current password."
+                );
+
+                return;
+
+            }
+
+
+            // =====================================================
+            // GET CURRENT FIREBASE USER
+            // =====================================================
+
+            const user =
+                firebaseAuth.currentUser;
+
+
+            if (!user) {
+
+                alert(
+                    "Your account could not be found. Please log in again."
+                );
+
+                return;
+
+            }
+
+
+            // =====================================================
+            // MAKE SURE EMAIL IS ACTUALLY DIFFERENT
+            // =====================================================
+
+            if (
+                user.email &&
+                user.email.toLowerCase() ===
+                newEmail.toLowerCase()
+            ) {
+
+                alert(
+                    "The new email address must be different from your current email."
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                // =================================================
+                // RE-AUTHENTICATE USER
+                // =================================================
+
+                const credential =
+                    firebase.auth.EmailAuthProvider.credential(
+                        user.email,
+                        currentPassword
+                    );
+
+
+                await user.reauthenticateWithCredential(
+                    credential
+                );
+
+
+                // =================================================
+// SEND VERIFICATION EMAIL FOR NEW ADDRESS
+// =================================================
+
+await user.verifyBeforeUpdateEmail(
+    newEmail
+);
+
+                // =================================================
+                // UPDATE VYRO USER PROFILE
+                // =================================================
+
+                await firebaseDB
+                    .collection("users")
+                    .doc(user.uid)
+                    .set(
+                        {
+                            email: newEmail
+                        },
+                        {
+                            merge: true
+                        }
+                    );
+
+
+                // =================================================
+                // CLEAR FORM
+                // =================================================
+
+                document.getElementById(
+                    "new-email"
+                ).value = "";
+
+                document.getElementById(
+                    "current-password-email"
+                ).value = "";
+
+
+                // =================================================
+                // SUCCESS MESSAGE
+                // =================================================
+
+                alert(
+                    "Your email has been updated. " +
+                    "A verification email has been sent to your new address."
+                );
+
+
+                // =================================================
+                // RETURN TO PROFILE
+                // =================================================
+
+                showScreen(
+                    profileScreen
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "VYRO CHANGE EMAIL ERROR:",
+                    error
+                );
+
+
+                // =================================================
+                // SPECIFIC FIREBASE ERRORS
+                // =================================================
+
+                if (
+                    error.code ===
+                    "auth/wrong-password" ||
+                    error.code ===
+                    "auth/invalid-credential"
+                ) {
+
+                    alert(
+                        "The current password is incorrect."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    error.code ===
+                    "auth/email-already-in-use"
+                ) {
+
+                    alert(
+                        "That email address is already being used by another account."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    error.code ===
+                    "auth/invalid-email"
+                ) {
+
+                    alert(
+                        "Please enter a valid email address."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    error.code ===
+                    "auth/requires-recent-login"
+                ) {
+
+                    alert(
+                        "For security, please log out and log back in before changing your email."
+                    );
+
+                    return;
+
+                }
+
+
+alert(
+    "EMAIL CHANGE ERROR: " +
+    error.code +
+    " — " +
+    error.message
+);
+
+            }
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// CHANGE PASSWORD — SAVE
+// =========================================================
+
+const savePasswordButton =
+    document.getElementById(
+        "save-password-btn"
+    );
+
+
+if (savePasswordButton) {
+
+    savePasswordButton.addEventListener(
+        "click",
+        async function () {
+
+            const currentPassword =
+                document.getElementById(
+                    "current-password"
+                ).value;
+
+            const newPassword =
+                document.getElementById(
+                    "new-password"
+                ).value;
+
+            const confirmPassword =
+                document.getElementById(
+                    "confirm-new-password"
+                ).value;
+
+
+            // =====================================================
+            // VALIDATE CURRENT PASSWORD
+            // =====================================================
+
+            if (!currentPassword) {
+
+                alert(
+                    "Please enter your current password."
+                );
+
+                return;
+
+            }
+
+
+            // =====================================================
+            // VALIDATE NEW PASSWORD
+            // =====================================================
+
+            if (!newPassword) {
+
+                alert(
+                    "Please enter a new password."
+                );
+
+                return;
+
+            }
+
+
+            // =====================================================
+            // CONFIRM NEW PASSWORD
+            // =====================================================
+
+            if (newPassword !== confirmPassword) {
+
+                alert(
+                    "The new passwords do not match."
+                );
+
+                return;
+
+            }
+
+
+            // =====================================================
+            // GET CURRENT USER
+            // =====================================================
+
+            const user =
+                firebaseAuth.currentUser;
+
+
+            if (!user) {
+
+                alert(
+                    "Your account could not be found. Please log in again."
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                // =================================================
+                // RE-AUTHENTICATE USER
+                // =================================================
+
+                const credential =
+                    firebase.auth.EmailAuthProvider.credential(
+                        user.email,
+                        currentPassword
+                    );
+
+
+                await user.reauthenticateWithCredential(
+                    credential
+                );
+
+
+                // =================================================
+                // UPDATE PASSWORD
+                // =================================================
+
+                await user.updatePassword(
+                    newPassword
+                );
+
+
+                // =================================================
+                // CLEAR FORM
+                // =================================================
+
+                document.getElementById(
+                    "current-password"
+                ).value = "";
+
+                document.getElementById(
+                    "new-password"
+                ).value = "";
+
+                document.getElementById(
+                    "confirm-new-password"
+                ).value = "";
+
+
+                // =================================================
+                // SUCCESS
+                // =================================================
+
+                alert(
+                    "Your password has been updated."
+                );
+
+
+                showScreen(
+                    settingsScreen
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "VYRO CHANGE PASSWORD ERROR:",
+                    error
+                );
+
+
+                if (
+                    error.code ===
+                    "auth/wrong-password" ||
+                    error.code ===
+                    "auth/invalid-credential"
+                ) {
+
+                    alert(
+                        "The current password is incorrect."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    error.code ===
+                    "auth/weak-password"
+                ) {
+
+                    alert(
+                        "Your new password is too weak. Please choose a stronger password."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    error.code ===
+                    "auth/requires-recent-login"
+                ) {
+
+                    alert(
+                        "For security, please log out and log back in before changing your password."
+                    );
+
+                    return;
+
+                }
+
+
+                alert(
+                    "Unable to change your password right now. Please try again."
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// CHANGE VERIFICATION WORD — SAVE
+// =========================================================
+
+const saveVerificationWordButton =
+    document.getElementById(
+        "save-verification-word-btn"
+    );
+
+if (saveVerificationWordButton) {
+
+    saveVerificationWordButton.addEventListener(
+        "click",
+        async function () {
+
+            const newWord =
+                document.getElementById(
+                    "new-verification-word"
+                ).value
+                    .trim()
+                    .toUpperCase();
+
+
+            if (!newWord) {
+
+                alert(
+                    "Please enter a verification word."
+                );
+
+                return;
+
+            }
+
+
+            const user =
+                firebaseAuth.currentUser;
+
+
+            if (!user) {
+
+                alert(
+                    "Your account could not be found. Please log in again."
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                await firebaseDB
+                    .collection("users")
+                    .doc(user.uid)
+                    .set(
+                        {
+                            verificationWord:
+                                newWord
+                        },
+                        {
+                            merge: true
+                        }
+                    );
+
+
+                alert(
+                    "Your verification word has been updated."
+                );
+
+
+                document.getElementById(
+                    "new-verification-word"
+                ).value = "";
+
+
+                showScreen(
+                    securityScreen
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "VYRO VERIFICATION WORD ERROR:",
+                    error
+                );
+
+
+                alert(
+                    "Unable to update your verification word."
+                );
+
+            }
+
+        }
+    );
+
+}
+
+// =========================================================
+// TRANSACTION HISTORY
+// =========================================================
+
+const transactionHistoryBackButton =
+    document.getElementById(
+        "transaction-history-back-btn"
+    );
+
+
+if (transactionHistoryBackButton) {
+
+    transactionHistoryBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                homeScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// HOME ACTIVITY — VIEW ALL
+// =========================================================
+
+const activityHeader =
+    document.querySelector(
+        ".activity-header"
+    );
+
+
+if (activityHeader) {
+
+    activityHeader.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                transactionHistoryScreen
+            );
+
+        }
+    );
+
+}
+
+// =========================================================
+// TRANSACTION DETAILS
+// =========================================================
+
+const transactionDetailsBackButton =
+    document.getElementById(
+        "transaction-details-back-btn"
+    );
+
+
+if (transactionDetailsBackButton) {
+
+    transactionDetailsBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                transactionHistoryScreen
+            );
+
+        }
+    );
+
+}
+
+// =========================================================
+// PAYMENT SUCCESS
+// =========================================================
+
+const paymentSuccessHomeButton =
+    document.getElementById(
+        "payment-success-home-btn"
+    );
+
+
+if (paymentSuccessHomeButton) {
+
+    paymentSuccessHomeButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                homeScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// PAYMENT FAILED — SEND
+// =========================================================
+
+const paymentFailedBackButton =
+    document.getElementById(
+        "payment-failed-back-btn"
+    );
+
+
+if (paymentFailedBackButton) {
+
+    paymentFailedBackButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                sendScreen
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// PAYMENT FAILED — HOME
+// =========================================================
+
+const paymentFailedHomeButton =
+    document.getElementById(
+        "payment-failed-home-btn"
+    );
+
+
+if (paymentFailedHomeButton) {
+
+    paymentFailedHomeButton.addEventListener(
+        "click",
+        function () {
+
+            showScreen(
+                homeScreen
+            );
+
+        }
+    );
+
+}
+
+// =========================================================
+// HOME — VIEW ALL ACTIVITY
+// =========================================================
+
+const viewAllActivityButton =
+    document.getElementById(
+        "view-all-activity-btn"
+    );
+
+if (viewAllActivityButton) {
+
+    viewAllActivityButton.addEventListener(
+        "click",
+        function () {
+
+            console.log(
+                "VYRO: Opening transaction history."
+            );
+
+            loadTransactionHistory();
+
+            showScreen(
+                transactionHistoryScreen
+            );
+
+        }
+    );
+
+}
+
+// =========================================================
+// VYRO — TRANSACTION HISTORY
+// =========================================================
+
+const transactionList =
+    document.getElementById(
+        "transaction-list"
+    );
+
+const transactionEmpty =
+    document.getElementById(
+        "transaction-empty"
+    );
+
+
+// =========================================================
+// LOAD TRANSACTION HISTORY
+// =========================================================
+
+function loadTransactionHistory() {
+
+    if (!transactionList) {
+        return;
+    }
+
+    const transactions =
+        JSON.parse(
+            localStorage.getItem(
+                "vyro_transactions"
+            ) || "[]"
+        );
+
+
+    // Remove old transaction rows
+    const existingRows =
+        transactionList.querySelectorAll(
+            ".transaction-row"
+        );
+
+    existingRows.forEach(
+        function (row) {
+            row.remove();
+        }
+    );
+
+
+    // No transactions yet
+    if (transactions.length === 0) {
+
+        if (transactionEmpty) {
+            transactionEmpty.style.display =
+                "block";
+        }
+
+        return;
+    }
+
+
+    // Hide empty message
+    if (transactionEmpty) {
+        transactionEmpty.style.display =
+            "none";
+    }
+
+
+    // Display newest transactions first
+    transactions
+        .slice()
+        .reverse()
+        .forEach(
+            function (transaction) {
+
+                const row =
+                    document.createElement(
+                        "button"
+                    );
+
+                row.type = "button";
+
+                row.className =
+                    "transaction-row";
+
+
+                const recipient =
+                    transaction.recipient ||
+                    "Unknown";
+
+
+                const amount =
+                    transaction.amount ||
+                    "0";
+
+
+                const asset =
+                    transaction.asset ||
+                    "USDC";
+
+
+                const status =
+                    transaction.status ||
+                    "Pending";
+
+
+                row.innerHTML = `
+                    <div class="transaction-row-main">
+
+                        <div class="transaction-row-title">
+                            ${recipient}
+                        </div>
+
+                        <div class="transaction-row-subtitle">
+                            ${status}
+                        </div>
+
+                    </div>
+
+                    <div class="transaction-row-amount">
+                        ${amount} ${asset}
+                    </div>
+                `;
+
+
+                row.addEventListener(
+                    "click",
+                    function () {
+
+                        openTransactionDetails(
+                            transaction
+                        );
+
+                    }
+                );
+
+
+                transactionList.appendChild(
+                    row
+                );
+
+            }
+        );
+
+}
+
+// =========================================================
+// VYRO — TRANSACTION DETAILS
+// =========================================================
+
+
+function openTransactionDetails(
+    transaction
+) {
+
+    if (!transactionDetailsScreen) {
+        return;
+    }
+
+
+    const statusElement =
+        document.getElementById(
+            "transaction-detail-status"
+        );
+
+    const typeElement =
+        document.getElementById(
+            "transaction-detail-type"
+        );
+
+    const recipientElement =
+        document.getElementById(
+            "transaction-detail-recipient"
+        );
+
+    const amountElement =
+        document.getElementById(
+            "transaction-detail-amount"
+        );
+
+    const assetElement =
+        document.getElementById(
+            "transaction-detail-asset"
+        );
+
+    const networkElement =
+        document.getElementById(
+            "transaction-detail-network"
+        );
+
+    const idElement =
+        document.getElementById(
+            "transaction-detail-id"
+        );
+
+
+    if (statusElement) {
+        statusElement.textContent =
+            transaction.status ||
+            "Pending";
+    }
+
+    if (typeElement) {
+        typeElement.textContent =
+            transaction.type ||
+            "Send";
+    }
+
+    if (recipientElement) {
+        recipientElement.textContent =
+            transaction.recipient ||
+            "Unknown";
+    }
+
+    if (amountElement) {
+        amountElement.textContent =
+            transaction.amount ||
+            "0";
+    }
+
+    if (assetElement) {
+        assetElement.textContent =
+            transaction.asset ||
+            "USDC";
+    }
+
+    if (networkElement) {
+        networkElement.textContent =
+            transaction.network ||
+            "Solana";
+    }
+
+    if (idElement) {
+        idElement.textContent =
+            transaction.id ||
+            "Pending";
+    }
+
+
+    showScreen(
+        transactionDetailsScreen
+    );
+
+}
+
+// =========================================================
+// TRANSACTION HISTORY INITIALIZATION
+// =========================================================
+
+loadTransactionHistory();
+
+
+
+// Wallet module compatibility hook.
+window.updateWalletScreen = function () {
+    if (window.VYROWallet && typeof window.VYROWallet.updateUI === "function") {
+        window.VYROWallet.updateUI();
+    }
+};
+
