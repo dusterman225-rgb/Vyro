@@ -135,7 +135,7 @@ const walletsScreen =
 // VYRO — SHOW SCREEN
 // =========================================================
 
-function showScreen(screen) {
+function showScreen(screen, options) {
 
     if (!screen) {
         console.error("VYRO: Screen not found.");
@@ -145,13 +145,36 @@ function showScreen(screen) {
     document
         .querySelectorAll(".screen")
         .forEach(function (item) {
-
             item.classList.remove("active");
-
         });
 
     screen.classList.add("active");
 
+    /*
+     * VYRO browser history
+     *
+     * Every normal screen change creates a browser
+     * history entry. Android/Chrome Back can therefore
+     * return to the previous VYRO screen.
+     *
+     * When the browser Back button itself triggers
+     * showScreen(), history is NOT added again.
+     */
+
+    const updateHistory =
+        !options ||
+        options.updateHistory !== false;
+
+    if (updateHistory && screen.id) {
+
+        history.pushState(
+            {
+                vyroScreen: screen.id
+            },
+            "",
+            window.location.href
+        );
+    }
 }
 
 // =========================================================
@@ -375,9 +398,62 @@ if (receiveWalletSelector) {
 // VYRO — ANDROID / BROWSER BACK BUTTON
 // =========================================================
 
-window.addEventListener("popstate", function () {
-    showScreen(homeScreen);
-});
+window.addEventListener(
+    "popstate",
+    function(event) {
+        
+        const screenId =
+            event.state &&
+            event.state.vyroScreen;
+        
+        if (screenId) {
+            
+            const previousScreen =
+                document.getElementById(
+                    screenId
+                );
+            
+            if (previousScreen) {
+                
+                showScreen(
+                    previousScreen,
+                    {
+                        updateHistory: false
+                    }
+                );
+                
+                return;
+            }
+        }
+        
+        /*
+         * If there is no VYRO history state,
+         * return to the Welcome screen.
+         */
+        
+        showScreen(
+            welcomeScreen,
+            {
+                updateHistory: false
+            }
+        );
+    }
+);
+
+// =========================================================
+// VYRO — INITIAL BROWSER HISTORY STATE
+// =========================================================
+
+history.replaceState(
+    {
+        vyroScreen:
+            document.querySelector(
+                ".screen.active"
+            )?.id || "welcome-screen"
+    },
+    "",
+    window.location.href
+);
 
 
 // =========================================================
@@ -824,6 +900,86 @@ if (continueSendButton) {
                 document.getElementById(
                     "send-amount"
                 );
+                
+                    // =================================================
+        // STAGE 3 — WALLET VALIDATION
+        // =================================================
+        
+        if (
+            typeof VYROWallet === "undefined" ||
+            !VYROWallet.isConnected()
+        ) {
+            alert(
+                "Please connect a wallet before sending."
+            );
+            return;
+        }
+        
+        const selectedWallet =
+            document.getElementById(
+                "send-wallet"
+            );
+        
+        if (
+            !selectedWallet ||
+            !selectedWallet.value
+        ) {
+            alert(
+                "Please select a wallet to send from."
+            );
+            return;
+        }
+        
+        const activeWallet =
+            VYROWallet.getActiveWallet();
+        
+        if (!activeWallet) {
+            alert(
+                "Your selected wallet is not available."
+            );
+            return;
+        }
+        
+        if (
+            activeWallet.address !==
+            selectedWallet.value
+        ) {
+            const switched =
+                VYROWallet.setActiveWallet(
+                    selectedWallet.value
+                );
+            
+            if (!switched) {
+                alert(
+                    "Unable to select that wallet."
+                );
+                return;
+            }
+        }
+        
+        const sendingWallet =
+            VYROWallet.getActiveWallet();
+        
+        if (
+            !sendingWallet ||
+            !sendingWallet.address
+        ) {
+            alert(
+                "Unable to determine the sending wallet."
+            );
+            return;
+        }
+        
+        if (
+            sendingWallet.network &&
+            sendingWallet.network !==
+            "solana"
+        ) {
+            alert(
+                "This wallet network is not supported for VYRO V1."
+            );
+            return;
+        }
 
             const networkInput =
                 document.getElementById(
@@ -865,75 +1021,81 @@ if (continueSendButton) {
 
 
             // =================================================
-            // SAVE PAYMENT INFORMATION FOR CONFIRMATION
-            // =================================================
+// SAVE PAYMENT INFORMATION FOR CONFIRMATION
+// =================================================
 
-            const pendingPayment = {
+const pendingPayment = {
 
-                recipient:
-                    "@" +
-                    recipient.replace(
-                        /^@/,
-                        ""
-                    ),
+    recipient:
+        "@" +
+        recipient.replace(
+            /^@/,
+            ""
+        ),
 
-                amount:
-                    amount,
+    amount:
+        amount,
 
-                asset:
-                    "USDC",
+    asset:
+        "USDC",
 
-                network:
-                    network === "solana"
-                        ? "Solana"
-                        : network,
+    network:
+        network === "solana"
+            ? "Solana"
+            : network,
 
-                type:
-                    "Send"
+    fromWallet:
+        VYROWallet.getActiveAddress(),
 
-            };
+    walletType:
+        VYROWallet.getWalletType(),
 
+    walletProvider:
+        VYROWallet.getProvider(),
 
-            localStorage.setItem(
-                "vyro_pending_payment",
-                JSON.stringify(
-                    pendingPayment
-                )
-            );
+    type:
+        "Send"
 
-
-            // =================================================
-            // UPDATE CONFIRMATION SCREEN
-            // =================================================
-
-            document.getElementById(
-                "confirm-recipient"
-            ).textContent =
-                pendingPayment.recipient;
+};
 
 
-            document.getElementById(
-                "confirm-amount"
-            ).textContent =
-                amount + " USDC";
+localStorage.setItem(
+    "vyro_pending_payment",
+    JSON.stringify(
+        pendingPayment
+    )
+);
 
 
-            document.getElementById(
-                "confirm-network"
-            ).textContent =
-                pendingPayment.network;
+// =================================================
+// UPDATE CONFIRMATION SCREEN
+// =================================================
+
+document.getElementById(
+    "confirm-recipient"
+).textContent =
+    pendingPayment.recipient;
 
 
-            showScreen(
-                confirmPaymentScreen
-            );
+document.getElementById(
+    "confirm-amount"
+).textContent =
+    amount + " USDC";
 
-        }
-    );
+
+document.getElementById(
+    "confirm-network"
+).textContent =
+    pendingPayment.network;
+
+
+showScreen(
+    confirmPaymentScreen
+);
 
 }
-
-
+);
+}
 // =========================================================
 // CONFIRM PAYMENT → BACK TO SEND
 // =========================================================
@@ -983,6 +1145,110 @@ if (confirmHomeLogoButton) {
         }
     );
 
+}
+
+// =========================================================
+// CONFIRM PAYMENT → EXTERNAL WALLET HANDOFF
+// STAGE 4
+// =========================================================
+
+const confirmPaymentButton =
+    document.getElementById(
+        "confirm-payment-btn"
+    );
+
+if (confirmPaymentButton) {
+    
+    confirmPaymentButton.addEventListener(
+        "click",
+        async function() {
+            
+            try {
+                
+                // -----------------------------------------
+                // Make sure payment system is available
+                // -----------------------------------------
+                
+                if (
+                    typeof VYROPayments ===
+                    "undefined"
+                ) {
+                    
+                    alert(
+                        "Payment system is unavailable."
+                    );
+                    
+                    return;
+                }
+                
+                
+                // -----------------------------------------
+                // Prepare payment
+                // -----------------------------------------
+                
+                const paymentResult =
+                    await VYROPayments.preparePayment();
+                
+                
+                // -----------------------------------------
+                // Recipient still needs resolution
+                // -----------------------------------------
+                
+                if (
+                    paymentResult.status ===
+                    "awaiting-recipient-resolution"
+                ) {
+                    
+                    alert(
+                        "This recipient has not been connected to a wallet address yet."
+                    );
+                    
+                    return;
+                }
+                
+                
+                // -----------------------------------------
+                // Payment ready for external wallet
+                // -----------------------------------------
+                
+                if (
+                    paymentResult.status ===
+                    "ready-for-wallet"
+                ) {
+                    
+                    alert(
+                        "The payment is ready for the external wallet."
+                    );
+                    
+                    return;
+                }
+                
+                
+                // -----------------------------------------
+                // Unexpected result
+                // -----------------------------------------
+                
+                alert(
+                    "Unable to prepare this payment."
+                );
+                
+            } catch (error) {
+                
+                console.error(
+                    "VYRO: Payment handoff failed:",
+                    error
+                );
+                
+                alert(
+                    error.message ||
+                    "Unable to continue with this payment."
+                );
+                
+            }
+            
+        }
+    );
+    
 }
 
 // =========================================================
