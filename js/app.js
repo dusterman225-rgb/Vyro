@@ -1,11 +1,3 @@
-// =========================================================
-// VYRO — FIREBASE CONNECTION TEST
-// =========================================================
-
-console.log("VYRO Firebase:", firebaseApp);
-console.log("VYRO Firebase Auth:", firebaseAuth);
-console.log("VYRO Firebase Firestore:", firebaseDB);
-
 
 // =========================================================
 // VYRO — SCREEN NAVIGATION
@@ -136,44 +128,39 @@ const walletsScreen =
 // =========================================================
 
 function showScreen(screen, options) {
-
     if (!screen) {
         console.error("VYRO: Screen not found.");
         return;
     }
 
-    document
-        .querySelectorAll(".screen")
-        .forEach(function (item) {
-            item.classList.remove("active");
-        });
+    const dropdown = document.getElementById("profile-dropdown");
+    const profileButton = document.getElementById("profile-menu-btn");
+
+    if (dropdown) {
+        dropdown.classList.remove("open");
+        dropdown.setAttribute("aria-hidden", "true");
+    }
+    if (profileButton) {
+        profileButton.setAttribute("aria-expanded", "false");
+    }
+
+    document.querySelectorAll(".screen").forEach(function (item) {
+        item.classList.remove("active");
+    });
 
     screen.classList.add("active");
 
-    /*
-     * VYRO browser history
-     *
-     * Every normal screen change creates a browser
-     * history entry. Android/Chrome Back can therefore
-     * return to the previous VYRO screen.
-     *
-     * When the browser Back button itself triggers
-     * showScreen(), history is NOT added again.
-     */
-
-    const updateHistory =
-        !options ||
-        options.updateHistory !== false;
+    const updateHistory = !options || options.updateHistory !== false;
 
     if (updateHistory && screen.id) {
-
-        history.pushState(
-            {
-                vyroScreen: screen.id
-            },
-            "",
-            window.location.href
-        );
+        const currentState = history.state && history.state.vyroScreen;
+        if (currentState !== screen.id) {
+            history.pushState(
+                { vyroScreen: screen.id },
+                "",
+                window.location.href
+            );
+        }
     }
 }
 
@@ -1088,6 +1075,15 @@ document.getElementById(
 ).textContent =
     pendingPayment.network;
 
+const confirmWalletElement = document.getElementById("confirm-wallet");
+if (confirmWalletElement) {
+    const walletLabel = sendingWallet.provider || sendingWallet.type || "External Wallet";
+    confirmWalletElement.textContent =
+        walletLabel + " • " +
+        sendingWallet.address.slice(0, 6) + "..." +
+        sendingWallet.address.slice(-4);
+}
+
 
 showScreen(
     confirmPaymentScreen
@@ -1271,7 +1267,8 @@ const recipientDisplay =
     );
 
 
-sendRecipientInput.addEventListener(
+if (sendRecipientInput && recipientResult && recipientDisplay) {
+    sendRecipientInput.addEventListener(
     "input",
     function () {
 
@@ -1301,6 +1298,9 @@ sendRecipientInput.addEventListener(
 
     }
 );
+}
+
+
 
 
 // =========================================================
@@ -1824,70 +1824,85 @@ if (
 // =========================================================
 // PROFILE MENU — OPEN / CLOSE
 // =========================================================
-
 const profileDropdown =
-    document.getElementById(
-        "profile-dropdown"
-    );
+    document.getElementById("profile-dropdown");
 
+function closeProfileMenu() {
+    if (!profileDropdown) return;
 
-if (
-    profileMenuButton &&
-    profileDropdown
-) {
+    profileDropdown.classList.remove("open");
+    profileDropdown.setAttribute("aria-hidden", "true");
 
-    profileMenuButton.addEventListener(
-        "click",
-        function (event) {
-
-            event.stopPropagation();
-
-            const isOpen =
-                profileDropdown.classList.contains(
-                    "open"
-                );
-
-            profileDropdown.classList.toggle(
-                "open"
-            );
-
-            profileMenuButton.setAttribute(
-                "aria-expanded",
-                String(!isOpen)
-            );
-
-        }
-    );
-
-
-    // Close menu when tapping outside
-
-    document.addEventListener(
-        "click",
-        function (event) {
-
-            if (
-                !profileDropdown.contains(event.target) &&
-                !profileMenuButton.contains(event.target)
-            ) {
-
-                profileDropdown.classList.remove(
-                    "open"
-                );
-
-                profileMenuButton.setAttribute(
-                    "aria-expanded",
-                    "false"
-                );
-
-            }
-
-        }
-    );
-
+    if (profileMenuButton) {
+        profileMenuButton.setAttribute("aria-expanded", "false");
+    }
 }
 
+function positionProfileMenu() {
+    if (!profileDropdown || !profileMenuButton) return;
+    if (!profileDropdown.classList.contains("open")) return;
 
+    const rect = profileMenuButton.getBoundingClientRect();
+    const menuWidth = profileDropdown.offsetWidth || 210;
+    const gap = 10;
+
+    let left = rect.right - menuWidth;
+    let top = rect.bottom + gap;
+
+    left = Math.max(10, Math.min(left, window.innerWidth - menuWidth - 10));
+
+    if (top + profileDropdown.offsetHeight > window.innerHeight - 10) {
+        top = Math.max(10, rect.top - profileDropdown.offsetHeight - gap);
+    }
+
+    profileDropdown.style.position = "fixed";
+    profileDropdown.style.left = left + "px";
+    profileDropdown.style.right = "auto";
+    profileDropdown.style.top = top + "px";
+    profileDropdown.style.zIndex = "2147483647";
+}
+
+function openProfileMenu() {
+    if (!profileMenuButton || !profileDropdown) return;
+
+    if (profileDropdown.parentElement !== document.body) {
+        document.body.appendChild(profileDropdown);
+    }
+
+    profileDropdown.classList.add("open");
+    profileDropdown.setAttribute("aria-hidden", "false");
+    profileMenuButton.setAttribute("aria-expanded", "true");
+
+    positionProfileMenu();
+}
+
+if (profileMenuButton && profileDropdown) {
+    profileMenuButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (profileDropdown.classList.contains("open")) {
+            closeProfileMenu();
+        } else {
+            openProfileMenu();
+        }
+    });
+
+    profileDropdown.addEventListener("click", function (event) {
+        event.stopPropagation();
+    });
+
+    document.addEventListener("click", closeProfileMenu);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeProfileMenu();
+        }
+    });
+
+    window.addEventListener("resize", positionProfileMenu);
+    window.addEventListener("scroll", positionProfileMenu, true);
+}
 // =========================================================
 // VYRO — PROFILE MENU ACTIONS
 // =========================================================
@@ -1914,11 +1929,7 @@ if (profileMenuProfile) {
         "click",
         function () {
 
-            if (profileDropdown) {
-                profileDropdown.classList.remove(
-                    "open"
-                );
-            }
+            closeProfileMenu();
 
             showScreen(
                 profileScreen
@@ -2024,11 +2035,7 @@ if (profileMenuSettings) {
         "click",
         function () {
 
-            if (profileDropdown) {
-                profileDropdown.classList.remove(
-                    "open"
-                );
-            }
+            closeProfileMenu();
 
             showScreen(
                 settingsScreen
@@ -2077,11 +2084,7 @@ if (profileMenuSecurity) {
         "click",
         function () {
 
-            if (profileDropdown) {
-                profileDropdown.classList.remove(
-                    "open"
-                );
-            }
+            closeProfileMenu();
 
             showScreen(
                 securityScreen
@@ -2124,11 +2127,7 @@ if (profileMenuWallets) {
         "click",
         function() {
             
-            if (profileDropdown) {
-                profileDropdown.classList.remove(
-                    "open"
-                );
-            }
+            closeProfileMenu();
             
             if (
                 typeof VYROWallet !==
@@ -2511,13 +2510,7 @@ if (logoutButton) {
                     "vyro_pending_user_id"
                 );
 
-                if (profileDropdown) {
-
-                    profileDropdown.classList.remove(
-                        "open"
-                    );
-
-                }
+                closeProfileMenu();
 
                 showScreen(
                     welcomeScreen
@@ -3540,37 +3533,6 @@ function openTransactionDetails(
 // REFRESH ACTIVITY WHEN VIEWING HISTORY
 // =========================================================
 
-if (transactionHistoryBackButton) {
-
-    transactionHistoryBackButton.addEventListener(
-        "click",
-        function () {
-
-            showScreen(
-                homeScreen
-            );
-
-        }
-    );
-
-}
-
-
-if (transactionDetailsBackButton) {
-
-    transactionDetailsBackButton.addEventListener(
-        "click",
-        function () {
-
-            showScreen(
-                transactionHistoryScreen
-            );
-
-        }
-    );
-
-}
-
 // Refresh whenever Activity is opened
 if (viewAllActivityButton) {
 
@@ -3584,3 +3546,4 @@ if (viewAllActivityButton) {
     );
 
 }
+
