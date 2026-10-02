@@ -3143,3 +3143,27 @@ button:active {
     position: absolute;
     z-index: 10000;
 }
+
+   /* =========================================================
+   VYRO — PROFILE MENU FINAL STACKING FIX
+   ========================================================= */
+
+#home-screen .home-content {
+    position: relative;
+    z-index: 1 !important;
+}
+
+#home-screen .home-header {
+    position: relative;
+    z-index: 9999 !important;
+}
+
+#home-screen .profile-menu {
+    position: relative;
+    z-index: 10000 !important;
+}
+
+#home-screen .profile-dropdown {
+    position: absolute;
+    z-index: 100000 !important;
+}
