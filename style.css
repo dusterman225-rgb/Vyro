@@ -3123,3 +3123,23 @@ button:active {
     }
 
 }
+
+/* =========================================================
+   VYRO — FINAL PROFILE DROPDOWN LAYER FIX
+   ========================================================= */
+
+#home-screen .home-header {
+    position: relative;
+    z-index: 500;
+}
+
+#home-screen .home-brand,
+#home-screen .profile-menu {
+    position: relative;
+    z-index: 501;
+}
+
+#home-screen .profile-dropdown {
+    position: absolute;
+    z-index: 10000;
+}
