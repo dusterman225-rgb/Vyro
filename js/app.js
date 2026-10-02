@@ -2260,24 +2260,34 @@ if (changeVerificationWordBackButton) {
 
 document
     .querySelectorAll(
-        ".home-logo-button, .internal-home-button, .vyro-universal-home"
+        ".home-logo-button, .internal-home-button, .screen-home-button, .vyro-universal-home"
     )
     .forEach(function(button) {
         
         button.addEventListener(
             "click",
-            function() {
+            function(event) {
                 
-                if (
-                    typeof closeProfileMenu ===
-                    "function"
-                ) {
-                    closeProfileMenu();
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (profileDropdown) {
+                    profileDropdown.classList.remove(
+                        "open"
+                    );
+                }
+                
+                if (profileMenuButton) {
+                    profileMenuButton.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
                 }
                 
                 showScreen(
                     homeScreen
                 );
+                
             }
         );
         
@@ -2307,53 +2317,6 @@ if (connectWalletButton) {
     
 }
 
-// =========================================================
-// LINK EXTERNAL WALLET
-// =========================================================
-
-const linkExternalWalletButton =
-    document.getElementById(
-        "phantom-wallet-btn"
-    );
-
-if (linkExternalWalletButton) {
-    
-    linkExternalWalletButton.addEventListener(
-        "click",
-        async function() {
-            
-            try {
-                
-                if (
-                    typeof VYROWallet ===
-                    "undefined"
-                ) {
-                    alert(
-                        "Wallet system is unavailable."
-                    );
-                    return;
-                }
-                
-                await VYROWallet.connect();
-                
-            } catch (error) {
-                
-                console.error(
-                    "VYRO: External wallet connection failed:",
-                    error
-                );
-                
-                alert(
-                    error.message ||
-                    "Unable to connect your external wallet."
-                );
-                
-            }
-            
-        }
-    );
-    
-}
 
 
 const connectWalletBackButton =
