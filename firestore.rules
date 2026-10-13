@@ -1,0 +1,90 @@
+rules_version = '2';
+
+// =========================================================
+// VYRO — FIRESTORE SECURITY RULES
+// Deploy: Firebase Console → Firestore → Rules → paste → Publish
+//         (or `firebase deploy --only firestore:rules`)
+//
+// Data model
+//   users/{uid}                    PRIVATE profile (email, verification word, flags)
+//   users/{uid}/transactions/{sig} PRIVATE payment history written by the sender's app
+//   usernames/{username}           PUBLIC-to-signed-in-users directory entry:
+//                                  { uid, walletAddress?, createdAt }
+//                                  This is what "send to @username" resolves against.
+//                                  It deliberately holds NO email or other private data.
+//
+// VYRO never holds funds or keys: nothing in here moves money. The directory only
+// maps a username to the PUBLIC address the user chose to receive at.
+// =========================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function verified() { return signedIn() && request.auth.token.email_verified == true; }
+    function validAddress(a) {
+      return a is string && a.size() >= 32 && a.size() <= 44
+        && a.matches('^[1-9A-HJ-NP-Za-km-z]+$');
+    }
+
+    // ---------- private profile ----------
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(
+             ['username', 'email', 'verificationWord', 'twoFactorEnabled',
+              'securitySetupComplete', 'createdAt'])
+        && request.resource.data.username is string
+        && request.resource.data.username.matches('^[a-z0-9_]{3,20}$');
+
+      // The username can never be changed after creation (it is the payment identity).
+      allow update: if isOwner(uid)
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['username', 'createdAt']);
+
+      allow delete: if false;
+
+      // ---------- payment history (sender-side record) ----------
+      match /transactions/{signature} {
+        allow read: if isOwner(uid);
+
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(
+               ['recipient', 'recipientAddress', 'amount', 'asset', 'network',
+                'fromWallet', 'status', 'type', 'id', 'createdAt'])
+          && request.resource.data.status == 'Submitted'
+          && request.resource.data.id == signature;
+
+        // Only the status may change afterwards (Submitted → Confirmed / Failed).
+        allow update: if isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && request.resource.data.status in ['Submitted', 'Confirmed', 'Failed'];
+
+        allow delete: if false;
+      }
+    }
+
+    // ---------- username directory ----------
+    match /usernames/{username} {
+      // Exact-name lookup only. No listing, so the directory cannot be scraped.
+      allow get: if verified();
+      allow list: if false;
+
+      // First come, first served: `create` only succeeds if the document does not exist yet.
+      allow create: if isOwner(request.resource.data.uid)
+        && username.matches('^[a-z0-9_]{3,20}$')
+        && request.resource.data.keys().hasOnly(['uid', 'walletAddress', 'createdAt'])
+        && (!('walletAddress' in request.resource.data)
+            || validAddress(request.resource.data.walletAddress));
+
+      // The owner may only change the receiving address (and must be email-verified).
+      allow update: if verified()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress'])
+        && validAddress(request.resource.data.walletAddress);
+
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+  }
+}
