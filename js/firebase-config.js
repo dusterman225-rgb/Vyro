@@ -11,12 +11,15 @@ const firebaseConfig = {
     appId: "1:842493262222:web:115d699a41f09cb7c74cdf"
 };
 
-// =========================================================
-// INITIALIZE FIREBASE
-// =========================================================
+if (!window.firebase) {
+    throw new Error("VYRO: Firebase SDK did not load.");
+}
 
-const firebaseApp = firebase.initializeApp(firebaseConfig);
+const firebaseApp = firebase.apps.length
+    ? firebase.app()
+    : firebase.initializeApp(firebaseConfig);
 
-// Firebase services
 const firebaseAuth = firebase.auth();
 const firebaseDB = firebase.firestore();
+
+    
