@@ -7,7 +7,7 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
 
     <meta
@@ -38,6 +38,84 @@
 
 <main id="app">
 
+<!-- VYRO logo: one button, top centre, returns to Home. -->
+<button id="global-logo-btn" class="global-logo-btn" type="button" aria-label="VYRO home">
+    <span class="logo-crop" aria-hidden="true"></span>
+</button>
+
+<!-- Profile avatar: one button, pinned top-right, shown on every screen after login. -->
+<div id="global-profile-menu" class="global-profile-menu">
+    <div class="profile-menu">
+
+        <button
+            id="profile-menu-btn"
+            class="profile-avatar-button"
+            type="button"
+            aria-expanded="false"
+            aria-label="Open profile menu"
+        >
+            <span id="profile-avatar-initial">V</span>
+        </button>
+
+        <div
+            id="profile-dropdown"
+            class="profile-dropdown"
+        >
+
+            <div class="profile-dropdown-header">
+                <span id="profile-menu-username">
+                    @username
+                </span>
+            </div>
+
+            <button
+                id="profile-menu-profile"
+                class="profile-menu-item"
+                type="button"
+            >
+                PROFILE
+            </button>
+
+            <button
+                id="profile-menu-settings"
+                class="profile-menu-item"
+                type="button"
+            >
+                SETTINGS
+            </button>
+
+            <button
+                id="profile-menu-security"
+                class="profile-menu-item"
+                type="button"
+            >
+                SECURITY
+            </button>
+
+            <button
+                id="profile-menu-wallets"
+                class="profile-menu-item"
+                type="button"
+            >
+                WALLETS
+            </button>
+
+            <div class="profile-menu-divider"></div>
+
+            <button
+                id="logout-btn"
+                class="profile-menu-item logout"
+                type="button"
+            >
+                LOG OUT
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+
 
 <!-- =========================================================
      WELCOME
@@ -45,12 +123,9 @@
 
 <section id="welcome-screen" class="screen active">
 
-<div class="logo">
-    <img
-        src="assets/vyro-wordmark.png"
-        alt="VYRO"
-    >
-</div>
+    <div class="logo">
+        VYRO
+    </div>
 
     <div class="welcome-content">
 
@@ -143,6 +218,8 @@
                 spellcheck="false"
             >
 
+            <p id="username-status" class="field-status" aria-live="polite"></p>
+
         </div>
 
 
@@ -202,6 +279,16 @@
             type="button"
         >
             CONTINUE
+        </button>
+
+        <div class="auth-divider">OR</div>
+
+        <button
+            id="google-signup-btn"
+            class="secondary-button auth-button google-btn"
+            type="button"
+        >
+            CONTINUE WITH GOOGLE
         </button>
 
     </div>
@@ -292,6 +379,16 @@
             type="button"
         >
             LOG IN
+        </button>
+
+        <div class="auth-divider">OR</div>
+
+        <button
+            id="google-login-btn"
+            class="secondary-button auth-button google-btn"
+            type="button"
+        >
+            CONTINUE WITH GOOGLE
         </button>
 
 
@@ -572,81 +669,10 @@
 
 <div class="home-header">
 
-<div class="home-brand">
-    <img
-        src="assets/vyro-wordmark.png"
-        alt="VYRO"
-    >
-</div>
-
-    <div class="profile-menu">
-
-        <button
-            id="profile-menu-btn"
-            class="profile-avatar-button"
-            type="button"
-            aria-expanded="false"
-            aria-label="Open profile menu"
-        >
-            <span id="profile-avatar-initial">V</span>
-        </button>
-
-        <div
-            id="profile-dropdown"
-            class="profile-dropdown"
-        >
-
-            <div class="profile-dropdown-header">
-                <span id="profile-menu-username">
-                    @username
-                </span>
-            </div>
-
-            <button
-                id="profile-menu-profile"
-                class="profile-menu-item"
-                type="button"
-            >
-                PROFILE
-            </button>
-
-            <button
-                id="profile-menu-settings"
-                class="profile-menu-item"
-                type="button"
-            >
-                SETTINGS
-            </button>
-
-            <button
-                id="profile-menu-security"
-                class="profile-menu-item"
-                type="button"
-            >
-                SECURITY
-            </button>
-
-            <button
-                id="profile-menu-wallets"
-                class="profile-menu-item"
-                type="button"
-            >
-                WALLETS
-            </button>
-
-            <div class="profile-menu-divider"></div>
-
-            <button
-                id="logout-btn"
-                class="profile-menu-item logout"
-                type="button"
-            >
-                LOG OUT
-            </button>
-
-        </div>
-
+    <div class="home-brand">
+        VYRO
     </div>
+
 
 </div>
 
@@ -688,6 +714,15 @@
             </button>
 
         </div>
+
+        <button
+            id="home-requests-btn"
+            class="secondary-button requests-link"
+            type="button"
+        >
+            PAYMENT REQUESTS
+            <span id="home-requests-badge" class="requests-badge" hidden>0</span>
+        </button>
 
 
         <div class="activity-section">
@@ -773,6 +808,21 @@
 
         <div class="form-group">
 
+            <label for="send-wallet">
+                SEND FROM
+            </label>
+
+            <select id="send-wallet">
+                <option value="">
+                    Select wallet
+                </option>
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
             <label for="send-asset">
                 Asset
             </label>
@@ -829,6 +879,8 @@
 
             </div>
 
+            <div id="recipient-suggestions" class="suggestions" role="listbox"></div>
+
 
             <div
                 id="recipient-result"
@@ -845,6 +897,15 @@
 
                 <small>
                     Recipient found
+                </small>
+
+                <div class="recipient-word">
+                    <span>VERIFICATION WORD</span>
+                    <strong id="recipient-word">—</strong>
+                </div>
+
+                <small class="recipient-word-hint">
+                    Check that this matches what the recipient sees in their VYRO profile.
                 </small>
 
             </div>
@@ -866,6 +927,10 @@
                 min="0"
                 step="any"
             >
+
+            <p class="min-note" id="send-min-note">
+                Minimum payment: 1 USDC ($1.00). VYRO adds a 1% service fee on top.
+            </p>
 
         </div>
 
@@ -950,6 +1015,32 @@
             </div>
 
 
+            <div class="summary-row" id="confirm-fee-row">
+
+                <span>
+                    VYRO FEE
+                </span>
+
+                <strong id="confirm-fee">
+                    0.00 USDC
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row" id="confirm-total-row">
+
+                <span>
+                    YOU PAY IN TOTAL
+                </span>
+
+                <strong id="confirm-total">
+                    0.00 USDC
+                </strong>
+
+            </div>
+
+
             <div class="summary-row">
 
                 <span>
@@ -962,38 +1053,37 @@
 
             </div>
 
+            <div class="summary-row">
+
+                <span>
+                    FROM WALLET
+                </span>
+
+                <strong id="confirm-wallet">
+                    External Wallet
+                </strong>
+
+            </div>
+
         </div>
 
+
+        <p id="confirm-fee-note" class="auth-card-text"></p>
+
+        <p id="confirm-disclaimer" class="auth-card-text"></p>
 
         <div class="verification-box">
 
             <div class="verification-title">
-                VERIFICATION
+                RECIPIENT VERIFICATION WORD
             </div>
 
+            <strong id="confirm-word" class="confirm-word">—</strong>
 
             <p>
-                Ask the recipient for their VYRO
-                verification word before confirming.
+                Make sure this matches the word the recipient sees in their
+                VYRO profile before you confirm.
             </p>
-
-
-            <div class="form-group">
-
-                <label for="verification-word-confirm">
-                    Verification Word
-                </label>
-
-                <input
-                    id="verification-word-confirm"
-                    type="text"
-                    placeholder="Enter verification word"
-                    autocomplete="off"
-                    autocapitalize="none"
-                    spellcheck="false"
-                >
-
-            </div>
 
         </div>
 
@@ -1045,11 +1135,9 @@
             Receive
         </h1>
 
-
         <p class="auth-subtitle">
-            Receive crypto directly to your wallet.
+            Share your VYRO username. Payments arrive in your receiving wallet.
         </p>
-
 
         <div class="receive-card">
 
@@ -1057,29 +1145,35 @@
                 YOUR VYRO USERNAME
             </div>
 
-
-            <div class="receive-username">
+            <div id="receive-username" class="receive-username">
                 @username
             </div>
 
-
             <div class="receive-divider"></div>
 
-
             <div class="receive-label">
-                ASSET
+                RECEIVING WALLET
             </div>
 
+            <strong id="receive-wallet-provider" class="receive-asset">
+                —
+            </strong>
+
+            <p id="receive-wallet-address" class="wallet-address-display receive-address">
+                No receiving wallet set yet.
+            </p>
+
+            <div class="receive-label receive-network-label">
+                ASSET
+            </div>
 
             <strong class="receive-asset">
                 USDC
             </strong>
 
-
             <div class="receive-label receive-network-label">
                 NETWORK
             </div>
-
 
             <strong class="receive-network">
                 Solana
@@ -1087,37 +1181,268 @@
 
         </div>
 
-
-        <div class="qr-placeholder receive-qr">
-
-            <span>
-                VYRO
-            </span>
-
-            <small>
-                QR CODE
-            </small>
-
-        </div>
-
-
-        <p class="receive-note">
-            Your wallet address and QR code will appear here
-            once your wallet is connected.
+        <p class="receive-note min-note">
+            Minimum payment: 1 USDC ($1.00).
         </p>
 
+        <p class="receive-note">
+            To get paid, give people your username. They send to it inside VYRO
+            and their wallet signs the payment to the address above.
+        </p>
+
+        <button
+            id="request-money-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            REQUEST MONEY
+        </button>
+
+        <button
+            id="view-requests-btn"
+            class="secondary-button auth-button"
+            type="button"
+        >
+            VIEW PAYMENT REQUESTS
+        </button>
+
+        <button
+            id="copy-username-btn"
+            class="secondary-button auth-button"
+            type="button"
+        >
+            COPY MY USERNAME
+        </button>
 
         <button
             id="copy-receive-btn"
             class="secondary-button auth-button"
             type="button"
         >
-            COPY USERNAME
+            COPY WALLET ADDRESS
+        </button>
+
+        <button
+            id="change-receiving-wallet-btn"
+            class="secondary-button auth-button"
+            type="button"
+        >
+            CHOOSE RECEIVING WALLET
         </button>
 
     </div>
 
 </section>
+
+<!-- =========================================================
+     FINISH SETUP (Google sign-in: choose a username and verification word)
+     ========================================================= -->
+
+<section id="profile-setup-screen" class="screen">
+
+    <div class="auth-header"></div>
+
+    <div class="auth-content">
+
+        <h1>
+            Almost there
+        </h1>
+
+        <p class="auth-subtitle">
+            Choose your VYRO username and verification word to finish creating your account.
+        </p>
+
+        <div class="form-group">
+
+            <label for="setup-username">
+                VYRO USERNAME
+            </label>
+
+            <input
+                id="setup-username"
+                type="text"
+                placeholder="@username"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+            >
+
+            <p id="setup-username-status" class="field-status" aria-live="polite"></p>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="setup-verification-word">
+                VERIFICATION WORD
+            </label>
+
+            <input
+                id="setup-verification-word"
+                type="text"
+                placeholder="Choose a verification word"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+            >
+
+        </div>
+
+        <button
+            id="setup-continue-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            CONTINUE
+        </button>
+
+        <button
+            id="setup-cancel-btn"
+            class="text-button"
+            type="button"
+        >
+            Use a different account
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     REQUEST MONEY
+     ========================================================= -->
+
+<section id="request-money-screen" class="screen">
+
+    <div class="internal-header">
+
+        <button id="request-back-btn" class="back-button" type="button">
+            ‹
+        </button>
+
+        <button id="request-home-logo-btn" class="home-logo-button" type="button">
+            VYRO
+        </button>
+
+    </div>
+
+    <div class="send-content">
+
+        <h1>
+            Request Money
+        </h1>
+
+        <p class="auth-subtitle">
+            Ask another VYRO user to pay you. They get the request in VYRO and only
+            need to approve it in their wallet.
+        </p>
+
+        <div class="form-group">
+
+            <label for="request-username">
+                Request from
+            </label>
+
+            <div class="input-wrapper">
+
+                <span class="input-prefix">
+                    @
+                </span>
+
+                <input
+                    id="request-username"
+                    type="text"
+                    placeholder="username"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                >
+
+            </div>
+
+            <div id="request-suggestions" class="suggestions" role="listbox"></div>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="request-amount">
+                Amount (USDC)
+            </label>
+
+            <input
+                id="request-amount"
+                type="number"
+                inputmode="decimal"
+                placeholder="0.00"
+                min="0"
+                step="any"
+            >
+
+            <p class="min-note">
+                Minimum request: 1 USDC ($1.00). You are paid at your receiving wallet.
+            </p>
+
+        </div>
+
+        <button
+            id="send-request-btn"
+            class="primary-button auth-button"
+            type="button"
+        >
+            SEND REQUEST
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     PAYMENT REQUESTS
+     ========================================================= -->
+
+<section id="requests-screen" class="screen">
+
+    <div class="internal-header">
+
+        <button id="requests-back-btn" class="back-button" type="button">
+            ‹
+        </button>
+
+        <button id="requests-home-logo-btn" class="home-logo-button" type="button">
+            VYRO
+        </button>
+
+    </div>
+
+    <div class="send-content">
+
+        <h1>
+            Requests
+        </h1>
+
+        <p class="auth-subtitle">
+            Money other people asked you for, and requests you sent.
+        </p>
+
+        <div class="requests-section-title">
+            ASKED OF YOU
+        </div>
+        <div id="requests-incoming" class="requests-list"></div>
+        <p id="requests-incoming-empty" class="requests-empty">No requests for you.</p>
+
+        <div class="requests-section-title">
+            YOU REQUESTED
+        </div>
+        <div id="requests-outgoing" class="requests-list"></div>
+        <p id="requests-outgoing-empty" class="requests-empty">You have not requested anything yet.</p>
+
+    </div>
+
+</section>
+
 
 <!-- =========================================================
      PROFILE SCREEN
@@ -1316,17 +1641,15 @@
 >
 
     <div class="auth-top">
-
         <button
             id="wallets-back-btn"
             class="back-button"
             type="button"
+            aria-label="Back"
         >
             ←
         </button>
-
     </div>
-
 
     <div class="auth-content">
 
@@ -1336,85 +1659,20 @@
             Manage the external wallets connected to VYRO.
         </p>
 
-
-        <!-- =================================================
-             SOLANA WALLET STATUS
-             ================================================= -->
-
-        <div class="auth-card">
-
-            <div class="auth-card-title">
-                SOLANA
+        <div id="wallet-list" class="wallet-list">
+            <div id="no-wallet-connected" class="auth-card">
+                <div class="auth-card-title">NO WALLET CONNECTED</div>
+                <p class="auth-card-text">Connect an external wallet. VYRO never receives your private keys or seed phrase.</p>
             </div>
-
-            <p
-                id="no-wallet-connected"
-                class="auth-card-text"
-            >
-                No wallet connected.
-            </p>
-
         </div>
-
-
-        <!-- =================================================
-             SAVED / CONNECTED WALLET
-             ================================================= -->
-
-        <div
-            id="saved-wallet-card"
-            class="auth-card"
-            style="display:none;"
-        >
-
-            <div class="auth-card-title">
-                CONNECTED WALLET
-            </div>
-
-            <p
-                id="saved-wallet-provider"
-                class="auth-card-text"
-            >
-                Trust Wallet
-            </p>
-
-            <p
-                id="saved-wallet-network"
-                class="auth-card-text"
-            >
-                SOLANA
-            </p>
-
-<p
-    id="saved-wallet-address"
-    class="auth-card-text wallet-address-display"
->
-    Wallet address
-</p>
-
-<button
-    id="copy-wallet-address-btn"
-    class="secondary-button"
-    type="button"
->
-    COPY ADDRESS
-</button>
-
-        </div>
-
-
-        <!-- =================================================
-             CONNECT WALLET BUTTON
-             ================================================= -->
 
         <button
             id="connect-wallet-btn"
-            class="primary-button"
+            class="primary-button auth-button"
             type="button"
         >
             CONNECT WALLET
         </button>
-
 
     </div>
 
@@ -1537,7 +1795,7 @@
             </p>
 
 
-            <div class="auth-card-title">
+            <div id="transaction-detail-party-label" class="auth-card-title">
                 RECIPIENT
             </div>
 
@@ -1589,12 +1847,8 @@
                 TRANSACTION ID
             </div>
 
-            <p
-                id="transaction-detail-id"
-                class="auth-card-text"
-            >
-                —
-            </p>
+            <p id="transaction-detail-id" class="auth-card-text" style="word-break:break-all">—</p>
+            <a id="transaction-detail-link" class="explorer-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none">View on Solscan</a>
 
         </div>
 
@@ -1956,13 +2210,13 @@
             </p>
 
 
-            <button
-                id="phantom-wallet-btn"
-                class="primary-button"
-                type="button"
-            >
-                CONNECT EXTERNAL WALLET
-            </button>
+            <button class="primary-button" type="button" data-wallet-connect="trust-wallet">TRUST WALLET</button>
+            <button class="secondary-button" type="button" data-wallet-connect="phantom">PHANTOM</button>
+            <button class="secondary-button" type="button" data-wallet-connect="solflare">SOLFLARE</button>
+            <button class="secondary-button" type="button" data-wallet-connect="backpack">BACKPACK</button>
+            <button class="secondary-button" type="button" data-wallet-connect="walletconnect">OTHER WALLET</button>
+
+            <p id="wallet-connect-status" class="auth-card-text wallet-connect-status"></p>
 
         </div>
 
@@ -2016,12 +2270,13 @@
             >
                 Wallet address will appear here.
             </p>
-            
-            
-            <p id="connected-wallet-provider" class="auth-card-text">
-    Trust Wallet
-</p>
-            
+
+            <p
+                id="connected-wallet-provider"
+                class="auth-card-text"
+            >
+                External Wallet
+            </p>
 
 
             <button
@@ -2064,12 +2319,8 @@
                 Your payment has been submitted successfully.
             </p>
 
-            <p
-                id="payment-success-summary"
-                class="verification-spam"
-            >
-                —
-            </p>
+            <p id="payment-success-summary" class="auth-card-text"></p>
+            <a id="payment-success-link" class="explorer-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none">View on Solscan</a>
 
         </div>
 
@@ -2100,7 +2351,7 @@
 
         <div class="verification-message">
 
-           <div class="verification-icon">
+            <div class="verification-icon">
                 !
             </div>
 
@@ -2108,11 +2359,8 @@
                 Payment Failed
             </h2>
 
-            <p
-                id="payment-failed-message"
-            >
-                Your payment could not be completed.
-            </p>
+            <p id="payment-failed-message" class="auth-card-text"></p>
+            <a id="payment-failed-link" class="explorer-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none">View on Solscan</a>
 
         </div>
 
@@ -2163,8 +2411,18 @@
 <script src="js/firebase-config.js"></script>
 
 
+<!-- Solana library: builds the UNSIGNED transfer; the user's wallet signs it.
+     Version is pinned. See README -> "Locking down third-party scripts" to add an integrity hash. -->
+<script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js" crossorigin="anonymous"></script>
+
+<!-- Optional WalletConnect SignClient (exposes window["@walletconnect/sign-client"]). -->
+<script src="https://unpkg.com/@walletconnect/sign-client@2.23.4/dist/index.umd.js" crossorigin="anonymous"></script>
+
 <!-- VYRO Files -->
 
+<script src="js/transfer.js"></script>
+
+<script src="js/wc-ui.js"></script>
 <script src="js/wallet.js"></script>
 
 <script src="js/payments.js"></script>
@@ -2176,4 +2434,4 @@
 
 </body>
 
-            </html>
+</html>
