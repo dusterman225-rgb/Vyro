@@ -37,7 +37,7 @@ window.VYRO_CONFIG = Object.freeze({
     }),
 
     // <<< PUT YOUR WALLETCONNECT PROJECT ID HERE (between the quotes)
-    walletConnectProjectId: "",
+    walletConnectProjectId: "44f320d19361d5829141766a65015080",
     walletConnectMetadata: {
         name: "VYRO",
         description: "Non-custodial crypto transfers by username.",
