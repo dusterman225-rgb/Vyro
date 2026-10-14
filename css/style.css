@@ -2586,3 +2586,308 @@ input.input-bad {
     transform: none;
     opacity: 0.8;
 }
+
+/* =========================================================
+   LOGO + AVATAR: NO LONGER FLOATING
+   They are part of the page now: they sit at the top of each screen and scroll with it,
+   instead of hovering over the content.
+   ========================================================= */
+
+.global-logo-btn {
+    position: absolute;
+    top: 27px;
+}
+
+.global-logo-btn::before {
+    display: none;
+}
+
+.global-profile-menu {
+    position: absolute;
+}
+
+/* =========================================================
+   WALLETCONNECT PANEL — extra text
+   ========================================================= */
+
+.wc-card .wc-or {
+    margin: 14px 0 0;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.wc-card .wc-hint {
+    margin: 14px 0 0;
+    font-size: 12px;
+}
+
+/* =========================================================
+   CHOOSE WALLET — recommended, more wallets, download Trust Wallet
+   ========================================================= */
+
+.wallet-group-label {
+    margin: 14px 0 2px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+}
+
+.wallet-reco {
+    position: relative;
+}
+
+.wallet-reco .reco-tag {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    padding: 3px 7px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+.more-wallets {
+    margin-top: 14px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.more-wallets > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.more-wallets > summary::-webkit-details-marker { display: none; }
+
+.more-wallets > summary::after {
+    content: "▾";
+    color: var(--gold);
+    transition: transform 0.2s ease;
+}
+
+.more-wallets[open] > summary::after { transform: rotate(180deg); }
+
+.more-wallets-list {
+    padding: 0 12px 12px;
+}
+
+.more-wallets-list .secondary-button {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.more-wallets-note {
+    margin: 10px 4px 0;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.get-wallet-card {
+    margin-top: 16px;
+    padding: 16px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+}
+
+.get-wallet-card strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.get-wallet-card p {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.get-wallet-card a {
+    display: block;
+    text-decoration: none;
+    text-align: center;
+}
+
+/* =========================================================
+   WALLET CARDS — bright SEND / RECEIVE indicators
+   ========================================================= */
+
+.wallet-role-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 26px;
+    margin-bottom: 10px;
+}
+
+.role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.role-pill.send {
+    color: #1a1200;
+    background: linear-gradient(180deg, #ffe08a, #f5c95b);
+    box-shadow: 0 0 14px rgba(245, 201, 91, 0.75);
+}
+
+.role-pill.receive {
+    color: #04180d;
+    background: linear-gradient(180deg, #8dffbd, #38e07b);
+    box-shadow: 0 0 14px rgba(56, 224, 123, 0.75);
+}
+
+.wallet-card.is-send { border-color: #f5c95b; box-shadow: 0 0 0 1px rgba(245, 201, 91, 0.35), 0 0 18px rgba(245, 201, 91, 0.18); }
+.wallet-card.is-receive { border-color: #38e07b; box-shadow: 0 0 0 1px rgba(56, 224, 123, 0.35), 0 0 18px rgba(56, 224, 123, 0.18); }
+.wallet-card.is-send.is-receive { border-color: #f5c95b; box-shadow: 0 0 0 1px rgba(245, 201, 91, 0.35), 0 0 18px rgba(56, 224, 123, 0.22); }
+
+.wallet-card .wallet-active-badge,
+.wallet-card .wallet-select-button,
+.wallet-card .wallet-receive-button { display: none; }
+
+.wallet-card .wallet-role-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.wallet-card .wallet-role-actions button {
+    flex: 1 1 30%;
+    min-width: 96px;
+}
+
+.wallet-card .wallet-role-actions button:disabled { opacity: 0.45; }
+
+#connected-wallet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.connect-another-btn { width: 100%; margin-top: 4px; }
+
+/* Picker polish: tag sits beside the name; download link is a proper button. */
+.wallet-reco .reco-tag {
+    position: static;
+    transform: none;
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 8px;
+    padding: 2px 6px;
+    vertical-align: middle;
+}
+
+.get-wallet-card a.primary-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 0 16px;
+    border-radius: 999px;
+}
+
+/* Disclaimers about the wallet's built-in browser */
+.wc-card .wc-notice {
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    background: rgba(245, 201, 91, 0.07);
+    color: var(--text);
+}
+
+.wallet-browser-note {
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    background: rgba(245, 201, 91, 0.06);
+}
+
+.wallet-browser-note strong { color: var(--text); }
+
+/* =========================================================
+   COINS: send coin, receive chips
+   ========================================================= */
+
+.coin-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+}
+
+.coin-row-label {
+    flex: 0 0 76px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+}
+
+.coin-select {
+    flex: 1;
+    min-height: 40px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.coin-chips { display: flex; flex: 1; flex-wrap: wrap; gap: 8px; }
+
+.coin-chip {
+    min-height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.coin-chip.on {
+    color: #04180d;
+    border-color: #38e07b;
+    background: linear-gradient(180deg, #8dffbd, #38e07b);
+    box-shadow: 0 0 12px rgba(56, 224, 123, 0.55);
+}
+
+.coin-chip:disabled { opacity: 0.4; }
+
+.receive-coins { font-size: 14px; line-height: 1.7; color: var(--text); }
+.receive-coin-line { padding: 2px 0; }
+
+.coin-chip { width: auto; flex: 0 0 auto; min-width: 72px; padding: 0 14px; }
+.coin-chips { align-items: center; }
