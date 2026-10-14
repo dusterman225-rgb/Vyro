@@ -332,7 +332,7 @@
                 w = await connectInjected(type);
             } else if (CFG.walletConnectProjectId) {
                 // Wallet not injected (e.g. normal mobile browser): fall back to WalletConnect.
-              w = await connectWalletConnect(type === "trust-wallet" ? "https://link.trustwallet.com/wc?uri=" : null, providerName(type));
+              w = await connectWalletConnect(label ? null : "https://link.trustwallet.com/wc?uri=", label || null));
             } else {
                 throw new Error(providerName(type) + " was not detected. Open VYRO inside the " + providerName(type) + " app's browser, or enable WalletConnect in js/config.js.");
             }
