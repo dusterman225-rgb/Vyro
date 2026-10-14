@@ -824,16 +824,14 @@
         <div class="form-group">
 
             <label for="send-asset">
-                Asset
+                Coin to send
             </label>
 
             <select id="send-asset">
-
-                <option value="usdc">
-                    USDC
-                </option>
-
+                <option value="USDC">USDC</option>
             </select>
+
+            <p class="min-note" id="send-coin-note"></p>
 
         </div>
 
@@ -844,12 +842,9 @@
                 Network
             </label>
 
-            <select id="send-network">
-
-                <option value="solana">
-                    Solana
-                </option>
-
+            <select id="send-network" disabled>
+                <option value="solana">Solana</option>
+                <option value="ethereum">Ethereum</option>
             </select>
 
         </div>
@@ -916,7 +911,7 @@
         <div class="form-group">
 
             <label for="send-amount">
-                Amount
+                Amount <span id="send-amount-unit">(USDC)</span>
             </label>
 
             <input
@@ -1164,25 +1159,15 @@
             </p>
 
             <div class="receive-label receive-network-label">
-                ASSET
+                COINS YOU RECEIVE
             </div>
 
-            <strong class="receive-asset">
-                USDC
-            </strong>
-
-            <div class="receive-label receive-network-label">
-                NETWORK
-            </div>
-
-            <strong class="receive-network">
-                Solana
-            </strong>
+            <div id="receive-coins" class="receive-coins">—</div>
 
         </div>
 
-        <p class="receive-note min-note">
-            Minimum payment: 1 USDC ($1.00).
+        <p class="receive-note min-note" id="receive-min-note">
+            Choose which coins you receive, and in which wallet, under Wallets.
         </p>
 
         <p class="receive-note">
@@ -1227,7 +1212,7 @@
             class="secondary-button auth-button"
             type="button"
         >
-            CHOOSE RECEIVING WALLET
+            CHOOSE WHAT I RECEIVE
         </button>
 
     </div>
@@ -1367,8 +1352,16 @@
 
         <div class="form-group">
 
-            <label for="request-amount">
-                Amount (USDC)
+            <label for="request-asset">
+                Coin to request
+            </label>
+
+            <select id="request-asset">
+                <option value="USDC">USDC</option>
+            </select>
+
+            <label for="request-amount" style="margin-top:14px;display:block">
+                Amount <span id="request-amount-unit">(USDC)</span>
             </label>
 
             <input
@@ -1381,7 +1374,7 @@
             >
 
             <p class="min-note">
-                Minimum request: 1 USDC ($1.00). You are paid at your receiving wallet.
+                <span id="request-min-note">Minimum request: 1 USDC ($1.00).</span> You are paid in the wallet you chose for that coin.
             </p>
 
         </div>
@@ -2210,11 +2203,38 @@
             </p>
 
 
-            <button class="primary-button" type="button" data-wallet-connect="trust-wallet">TRUST WALLET</button>
-            <button class="secondary-button" type="button" data-wallet-connect="phantom">PHANTOM</button>
-            <button class="secondary-button" type="button" data-wallet-connect="solflare">SOLFLARE</button>
-            <button class="secondary-button" type="button" data-wallet-connect="backpack">BACKPACK</button>
-            <button class="secondary-button" type="button" data-wallet-connect="walletconnect">OTHER WALLET</button>
+            <div class="wallet-group-label">RECOMMENDED</div>
+            <button class="primary-button wallet-reco" type="button" data-wallet-connect="trust-wallet">TRUST WALLET<span class="reco-tag">RECOMMENDED</span></button>
+            <button class="secondary-button wallet-reco" type="button" data-wallet-connect="walletconnect" data-wallet-label="Backpack">BACKPACK<span class="reco-tag">RECOMMENDED</span></button>
+            <button class="secondary-button wallet-reco" type="button" data-wallet-connect="walletconnect" data-wallet-label="Solflare">SOLFLARE<span class="reco-tag">RECOMMENDED</span></button>
+
+            <div class="wallet-group-label">BEGINNER FRIENDLY</div>
+            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Exodus">EXODUS</button>
+            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Coinbase Wallet">COINBASE WALLET</button>
+            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="SafePal">SAFEPAL</button>
+            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Bitget Wallet">BITGET WALLET</button>
+            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Binance Web3 Wallet">BINANCE WEB3 WALLET</button>
+
+            <details class="more-wallets">
+                <summary>MORE WALLETS</summary>
+                <div class="more-wallets-list">
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OKX Wallet">OKX WALLET</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="MetaMask">METAMASK</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Jupiter Mobile">JUPITER MOBILE</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="TokenPocket">TOKENPOCKET</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Zerion">ZERION</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Ledger Live">LEDGER LIVE</button>
+                    <p class="more-wallets-note">Every wallet here connects with WalletConnect. Your wallet must support Solana.</p>
+                </div>
+            </details>
+
+            <p class="wallet-browser-note"><strong>How connecting works:</strong> VYRO stays in your normal browser. Tap your wallet, approve the connection in the wallet app, then come back to VYRO. Each payment opens your wallet for you to approve.</p>
+
+            <div class="get-wallet-card">
+                <strong>Don't have a wallet?</strong>
+                <p>Trust Wallet is free and takes about two minutes to set up.</p>
+                <a class="primary-button" href="https://trustwallet.com/download" target="_blank" rel="noopener">DOWNLOAD TRUST WALLET</a>
+            </div>
 
             <p id="wallet-connect-status" class="auth-card-text wallet-connect-status"></p>
 
@@ -2250,44 +2270,21 @@
     <div class="auth-content">
 
         <h1>
-            Wallet Connected
+            My Wallets
         </h1>
 
         <p class="auth-subtitle">
-            Your external wallet is connected to VYRO.
+            Connect as many wallets as you like. Choose which one SENDS and which one RECEIVES.
         </p>
 
+        <div id="connected-wallet-list"></div>
 
-        <div class="auth-card">
+        <p id="connected-wallet-address" class="auth-card-text" hidden></p>
+        <p id="connected-wallet-provider" class="auth-card-text" hidden></p>
 
-            <div class="auth-card-title">
-                SOLANA WALLET
-            </div>
+        <button id="connect-another-btn" class="primary-button connect-another-btn" type="button">+ CONNECT ANOTHER WALLET</button>
 
-            <p
-                id="connected-wallet-address"
-                class="auth-card-text"
-            >
-                Wallet address will appear here.
-            </p>
-
-            <p
-                id="connected-wallet-provider"
-                class="auth-card-text"
-            >
-                External Wallet
-            </p>
-
-
-            <button
-                id="disconnect-wallet-btn"
-                class="secondary-button"
-                type="button"
-            >
-                DISCONNECT WALLET
-            </button>
-
-        </div>
+        <button id="disconnect-wallet-btn" class="secondary-button connect-another-btn" type="button">DISCONNECT SENDING WALLET</button>
 
     </div>
 
@@ -2421,9 +2418,11 @@
 <!-- VYRO Files -->
 
 <script src="js/transfer.js"></script>
+<script src="js/coins.js"></script>
 
 <script src="js/wc-ui.js"></script>
 <script src="js/wallet.js"></script>
+<script src="js/wallet-roles.js"></script>
 
 <script src="js/payments.js"></script>
 
