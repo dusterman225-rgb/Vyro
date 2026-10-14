@@ -1,7 +1,9 @@
 // =========================================================
 // VYRO — APP CONFIGURATION (MAINNET)
 // =========================================================
-// One line needs your own value:  walletConnectProjectId  (paste your WalletConnect project ID).
+// Two lines need your own values:
+//   walletConnectProjectId      (paste your WalletConnect project ID)
+//   fee.treasuryEthAddress      (an Ethereum 0x... address you control, for the ETH fee; ETH stays off until you set it)
 
 window.VYRO_CONFIG = Object.freeze({
     appName: "VYRO",
@@ -28,16 +30,33 @@ window.VYRO_CONFIG = Object.freeze({
     // amount). 100 basis points = 1%. Sent to the fee wallet inside the same transaction.
     fee: Object.freeze({
         bps: 100,
-        treasuryAddress: "7ScnZKuXee7AUnh3BwWSPvWznzcF3a3cHLrSGJS2vu8C"
+        // Fee wallet for USDC and SOL (a Solana address).
+        treasuryAddress: "7ScnZKuXee7AUnh3BwWSPvWznzcF3a3cHLrSGJS2vu8C",
+        // <<< PUT YOUR ETHEREUM FEE ADDRESS HERE (0x...). Until it is set, ETH payments are switched off.
+        treasuryEthAddress: ""
+    }),
+
+    // Native ETH (the user's wallet signs through WalletConnect). Needs an Ethereum RPC.
+    // Same Alchemy key works once Ethereum Mainnet is enabled for that Alchemy app.
+    ethereum: Object.freeze({
+        chainId: "eip155:1",
+        rpcUrl: "https://eth-mainnet.g.alchemy.com/v2/alch_X9mveVmXQneC5MXDJXAEi",
+        explorerTxUrl: "https://etherscan.io/tx/"
+    }),
+
+    // Per-coin limits for SOL and ETH (in that coin). USDC uses the limits below.
+    coins: Object.freeze({
+        SOL: Object.freeze({ min: "0.01", max: "1" }),
+        ETH: Object.freeze({ min: "0.001", max: "0.05" })
     }),
 
     limits: Object.freeze({
         minAmountPerPayment: "1",     // USDC ($1)
-        maxAmountPerPayment: "100000"     // USDC. Start small; raise it once you are comfortable.
+        maxAmountPerPayment: "50"     // USDC. Start small; raise it once you are comfortable.
     }),
 
     // <<< PUT YOUR WALLETCONNECT PROJECT ID HERE (between the quotes)
-    walletConnectProjectId: "44f320d19361d5829141766a65015080",
+    walletConnectProjectId: "",
     walletConnectMetadata: {
         name: "VYRO",
         description: "Non-custodial crypto transfers by username.",
