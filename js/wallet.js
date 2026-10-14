@@ -433,7 +433,7 @@
 
     function bind() {
         document.querySelectorAll("[data-wallet-connect]").forEach(function (btn) {
-            btn.addEventListener("click", function () { connect(btn.getAttribute("data-wallet-connect")); });
+            btn.addEventListener("click", function () { connect(btn.getAttribute("data-wallet-connect"), btn.getAttribute("data-wallet-label")); });
         });
         const disconnectBtn = document.getElementById("disconnect-wallet-btn");
         if (disconnectBtn) disconnectBtn.addEventListener("click", async function () {
