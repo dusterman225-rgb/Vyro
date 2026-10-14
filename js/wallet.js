@@ -69,7 +69,7 @@
     function getWalletType() { const a = getActiveWallet(); return a ? a.type : null; }
     function getProvider() { const a = getActiveWallet(); return a ? a.provider : null; }
     function getReceivingAddress() { return receivingAddress; }
-        function getUsername() { return username; }
+    function getUsername() { return username; }
 
     // ---------- account lifecycle (called by auth.js) ----------
     function setUser(newUid) {
@@ -79,7 +79,6 @@
         wcSession = null;
         load();
         updateUI();
-        if (uid) adoptPendingSession().catch(function (e) { console.warn("VYRO: could not restore WalletConnect session", e); });
     }
 
     // Reads the address this user has published to the username directory.
@@ -228,7 +227,10 @@
         if (!projectId) return null;
         const SC = resolveSignClient();
         if (!SC) throw new Error("WalletConnect library is unavailable.");
-        wcClient = await SC.init({ projectId: projectId, metadata: CFG.walletConnectMetadata });
+        // "redirect" tells the wallet where to send the user back to after they approve.
+        const backTo = window.location.origin + window.location.pathname;
+        const metadata = Object.assign({}, CFG.walletConnectMetadata, { redirect: { universal: backTo } });
+        wcClient = await SC.init({ projectId: projectId, metadata: metadata });
         return wcClient;
     }
 
@@ -257,82 +259,69 @@
         const link = walletAppLink(session);
         if (link) window.location.href = link;
     }
-    
-        const PENDING_WC = "vyro_wc_pending";
 
-    // Phones often reload this page when the user returns from the wallet app, which loses the
-    // in-memory approval. WalletConnect keeps the session in storage, so pick it up here.
-    async function adoptPendingSession() {
-        if (!uid) return null;
-        let pend = null;
-        try { pend = JSON.parse(localStorage.getItem(PENDING_WC) || "null"); } catch (e) { pend = null; }
-        if (!pend || Date.now() - pend.t > 10 * 60 * 1000) {
-            try { localStorage.removeItem(PENDING_WC); } catch (e) { /* ignore */ }
-            return null;
-        }
+    async function connectWalletConnect(deepLinkBase, label) {
         const client = await ensureWcClient();
         if (!client) return null;
-        const all = client.session.getAll();
-        for (let i = all.length - 1; i >= 0; i--) {
-            const accts = (all[i].namespaces && all[i].namespaces.solana && all[i].namespaces.solana.accounts) || [];
-            const address = accts[0] ? accts[0].split(":").pop() : null;
-            if (!address) continue;
-            wcSession = all[i];
-            const peer = all[i].peer && all[i].peer.metadata && all[i].peer.metadata.name;
-            const w = addWallet(address, "walletconnect", pend.label || peer || "WalletConnect");
-            try { localStorage.removeItem(PENDING_WC); } catch (e) { /* ignore */ }
-            if (w) showConnectedWallet();
-            return w;
-        }
-        return null;
-    }
-
-    async function connectWalletConnect(deepLinkBase, label) { 
-        const client = await ensureWcClient();
-        if (!client) return null;
-                try { localStorage.setItem(PENDING_WC, JSON.stringify({ label: label || null, t: Date.now() })); } catch (e) { /* ignore */ }
-        const res = await client.connect({
+        const connectParams = {
             requiredNamespaces: { solana: { methods: ["solana_signTransaction", "solana_signMessage"], chains: [SOLANA_CHAIN], events: [] } }
-        });
+        };
+        // Ethereum is optional: wallets that support it share a 0x account, so VYRO can send ETH.
+        if (CFG.ethereum && CFG.ethereum.chainId) {
+            connectParams.optionalNamespaces = { eip155: { methods: ["eth_sendTransaction"], chains: [CFG.ethereum.chainId], events: [] } };
+        }
+        const res = await client.connect(connectParams);
         if (res.uri) {
             if (isMobile() && deepLinkBase) {
                 setStatus("Opening your wallet…");
                 window.location.href = deepLinkBase + encodeURIComponent(res.uri);
-                        } else if (window.VYROWalletConnectUI) {
+            } else if (window.VYROWalletConnectUI) {
                 setStatus("Approve the connection in your wallet app.");
-                window.VYROWalletConnectUI.show(res.uri, label);
+                window.VYROWalletConnectUI.show(res.uri, label);   // open-wallet / copy-link panel (js/wc-ui.js)
             } else {
                 setStatus("Open your wallet app and approve the connection request.");
                 console.info("VYRO WalletConnect URI:", res.uri);
-    }
+            }
         }
-        
-                wcSession = await res.approval();
+        wcSession = await res.approval();
         const account = wcSession && wcSession.namespaces && wcSession.namespaces.solana && wcSession.namespaces.solana.accounts[0];
         const address = account ? account.split(":").pop() : null;
         if (!address) throw new Error("WalletConnect did not return a Solana address.");
         // WalletConnect is only the connection method. Show the REAL wallet's name:
         // the one the user tapped, or else the name the wallet itself reports.
         const peer = wcSession.peer && wcSession.peer.metadata && wcSession.peer.metadata.name;
-                try { localStorage.removeItem(PENDING_WC); } catch (e) { /* ignore */ }
-        return addWallet(address, "walletconnect", label || peer || "WalletConnect");
+        const evmAccount = wcSession.namespaces && wcSession.namespaces.eip155 && wcSession.namespaces.eip155.accounts && wcSession.namespaces.eip155.accounts[0];
+        const added = addWallet(address, "walletconnect", label || peer || "WalletConnect");
+        if (added && evmAccount) { added.evmAddress = evmAccount.split(":").pop(); persist(); updateUI(); }
+        return added;
+    }
+
+    // Sends one request to the wallet that owns `address` (used for Ethereum). The wallet app opens
+    // so the user can approve it; VYRO never signs.
+    async function wcRequest(address, chainId, request) {
+        const client = await ensureWcClient();
+        const session = client && wcSessionForAddress(address);
+        if (!session) throw new Error("This WalletConnect session has expired. Remove the wallet and connect it again.");
+        const pendingRequest = client.request({ topic: session.topic, chainId: chainId, request: request });
+        openWalletApp(session);
+        return pendingRequest;
     }
 
     // ---------- connect (public entry point) ----------
     // type: "trust-wallet" | "phantom" | "solflare" | "backpack" | "walletconnect"
-   async function connect(type, label)  {
+    async function connect(type, label) {
         type = type || "trust-wallet";
         setStatus("Connecting…");
         try {
             let w = null;
             if (type === "walletconnect") {
                 if (!CFG.walletConnectProjectId) throw new Error("WalletConnect is not configured yet (missing project ID).");
-               w = await connectWalletConnect("https://link.trustwallet.com/wc?uri=", null);
+                w = await connectWalletConnect(label ? null : "https://link.trustwallet.com/wc?uri=", label || null);
             } else if (injected(type)) {
                 w = await connectInjected(type);
             } else if (CFG.walletConnectProjectId) {
                 // Wallet not injected (e.g. normal mobile browser): fall back to WalletConnect.
-              w = await connectWalletConnect(label ? null : "https://link.trustwallet.com/wc?uri=", label || null));
+                w = await connectWalletConnect(type === "trust-wallet" ? "https://link.trustwallet.com/wc?uri=" : null, providerName(type));
             } else {
                 throw new Error(providerName(type) + " was not detected. Open VYRO inside the " + providerName(type) + " app's browser, or enable WalletConnect in js/config.js.");
             }
@@ -380,7 +369,7 @@
             const session = client && wcSessionForAddress(expectedAddress);
             if (!session) throw new Error("This WalletConnect session has expired. Remove the wallet and connect it again.");
             const raw = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
-                        const pendingRequest = client.request({
+            const pendingRequest = client.request({
                 topic: session.topic,
                 chainId: SOLANA_CHAIN,
                 request: { method: "solana_signTransaction", params: { transaction: VYROTransfer.bytesToBase64(raw) } }
@@ -442,21 +431,14 @@
         });
     }
 
-        function init() {
-        bind();
-        updateUI();
-        // Coming back from the wallet app: check whether the connection finished.
-        document.addEventListener("visibilitychange", function () {
-            if (document.visibilityState === "visible") adoptPendingSession().catch(function () {});
-        });
-    }
+    function init() { bind(); updateUI(); }
 
     window.VYROWallet = {
         init, connect, disconnect, restoreConnection,
-                setUser, setUsername, setReceivingWallet, getReceivingAddress, getUsername,
+        setUser, setUsername, setReceivingWallet, getReceivingAddress, getUsername,
         getWallets, getActiveWallet, setActiveWallet, addWallet, removeWallet,
         getAddress, getActiveAddress: getAddress, isConnected, getWalletType, getProvider,
-        requestSignature, isUserRejection, updateUI
+        requestSignature, wcRequest, isUserRejection, updateUI
     };
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
