@@ -320,7 +320,7 @@
 
     // ---------- connect (public entry point) ----------
     // type: "trust-wallet" | "phantom" | "solflare" | "backpack" | "walletconnect"
-    async function connect(type) {
+   async function connect(type, label)  {
         type = type || "trust-wallet";
         setStatus("Connecting…");
         try {
