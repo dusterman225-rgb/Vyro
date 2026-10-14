@@ -224,6 +224,92 @@ function formatWalletForSelector(wallet) {
 
 
 // =========================================================
+// COIN SELECTS (send screen, request screen)
+// =========================================================
+
+function coinNoteText(id) {
+    const c = VYROCoins.get(id);
+    return "Minimum payment: " + c.min + " " + id + ". Maximum: " + c.max + " " + id + ". VYRO adds a 1% service fee on top.";
+}
+
+// Fills the send screen's coin list from the chosen wallet: coins the wallet cannot send are greyed out.
+function refreshSendCoinSelect() {
+    const select = document.getElementById("send-asset");
+    const walletSel = document.getElementById("send-wallet");
+    if (!select || !window.VYROCoins || !window.VYROWallet) return;
+    const wallet = VYROWallet.getWallets().find(function (w) { return walletSel && w.address === walletSel.value; }) || VYROWallet.getActiveWallet();
+    const before = select.value;
+    select.innerHTML = "";
+    VYROCoins.list().forEach(function (c) {
+        const o = document.createElement("option");
+        o.value = c.id;
+        const ok = !wallet || VYROCoins.walletCan(wallet, c.id);
+        o.textContent = c.label + (ok ? "" : (VYROCoins.usable(c.id) ? " (reconnect this wallet to turn on)" : " (not set up yet)"));
+        o.disabled = !ok;
+        select.appendChild(o);
+    });
+    const want = (before && wallet && VYROCoins.walletCan(wallet, before)) ? before : (wallet ? VYROCoins.getSendCoin(wallet) : "USDC");
+    select.value = want;
+    syncSendCoin();
+}
+
+function syncSendCoin() {
+    const select = document.getElementById("send-asset");
+    if (!select || !window.VYROCoins) return;
+    const id = select.value || "USDC";
+    const c = VYROCoins.get(id);
+    if (!c) return;
+    const net = document.getElementById("send-network");
+    if (net) net.value = c.chain;
+    const note = document.getElementById("send-min-note");
+    if (note) note.textContent = coinNoteText(id);
+    const unit = document.getElementById("send-amount-unit");
+    if (unit) unit.textContent = "(" + id + ")";
+    const coinNote = document.getElementById("send-coin-note");
+    if (coinNote) coinNote.textContent = id === "USDC" ? "USDC on Solana." : (id === "SOL" ? "Native SOL on Solana." : "Native ETH on Ethereum. Your wallet will ask you to approve twice: the payment, then the VYRO fee.");
+}
+
+function refreshRequestCoinSelect() {
+    const select = document.getElementById("request-asset");
+    if (!select || !window.VYROCoins) return;
+    const before = select.value || "USDC";
+    select.innerHTML = "";
+    VYROCoins.list().filter(function (c) { return VYROCoins.usable(c.id); }).forEach(function (c) {
+        const o = document.createElement("option");
+        o.value = c.id; o.textContent = c.label;
+        select.appendChild(o);
+    });
+    select.value = before;
+    syncRequestCoin();
+}
+
+function syncRequestCoin() {
+    const select = document.getElementById("request-asset");
+    if (!select || !window.VYROCoins) return;
+    const id = select.value || "USDC";
+    const c = VYROCoins.get(id);
+    const unit = document.getElementById("request-amount-unit");
+    if (unit) unit.textContent = "(" + id + ")";
+    const note = document.getElementById("request-min-note");
+    if (note && c) note.textContent = "Minimum request: " + c.min + " " + id + ".";
+}
+
+(function () {
+    const coinSel = document.getElementById("send-asset");
+    if (coinSel) coinSel.addEventListener("change", function () {
+        const walletSel = document.getElementById("send-wallet");
+        const wallet = VYROWallet.getWallets().find(function (w) { return walletSel && w.address === walletSel.value; });
+        if (wallet) VYROCoins.setSendCoin(wallet, coinSel.value);
+        syncSendCoin();
+        if (window.renderWalletRoles) renderWalletRoles();
+    });
+    const walletSel = document.getElementById("send-wallet");
+    if (walletSel) walletSel.addEventListener("change", refreshSendCoinSelect);
+    const reqSel = document.getElementById("request-asset");
+    if (reqSel) reqSel.addEventListener("change", syncRequestCoin);
+})();
+
+// =========================================================
 // POPULATE WALLET SELECTORS
 // =========================================================
 
@@ -336,6 +422,13 @@ function populateWalletSelectors() {
     populateSelect(
         receiveWallet
     );
+
+    refreshSendCoinSelect();
+    refreshRequestCoinSelect();
+
+    if (typeof window.renderWalletRoles === "function") {
+        window.renderWalletRoles();
+    }
 }
 
 
@@ -345,6 +438,19 @@ function populateWalletSelectors() {
 
 window.populateWalletSelectors = populateWalletSelectors;
 
+function receivePrimary() {
+    const map = (window.VYROCoins && VYROCoins.getReceive()) || {};
+    for (let i = 0; i < VYROCoins.ORDER.length; i++) {
+        const id = VYROCoins.ORDER[i];
+        if (map[id]) return { coin: id, address: map[id] };
+    }
+    return null;
+}
+
+function walletForReceiveAddress(coin, address) {
+    return VYROWallet.getWallets().find(function (w) { return VYROCoins.walletAddressFor(w, coin) === address; }) || null;
+}
+
 function updateReceiveWalletDisplay() {
 
     const set = function (id, text) {
@@ -353,20 +459,39 @@ function updateReceiveWalletDisplay() {
     };
 
     const name = window.VYROWallet && VYROWallet.getUsername ? VYROWallet.getUsername() : null;
-    const address = window.VYROWallet ? VYROWallet.getReceivingAddress() : null;
-    const wallet = address
-        ? VYROWallet.getWallets().find(function (w) { return w.address === address; })
-        : null;
+    const map = window.VYROCoins ? VYROCoins.getReceive() : {};
+    const primary = window.VYROCoins ? receivePrimary() : null;
+    const wallet = primary ? walletForReceiveAddress(primary.coin, primary.address) : null;
 
     set("receive-username", name ? "@" + name : "—");
-    set("receive-wallet-provider", wallet ? (wallet.provider || "External wallet") : "—");
-    set("receive-wallet-address", address || "No receiving wallet set yet. Choose one below.");
+    set("receive-wallet-provider", wallet ? (wallet.provider || "External wallet") : (primary ? "External wallet" : "—"));
+    set("receive-wallet-address", primary ? primary.address : "No receiving wallet set yet. Choose one below.");
+
+    const box = document.getElementById("receive-coins");
+    if (box && window.VYROCoins) {
+        box.innerHTML = "";
+        VYROCoins.ORDER.forEach(function (id) {
+            if (!map[id]) return;
+            const w = walletForReceiveAddress(id, map[id]);
+            const line = document.createElement("div");
+            line.className = "receive-coin-line";
+            line.textContent = id + " → " + (w ? w.provider : "wallet") + " (" + map[id].slice(0, 6) + "…" + map[id].slice(-4) + ")";
+            box.appendChild(line);
+        });
+        if (!box.childNodes.length) box.textContent = "None yet. Choose under Wallets.";
+    }
 
     const copyUser = document.getElementById("copy-username-btn");
     const copyAddr = document.getElementById("copy-receive-btn");
     if (copyUser) copyUser.disabled = !name;
-    if (copyAddr) copyAddr.disabled = !address;
+    if (copyAddr) copyAddr.disabled = !primary;
+
+    if (window.VYROCoins && name && !updateReceiveWalletDisplay.loading) {
+        updateReceiveWalletDisplay.loading = true;
+        VYROCoins.loadReceive(true).then(function () { updateReceiveWalletDisplay.loading = false; }, function () { updateReceiveWalletDisplay.loading = false; });
+    }
 }
+if (window.VYROCoins) VYROCoins.onReceiveChange(function () { updateReceiveWalletDisplay(); if (window.renderWalletRoles) renderWalletRoles(); });
 
 
 // =========================================================
@@ -821,7 +946,13 @@ if (continueSendButton) {
             return;
         }
 
-        const network = document.getElementById("send-network").value;
+        const asset = (document.getElementById("send-asset").value || "USDC").toUpperCase();
+        const coin = VYROCoins.get(asset);
+        if (!coin || !VYROCoins.walletCan(sendingWallet, asset)) {
+            alert("This wallet cannot send " + asset + ". Pick a different coin or wallet.");
+            return;
+        }
+        VYROCoins.setSendCoin(sendingWallet, asset);
         const recipientName = VYROTransfer.normalizeUsername(document.getElementById("send-recipient").value);
         const amountText = document.getElementById("send-amount").value.trim();
 
@@ -829,7 +960,7 @@ if (continueSendButton) {
             alert("Please enter a valid VYRO username (3–20 letters, numbers or underscores).");
             return;
         }
-        const parsed = VYROTransfer.parseAmount(amountText, window.VYRO_CONFIG.solana.usdcDecimals);
+        const parsed = VYROTransfer.parseAmount(amountText, coin.decimals);
         if (!parsed.ok) {
             alert(parsed.error);
             return;
@@ -841,8 +972,8 @@ if (continueSendButton) {
         VYROPayments.setPendingPayment({
             recipient: "@" + recipientName,
             amount: amountText,
-            asset: "USDC",
-            network: network === "solana" ? "Solana" : network,
+            asset: asset,
+            network: coin.network,
             fromWallet: sendingWallet.address,
             walletType: sendingWallet.type || "solana",
             walletProvider: sendingWallet.provider || sendingWallet.type || "External Wallet",
@@ -869,11 +1000,12 @@ if (continueSendButton) {
 
 // Every payment file must be the matching version, or the VYRO fee could silently be skipped.
 // If a file on the site is old (not yet replaced, or cached), say exactly which one.
-const VYRO_EXPECTED_BUILD = { transfer: "2026-10-09-r4", payments: "2026-10-12-r5" };
+const VYRO_EXPECTED_BUILD = { transfer: "2026-10-14-r6", payments: "2026-10-14-r6", coins: "2026-10-14-r6" };
 
 function checkBuild() {
     const stale = [];
     if (!window.VYROTransfer || window.VYROTransfer.version !== VYRO_EXPECTED_BUILD.transfer) stale.push("js/transfer.js");
+    if (!window.VYROCoins || window.VYROCoins.version !== VYRO_EXPECTED_BUILD.coins) stale.push("js/coins.js");
     if (!window.VYROPayments || window.VYROPayments.version !== VYRO_EXPECTED_BUILD.payments) stale.push("js/payments.js");
     if (stale.length) {
         return "Setup problem: " + stale.join(" and ") + " on your site is an old version. Replace it with the latest file, wait a minute for the site to update, then reload.";
@@ -886,33 +1018,45 @@ function checkBuild() {
 
 function renderConfirmScreen(q, wallet) {
     const set = function (id, text) { const el = document.getElementById(id); if (el) el.textContent = text; };
+    const asset = q.asset || "USDC";
+    const coin = VYROCoins.get(asset);
+    const dec = coin.decimals;
     set("confirm-recipient", q.recipient);
-    const dec = window.VYRO_CONFIG.solana.usdcDecimals;
     const feeUnits = BigInt(q.feeUnits || "0");
     const totalUnits = BigInt(q.totalUnits || q.units);
-    set("confirm-amount", VYROTransfer.formatUnits(BigInt(q.units), dec) + " USDC");
+    set("confirm-amount", VYROTransfer.formatUnits(BigInt(q.units), dec) + " " + asset);
     set("confirm-fee", feeUnits > 0n
-        ? VYROTransfer.formatUnits(feeUnits, dec) + " USDC (" + (q.feeBps / 100) + "%)"
+        ? VYROTransfer.formatUnits(feeUnits, dec) + " " + asset + " (" + (q.feeBps / 100) + "%)"
         : "None");
-    set("confirm-total", VYROTransfer.formatUnits(totalUnits, dec) + " USDC");
+    set("confirm-total", VYROTransfer.formatUnits(totalUnits, dec) + " " + asset);
     set("confirm-word", q.recipientWord || "Not set yet");
     set("confirm-network", q.network);
-    set("confirm-wallet", (wallet.provider || wallet.type || "External Wallet") + " • " + wallet.address.slice(0, 6) + "..." + wallet.address.slice(-4));
+    const shownAddress = VYROCoins.walletAddressFor(wallet, asset) || wallet.address;
+    set("confirm-wallet", (wallet.provider || wallet.type || "External Wallet") + " • " + shownAddress.slice(0, 6) + "..." + shownAddress.slice(-4));
 
     const walletName = wallet.provider || "your wallet";
+    const twoSteps = asset === "ETH" && feeUnits > 0n;
     set("confirm-disclaimer",
         "By tapping CONFIRM PAYMENT, you authorize a transfer of " +
-        VYROTransfer.formatUnits(BigInt(q.units), dec) + " USDC to " + q.recipient +
-        (feeUnits > 0n ? ", plus a " + VYROTransfer.formatUnits(feeUnits, dec) + " USDC VYRO fee (" + VYROTransfer.formatUnits(totalUnits, dec) + " USDC in total)" : "") +
-        ". Your " + walletName + " will open a request, and the payment only happens if you approve and sign it there. " +
+        VYROTransfer.formatUnits(BigInt(q.units), dec) + " " + asset + " to " + q.recipient +
+        (feeUnits > 0n ? ", plus a " + VYROTransfer.formatUnits(feeUnits, dec) + " " + asset + " VYRO fee (" + VYROTransfer.formatUnits(totalUnits, dec) + " " + asset + " in total)" : "") +
+        ". Your " + walletName + " will open a request" + (twoSteps ? " (two approvals: the payment, then the VYRO fee)" : "") +
+        ", and the payment only happens if you approve and sign it there. " +
         "VYRO cannot move your funds without your approval. Blockchain payments cannot be reversed.");
 
-    let note = "Network fee: about 0.000005 SOL, paid from your wallet.";
-    if (q.createsRecipientAccount) {
-        note += " This is your first payment to " + q.recipient + ", so about " + (q.rentLamports / 1e9).toFixed(5) +
-            " SOL is also needed once to open their USDC account.";
-    } else if (q.createsFeeAccount) {
-        note += " About " + (q.rentLamports / 1e9).toFixed(5) + " SOL is also needed once to open VYRO's fee account.";
+    let note;
+    if (asset === "ETH") {
+        note = "Network fees: about " + (q.gasWei ? VYROTransfer.formatUnits(BigInt(q.gasWei) / 2n, 18) : "a small amount of") + " ETH, paid from your wallet.";
+    } else if (asset === "SOL") {
+        note = "Network fee: about 0.000005 SOL, paid from your wallet.";
+    } else {
+        note = "Network fee: about 0.000005 SOL, paid from your wallet.";
+        if (q.createsRecipientAccount) {
+            note += " This is your first payment to " + q.recipient + ", so about " + (q.rentLamports / 1e9).toFixed(5) +
+                " SOL is also needed once to open their USDC account.";
+        } else if (q.createsFeeAccount) {
+            note += " About " + (q.rentLamports / 1e9).toFixed(5) + " SOL is also needed once to open VYRO's fee account.";
+        }
     }
     set("confirm-fee-note", note);
 }
@@ -1006,17 +1150,18 @@ if (confirmPaymentButton) {
 
 function showPaymentResult(result) {
     if (result.status === "Failed") {
-        showPaymentFailed("The transaction failed on Solana. No USDC was moved.", result);
+        showPaymentFailed("The transaction failed on " + result.network + ". No " + result.asset + " was moved.", result);
         return;
     }
     const summary = document.getElementById("payment-success-summary");
     if (summary) {
-        summary.textContent = result.amount + " USDC to " + result.recipient +
-            (result.fee && result.fee !== "0" ? " (+ " + result.fee + " USDC VYRO fee)" : "") +
-            (result.status === "Confirmed" ? " · Confirmed on Solana" : " · Submitted, waiting for confirmation");
+        summary.textContent = result.amount + " " + result.asset + " to " + result.recipient +
+            (result.fee && result.fee !== "0" ? " (+ " + result.fee + " " + result.asset + " VYRO fee)" : "") +
+            (result.status === "Confirmed" ? " · Confirmed on " + result.network : " · Submitted, waiting for confirmation") +
+            (result.note ? ". " + result.note : "");
     }
     const link = document.getElementById("payment-success-link");
-    if (link) { link.href = VYROPayments.explorerUrl(result.id); link.style.display = "inline-block"; }
+    if (link) { link.href = VYROPayments.explorerUrl(result.id, result.asset); link.style.display = "inline-block"; }
     loadTransactionHistory();
     showScreen(paymentSuccessScreen);
 }
@@ -1026,7 +1171,7 @@ function showPaymentFailed(message, result) {
     if (el) el.textContent = message;
     const link = document.getElementById("payment-failed-link");
     if (link) {
-        if (result && result.id) { link.href = VYROPayments.explorerUrl(result.id); link.style.display = "inline-block"; }
+        if (result && result.id) { link.href = VYROPayments.explorerUrl(result.id, result.asset); link.style.display = "inline-block"; }
         else link.style.display = "none";
     }
     showScreen(paymentFailedScreen);
@@ -1150,8 +1295,8 @@ function requestRow(r) {
     const title = document.createElement("div");
     title.className = "request-title";
     title.textContent = incoming
-        ? r.counterparty + " requests " + r.amount + " USDC"
-        : "You requested " + r.amount + " USDC from " + r.counterparty;
+        ? r.counterparty + " requests " + r.amount + " " + (r.asset || "USDC")
+        : "You requested " + r.amount + " " + (r.asset || "USDC") + " from " + r.counterparty;
 
     const sub = document.createElement("div");
     sub.className = "request-sub";
@@ -1244,11 +1389,16 @@ async function payRequest(r, button) {
     if (!wallet || !wallet.address) { alert("Unable to determine the sending wallet."); return; }
     if (wallet.network && wallet.network !== "solana") { alert("This wallet network is not supported for VYRO V1."); return; }
 
+    const reqAsset = r.asset || "USDC";
+    if (!VYROCoins.walletCan(wallet, reqAsset)) {
+        alert("Your active wallet cannot send " + reqAsset + ". Switch wallets under Wallets, then try again.");
+        return;
+    }
     VYROPayments.setPendingPayment({
         recipient: "@" + r.fromUsername,
         amount: r.amount,
-        asset: "USDC",
-        network: "Solana",
+        asset: reqAsset,
+        network: VYROCoins.get(reqAsset).network,
         fromWallet: wallet.address,
         walletType: wallet.type || "solana",
         walletProvider: wallet.provider || wallet.type || "External Wallet",
@@ -1294,10 +1444,11 @@ if (sendRequestButton) {
         sendRequestButton.disabled = true;
         sendRequestButton.textContent = "SENDING…";
         try {
-            const req = await VYROPayments.createRequest(who, amount);
+            const reqCoin = (document.getElementById("request-asset").value || "USDC").toUpperCase();
+            const req = await VYROPayments.createRequest(who, amount, reqCoin);
             document.getElementById("request-username").value = "";
             document.getElementById("request-amount").value = "";
-            alert("Request sent to @" + req.toUsername + " for " + req.amount + " USDC. They will see it under Payment Requests.");
+            alert("Request sent to @" + req.toUsername + " for " + req.amount + " " + req.asset + ". They will see it under Payment Requests.");
             openRequestsScreen();
         } catch (error) {
             console.error("VYRO: request failed:", error);
@@ -1418,8 +1569,8 @@ if (copyUsernameButton) {
 const copyReceiveButton = document.getElementById("copy-receive-btn");
 if (copyReceiveButton) {
     copyReceiveButton.addEventListener("click", function () {
-        const address = VYROWallet.getReceivingAddress();
-        if (address) copyText(address, copyReceiveButton);
+        const primary = receivePrimary();
+        if (primary) copyText(primary.address, copyReceiveButton);
     });
 }
 
@@ -3240,7 +3391,7 @@ function openTransactionDetails(transaction) {
 
     const link = document.getElementById("transaction-detail-link");
     if (link) {
-        if (transaction.id) { link.href = VYROPayments.explorerUrl(transaction.id); link.style.display = "inline-block"; }
+        if (transaction.id) { link.href = VYROPayments.explorerUrl(transaction.id, transaction.asset); link.style.display = "inline-block"; }
         else link.style.display = "none";
     }
     showScreen(transactionDetailsScreen);
@@ -3271,10 +3422,10 @@ async function refreshHomeBalance() {
 
     labelEl.textContent = String(wallet.provider || "WALLET").toUpperCase() + " BALANCE";
     try {
-        const b = await VYROPayments.getBalances(wallet.address);
+        const b = await VYROPayments.getBalances(wallet.address, wallet.evmAddress);
         if (token !== homeBalanceToken) return;
         amountEl.textContent = "$" + formatMoney(b.usdc);
-        subEl.textContent = "USDC · " + b.sol.toFixed(3) + " SOL FOR FEES";
+        subEl.textContent = "USDC · " + b.sol.toFixed(3) + " SOL" + (b.eth !== null && b.eth !== undefined ? " · " + b.eth.toFixed(4) + " ETH" : "");
     } catch (error) {
         if (token !== homeBalanceToken) return;
         console.error("VYRO: could not read balance:", error);
