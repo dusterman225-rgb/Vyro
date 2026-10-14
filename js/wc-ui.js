@@ -1,8 +1,10 @@
 // =========================================================
 // VYRO — WALLETCONNECT PANEL
 // Shown when a wallet is connected through WalletConnect (any wallet app, from a normal
-// browser). Lets the user open their wallet app or copy the pairing link. VYRO never sees
-// keys: this only hands the wallet a connection request.
+// browser). VYRO never sees keys: this only hands the wallet a connection request.
+//
+// VYRO connects wallets with WalletConnect only. The wallet app approves the connection and every
+// payment; VYRO stays in your normal browser.
 // =========================================================
 (function () {
     "use strict";
@@ -55,28 +57,21 @@
     function show(uri, label) {
         hide();
         const name = label || "your wallet";
+        const mobile = isMobile();
 
         overlay = make("div", "wc-overlay");
         const card = make("div", "wc-card");
         card.appendChild(make("h2", "", "Connect " + name));
-        card.appendChild(make("p", "", isMobile()
-            ? "Tap OPEN WALLET and approve the connection in your wallet app, then come back to VYRO."
-            : "Open your wallet app on this device and approve the connection, or copy the link into it."));
-
+        card.appendChild(make("p", "", mobile
+            ? "Tap OPEN WALLET and approve the connection in " + name + ", then come back to VYRO."
+            : "Open " + name + " on this device and approve the connection, or copy the link into it."));
         card.appendChild(make("div", "wc-uri", uri));
-
         card.appendChild(button("OPEN WALLET", "primary-button", function () { window.location.href = uri; }));
         const copyBtn = button("COPY LINK", "secondary-button", function () { copy(uri, copyBtn); });
         card.appendChild(copyBtn);
-
-        // Phantom's documented way to open a site inside the Phantom app.
-        if (/phantom/i.test(name) && isMobile()) {
-            card.appendChild(button("OPEN VYRO IN PHANTOM", "secondary-button", function () {
-                window.location.href = "https://phantom.app/ul/browse/" + encodeURIComponent(window.location.href) +
-                    "?ref=" + encodeURIComponent(window.location.origin);
-            }));
+        if (mobile) {
+            card.appendChild(make("p", "wc-hint", "If your phone shows an \"Open with\" list, choose " + name + " and tap \"Just once\". If " + name + " is not in the list, tap COPY LINK, open " + name + ", find WalletConnect (often under Settings or the scan icon) and paste the link."));
         }
-
         card.appendChild(button("CANCEL", "secondary-button", hide));
         overlay.appendChild(card);
         document.body.appendChild(overlay);
