@@ -240,14 +240,92 @@
         };
     }
 
+    // ---------- native SOL transfer ----------
+    // System Program Transfer = instruction index 2 (u32 LE), then u64 LE lamports.
+    function solTransferData(lamports) {
+        const data = new Uint8Array(12);
+        data[0] = 2;
+        let v = BigInt(lamports);
+        if (v < 0n || v >= (1n << 64n)) throw new Error("Amount out of range.");
+        for (let i = 4; i < 12; i++) { data[i] = Number(v & 0xffn); v >>= 8n; }
+        return data;
+    }
+
+    function solTransferInstruction(w, from, to, lamports) {
+        return new w.TransactionInstruction({
+            programId: new w.PublicKey(SYSTEM_PROGRAM_ID),
+            keys: [
+                { pubkey: from, isSigner: true, isWritable: true },
+                { pubkey: to, isSigner: false, isWritable: true }
+            ],
+            data: toBuf(solTransferData(lamports))
+        });
+    }
+
+    // Builds an UNSIGNED SOL transfer (plus the VYRO fee as a second transfer in the same transaction).
+    // opts: connection, sender, recipient, units (lamports), feeUnits, feeRecipient
+    async function buildSolTransfer(opts) {
+        const w = web3();
+        const connection = opts.connection;
+        const sender = new w.PublicKey(opts.sender);
+        const recipient = new w.PublicKey(opts.recipient);
+        const lamports = BigInt(opts.units);
+        const feeOwner = BigInt(opts.feeUnits || 0) > 0n && opts.feeRecipient ? new w.PublicKey(opts.feeRecipient) : null;
+        const fee = feeOwner ? BigInt(opts.feeUnits) : 0n;
+        const total = lamports + fee;
+        const networkFee = 5000n;
+
+        const balance = BigInt(await connection.getBalance(sender, "confirmed"));
+        const rentMin = BigInt(await connection.getMinimumBalanceForRentExemption(0));
+
+        if (balance < total + networkFee) {
+            const err = new Error("Insufficient SOL. This payment needs " + formatUnits(total, 9) + " SOL" +
+                (fee > 0n ? " (" + formatUnits(lamports, 9) + " + " + formatUnits(fee, 9) + " VYRO fee)" : "") +
+                " plus about 0.000005 SOL for the network, and this wallet holds " + formatUnits(balance, 9) + " SOL.");
+            err.code = "INSUFFICIENT_SOL";
+            throw err;
+        }
+        // A Solana wallet cannot be left holding a tiny balance: it must keep the rent minimum or be empty.
+        const leftover = balance - total - networkFee;
+        if (leftover > 0n && leftover < rentMin) {
+            const err = new Error("Keep at least " + formatUnits(rentMin, 9) + " SOL in your wallet. Send a little less, or add some SOL first.");
+            err.code = "INSUFFICIENT_SOL";
+            throw err;
+        }
+        // A brand-new recipient wallet must receive at least the rent minimum.
+        const info = await connection.getAccountInfo(recipient, "confirmed");
+        if (!info && lamports < rentMin) {
+            const err = new Error("This amount is too small to open a new Solana wallet. Send at least " + formatUnits(rentMin, 9) + " SOL.");
+            err.code = "INSUFFICIENT_SOL";
+            throw err;
+        }
+
+        const ixs = [solTransferInstruction(w, sender, recipient, lamports)];
+        if (feeOwner) ixs.push(solTransferInstruction(w, sender, feeOwner, fee));
+
+        const latest = await connection.getLatestBlockhash("confirmed");
+        const tx = new w.Transaction({ feePayer: sender, recentBlockhash: latest.blockhash });
+        tx.add.apply(tx, ixs);
+        return {
+            transaction: tx,
+            lastValidBlockHeight: latest.lastValidBlockHeight,
+            createsRecipientAccount: false,
+            createsFeeAccount: false,
+            rentLamports: 0,
+            feeLamports: Number(networkFee),
+            feeUnits: fee,
+            totalUnits: total
+        };
+    }
+
     const api = {
-        version: "2026-10-09-r4",
+        version: "2026-10-14-r6",
         normalizeUsername, isValidUsername,
         parseAmount, formatUnits,
         base58Encode, base58Decode, isValidSolanaAddress,
         transferCheckedData, createAtaIdempotentData,
         bytesToBase64, base64ToBytes,
-        buildUsdcTransfer, deriveAta, feeUnits,
+        buildUsdcTransfer, buildSolTransfer, solTransferData, deriveAta, feeUnits,
         TOKEN_PROGRAM_ID, ATA_PROGRAM_ID
     };
 
