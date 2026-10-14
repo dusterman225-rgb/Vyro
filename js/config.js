@@ -33,7 +33,7 @@ window.VYRO_CONFIG = Object.freeze({
         // Fee wallet for USDC and SOL (a Solana address).
         treasuryAddress: "7ScnZKuXee7AUnh3BwWSPvWznzcF3a3cHLrSGJS2vu8C",
         // <<< PUT YOUR ETHEREUM FEE ADDRESS HERE (0x...). Until it is set, ETH payments are switched off.
-        treasuryEthAddress: ""
+        treasuryEthAddress: "0x09488B9AA40e4209feb56d75733671c190c98A5B"
     }),
 
     // Native ETH (the user's wallet signs through WalletConnect). Needs an Ethereum RPC.
