@@ -62,9 +62,8 @@
             ? VYROWallet.getWallets().find(function (w) { return w.address === address; })
             : VYROWallet.getActiveWallet();
         if (!wallet || !wallet.address) return { valid: false, error: "The selected wallet is not available." };
-        if (wallet.network && wallet.network !== "solana") return { valid: false, error: "The selected wallet is not on Solana." };
         if (asset && !COINS.walletAddressFor(wallet, asset))
-            return { valid: false, error: "This wallet has not shared an " + asset + " account with VYRO. Remove it in Wallets and connect it again." };
+            return { valid: false, error: "This wallet did not share a " + COINS.get(asset).network + " account with VYRO, so it cannot send " + asset + ". Pick another coin or wallet." };
         return { valid: true, wallet: wallet, error: null };
     }
 
@@ -565,21 +564,26 @@
 
     // ---------- balances (what the home screen shows) ----------
     // Reads the wallet's USDC and SOL (and ETH when the wallet shared an Ethereum account) from the chain.
+    // address: the wallet's Solana account (or null); evmAddress: its Ethereum account (or null).
     async function getBalances(address, evmAddress) {
-        const conn = getConnection();
-        const w = window.solanaWeb3;
-        const owner = new w.PublicKey(address);
-        const ata = VYROTransfer.deriveAta(owner, new w.PublicKey(SOL.usdcMint));
-        let usdcUnits = 0n;
-        try {
-            const b = await conn.getTokenAccountBalance(ata, "confirmed");
-            usdcUnits = BigInt(b.value.amount);
-        } catch (e) {
-            // No USDC account yet means a balance of zero. Anything else is a real error.
-            if (!/could not find account/i.test(String(e && e.message))) throw e;
+        const out = { usdc: null, sol: null, eth: null };
+        if (address) {
+            const conn = getConnection();
+            const w = window.solanaWeb3;
+            const owner = new w.PublicKey(address);
+            const ata = VYROTransfer.deriveAta(owner, new w.PublicKey(SOL.usdcMint));
+            let usdcUnits = 0n;
+            try {
+                const b = await conn.getTokenAccountBalance(ata, "confirmed");
+                usdcUnits = BigInt(b.value.amount);
+            } catch (e) {
+                // No USDC account yet means a balance of zero. Anything else is a real error.
+                if (!/could not find account/i.test(String(e && e.message))) throw e;
+            }
+            const lamports = await conn.getBalance(owner, "confirmed");
+            out.usdc = VYROTransfer.formatUnits(usdcUnits, SOL.usdcDecimals);
+            out.sol = lamports / 1e9;
         }
-        const lamports = await conn.getBalance(owner, "confirmed");
-        const out = { usdc: VYROTransfer.formatUnits(usdcUnits, SOL.usdcDecimals), sol: lamports / 1e9, eth: null };
         if (evmAddress && COINS.enabled("ETH")) {
             try { out.eth = Number(BigInt(await ethRpc("eth_getBalance", [evmAddress, "latest"])) / 1000000000000n) / 1e6; }
             catch (e) { out.eth = null; }
