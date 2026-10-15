@@ -5,7 +5,7 @@
 // Keys never leave the user's wallet. Every transfer is signed inside the
 // user's own wallet app, where they see and approve it.
 //
-// Providers: injected Solana wallets (Trust Wallet, Phantom, Solflare, Backpack)
+// Providers: injected Solana wallets (Trust Wallet, Backpack)
 // and WalletConnect v2 (any wallet that supports the Solana namespace).
 // Adding a wallet = add one entry to `adapters` below.
 // =========================================================
@@ -23,11 +23,19 @@
     let wcClient = null;
     let wcSession = null;
 
+    // A wallet can share a Solana account, an Ethereum account (0x...), or both.
+    function isEvm(a) { return typeof a === "string" && /^0x[0-9a-fA-F]{40}$/.test(a); }
+    function validAddress(a) { return VYROTransfer.isValidSolanaAddress(a) || isEvm(a); }
+
+    // Solana's WalletConnect chain id has two spellings in the wild; ask for both on mainnet.
+    const SOLANA_MAINNET_ID = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
+    const SOLANA_LEGACY_ID = "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ";
+    function solanaChains() { return SOLANA_CHAIN === SOLANA_MAINNET_ID ? [SOLANA_MAINNET_ID, SOLANA_LEGACY_ID] : [SOLANA_CHAIN]; }
+
     // ---------- provider registry ----------
     const adapters = {
         "trust-wallet": { label: "Trust Wallet", get: () => window.trustwallet && window.trustwallet.solana },
         "phantom":      { label: "Phantom",      get: () => window.phantom && window.phantom.solana },
-        "solflare":     { label: "Solflare",     get: () => window.solflare },
         "backpack":     { label: "Backpack",     get: () => window.backpack && window.backpack.solana }
     };
 
@@ -48,7 +56,7 @@
         if (!uid) return;
         try {
             const data = JSON.parse(localStorage.getItem(key("wallets")) || "[]");
-            wallets = Array.isArray(data) ? data.filter(function (w) { return w && VYROTransfer.isValidSolanaAddress(w.address); }) : [];
+            wallets = Array.isArray(data) ? data.filter(function (w) { return w && validAddress(w.address); }) : [];
         } catch (e) { wallets = []; }
         const saved = localStorage.getItem(key("active"));
         activeAddress = (saved && wallets.some(function (w) { return w.address === saved; })) ? saved : (wallets[0] ? wallets[0].address : null);
@@ -105,11 +113,11 @@
 
     // ---------- wallet list ----------
     function addWallet(address, type, provider) {
-        if (!VYROTransfer.isValidSolanaAddress(address)) return null;
+        if (!validAddress(address)) return null;
         let w = wallets.find(function (x) { return x.address === address; });
         const isFirst = wallets.length === 0;
         if (!w) {
-            w = { address: address, type: type || "external-wallet", provider: provider || providerName(type), network: "solana", chain: SOLANA_CHAIN };
+            w = { address: address, type: type || "external-wallet", provider: provider || providerName(type), network: isEvm(address) ? "ethereum" : "solana", chain: isEvm(address) ? (CFG.ethereum && CFG.ethereum.chainId) : SOLANA_CHAIN };
             wallets.push(w);
         } else {
             w.type = type || w.type;
@@ -119,7 +127,12 @@
         persist(); updateUI();
         // First wallet becomes the receiving wallet automatically; the user can change it later.
         if (isFirst && !receivingAddress && username) {
-            setReceivingWallet(address).catch(function (e) { console.warn("VYRO: auto-publish receiving wallet failed", e); });
+            if (isEvm(address)) {
+                // An Ethereum-only wallet can only receive ETH.
+                if (window.VYROCoins) VYROCoins.setReceive("ETH", address).catch(function (e) { console.warn("VYRO: auto-publish receiving wallet failed", e); });
+            } else {
+                setReceivingWallet(address).catch(function (e) { console.warn("VYRO: auto-publish receiving wallet failed", e); });
+            }
         }
         return w;
     }
@@ -234,14 +247,25 @@
         return wcClient;
     }
 
+    function sessionAccounts(session) {
+        const ns = (session && session.namespaces) || {};
+        return [].concat((ns.solana && ns.solana.accounts) || [], (ns.eip155 && ns.eip155.accounts) || []);
+    }
+
     function wcSessionForAddress(address) {
         if (!wcClient) return null;
         const all = wcClient.session.getAll();
+        const want = String(address).toLowerCase();
         for (let i = all.length - 1; i >= 0; i--) {
-            const accounts = (all[i].namespaces && all[i].namespaces.solana && all[i].namespaces.solana.accounts) || [];
-            if (accounts.some(function (a) { return a.split(":").pop() === address; })) return all[i];
+            if (sessionAccounts(all[i]).some(function (a) { return a.split(":").pop().toLowerCase() === want; })) return all[i];
         }
         return null;
+    }
+
+    // The Solana chain id THIS wallet approved (it may use the other spelling).
+    function sessionSolanaChain(session) {
+        const acc = session && session.namespaces && session.namespaces.solana && session.namespaces.solana.accounts && session.namespaces.solana.accounts[0];
+        return acc ? acc.split(":").slice(0, 2).join(":") : SOLANA_CHAIN;
     }
 
     function isMobile() { return /android|iphone|ipad|ipod/i.test(navigator.userAgent); }
@@ -263,13 +287,16 @@
     async function connectWalletConnect(deepLinkBase, label) {
         const client = await ensureWcClient();
         if (!client) return null;
-        const connectParams = {
-            requiredNamespaces: { solana: { methods: ["solana_signTransaction", "solana_signMessage"], chains: [SOLANA_CHAIN], events: [] } }
-        };
-        // Ethereum is optional: wallets that support it share a 0x account, so VYRO can send ETH.
-        if (CFG.ethereum && CFG.ethereum.chainId) {
-            connectParams.optionalNamespaces = { eip155: { methods: ["eth_sendTransaction"], chains: [CFG.ethereum.chainId], events: [] } };
-        }
+        const solNs = { methods: ["solana_signTransaction", "solana_signMessage"], chains: solanaChains(), events: [] };
+        const ethNs = (CFG.ethereum && CFG.ethereum.chainId)
+            ? { methods: ["eth_sendTransaction"], chains: [CFG.ethereum.chainId], events: [] } : null;
+        // Trust Wallet (no label) keeps its original request: Solana required, Ethereum optional.
+        // Every other wallet is asked for Solana AND Ethereum as optional, so a wallet that shares only
+        // one of them (for example Ethereum only) can still connect.
+        const connectParams = label
+            ? { optionalNamespaces: Object.assign({ solana: solNs }, ethNs ? { eip155: ethNs } : {}) }
+            : { requiredNamespaces: { solana: { methods: solNs.methods, chains: [SOLANA_CHAIN], events: [] } },
+                optionalNamespaces: ethNs ? { eip155: ethNs } : {} };
         const res = await client.connect(connectParams);
         if (res.uri) {
             if (isMobile() && deepLinkBase) {
@@ -284,15 +311,18 @@
             }
         }
         wcSession = await res.approval();
-        const account = wcSession && wcSession.namespaces && wcSession.namespaces.solana && wcSession.namespaces.solana.accounts[0];
-        const address = account ? account.split(":").pop() : null;
-        if (!address) throw new Error("WalletConnect did not return a Solana address.");
+        const nsAll = (wcSession && wcSession.namespaces) || {};
+        const solAccount = nsAll.solana && nsAll.solana.accounts && nsAll.solana.accounts[0];
+        const evmAccount = nsAll.eip155 && nsAll.eip155.accounts && nsAll.eip155.accounts[0];
+        const solAddress = solAccount ? solAccount.split(":").pop() : null;
+        const evmAddress = evmAccount ? evmAccount.split(":").pop() : null;
+        const address = solAddress || evmAddress;
+        if (!address) throw new Error("This wallet did not share a Solana or Ethereum account.");
         // WalletConnect is only the connection method. Show the REAL wallet's name:
         // the one the user tapped, or else the name the wallet itself reports.
         const peer = wcSession.peer && wcSession.peer.metadata && wcSession.peer.metadata.name;
-        const evmAccount = wcSession.namespaces && wcSession.namespaces.eip155 && wcSession.namespaces.eip155.accounts && wcSession.namespaces.eip155.accounts[0];
         const added = addWallet(address, "walletconnect", label || peer || "WalletConnect");
-        if (added && evmAccount) { added.evmAddress = evmAccount.split(":").pop(); persist(); updateUI(); }
+        if (added && solAddress && evmAddress) { added.evmAddress = evmAddress; persist(); updateUI(); }
         return added;
     }
 
@@ -308,7 +338,7 @@
     }
 
     // ---------- connect (public entry point) ----------
-    // type: "trust-wallet" | "phantom" | "solflare" | "backpack" | "walletconnect"
+    // type: "trust-wallet" | "phantom" | "backpack" | "walletconnect"
     async function connect(type, label) {
         type = type || "trust-wallet";
         setStatus("Connecting…");
@@ -371,7 +401,7 @@
             const raw = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
             const pendingRequest = client.request({
                 topic: session.topic,
-                chainId: SOLANA_CHAIN,
+                chainId: sessionSolanaChain(session),
                 request: { method: "solana_signTransaction", params: { transaction: VYROTransfer.bytesToBase64(raw) } }
             });
             openWalletApp(session);   // send the user to the approval request waiting in their wallet
