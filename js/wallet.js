@@ -161,7 +161,9 @@
     function updateUI() {
         const list = document.getElementById("wallet-list");
         const noWallet = document.getElementById("no-wallet-connected");
-        if (list) {
+        // The wallet cards (with the coin pickers) are drawn by wallet-roles.js; this plain version is only a fallback.
+        const rolesDraws = typeof window.renderWalletRoles === "function";
+        if (list && !rolesDraws) {
             list.querySelectorAll(".wallet-card").forEach(function (x) { x.remove(); });
             if (noWallet) noWallet.style.display = wallets.length === 0 ? "block" : "none";
             wallets.forEach(function (w) {
@@ -203,6 +205,7 @@
                 list.appendChild(card);
             });
         }
+        if (rolesDraws) { try { window.renderWalletRoles(); } catch (e) { console.warn(e); } }
         const active = getActiveWallet();
         const addr = document.getElementById("connected-wallet-address");
         if (addr) addr.textContent = active ? active.address : "Wallet address will appear here.";
