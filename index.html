@@ -2195,48 +2195,35 @@
 
         <div class="auth-card">
 
-            <div class="auth-card-title">
-                SOLANA
-            </div>
-
-            <p class="auth-card-text">
-                VYRO does not hold your private keys or seed phrase.
-                Your external wallet remains in control of your funds.
-            </p>
-
-
-            <div class="wallet-group-label">RECOMMENDED</div>
-            <button class="primary-button wallet-reco" type="button" data-wallet-connect="trust-wallet">TRUST WALLET<span class="reco-tag">RECOMMENDED</span></button>
-            <button class="secondary-button wallet-reco" type="button" data-wallet-connect="walletconnect" data-wallet-label="Backpack">BACKPACK<span class="reco-tag">RECOMMENDED</span></button>
-
-            <div class="wallet-group-label">BEGINNER FRIENDLY</div>
-            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Exodus">EXODUS</button>
-            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Coinbase Wallet">COINBASE WALLET</button>
-            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="SafePal">SAFEPAL</button>
-            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Bitget Wallet">BITGET WALLET</button>
-            <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Binance Web3 Wallet">BINANCE WEB3 WALLET</button>
-
-            <details class="more-wallets">
-                <summary>MORE WALLETS</summary>
-                <div class="more-wallets-list">
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OKX Wallet">OKX WALLET</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="MetaMask">METAMASK</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Jupiter Mobile">JUPITER MOBILE</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="TokenPocket">TOKENPOCKET</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Zerion">ZERION</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Ledger Live">LEDGER LIVE</button>
-                    <p class="more-wallets-note">Every wallet here connects with WalletConnect. Your wallet must support Solana.</p>
-                </div>
-            </details>
-
-            <p class="open-with-note">If your phone shows an "Open with" list, choose your wallet and tap "Just once".</p>
-            <p class="wallet-browser-note"><strong>How connecting works:</strong> VYRO stays in your normal browser. Tap your wallet, approve the connection in the wallet app, then come back to VYRO. Each payment opens your wallet for you to approve.</p>
-
             <div class="get-wallet-card">
                 <strong>Don't have a wallet?</strong>
                 <p>Trust Wallet is free and takes about two minutes to set up.</p>
                 <a class="primary-button" href="https://trustwallet.com/download" target="_blank" rel="noopener">DOWNLOAD TRUST WALLET</a>
             </div>
+
+            <p class="auth-card-text">
+                VYRO does not hold your private keys or seed phrase.
+                Your external wallet remains in control of your funds.
+                VYRO currently only supports the listed wallets. If you don't have a wallet, <a class="inline-link" href="https://trustwallet.com/download" target="_blank" rel="noopener">download Trust Wallet</a>.
+            </p>
+
+            <button class="primary-button wallet-reco" type="button" data-wallet-connect="trust-wallet">TRUST WALLET<span class="reco-tag">RECOMMENDED</span></button>
+
+            <details class="more-wallets">
+                <summary>MORE WALLETS</summary>
+                <div class="more-wallets-list">
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Backpack">BACKPACK</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Exodus">EXODUS</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OKX Wallet">OKX WALLET</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Bitget Wallet">BITGET WALLET</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="TokenPocket">TOKENPOCKET</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OneKey">ONEKEY</button>
+                    <p class="more-wallets-note">These wallets connect with WalletConnect and offer Solana and Ethereum.</p>
+                </div>
+            </details>
+
+            <p class="open-with-note">If your phone shows an "Open with" list, choose your wallet and tap "Just once".</p>
+            <p class="wallet-browser-note"><strong>How connecting works:</strong> VYRO stays in your normal browser. Tap your wallet, approve the connection in the wallet app, then come back to VYRO. Each payment opens your wallet for you to approve.</p>
 
             <p id="wallet-connect-status" class="auth-card-text wallet-connect-status"></p>
 
