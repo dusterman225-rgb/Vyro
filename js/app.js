@@ -244,7 +244,7 @@ function refreshSendCoinSelect() {
         const o = document.createElement("option");
         o.value = c.id;
         const ok = !wallet || VYROCoins.walletCan(wallet, c.id);
-        o.textContent = c.label + (ok ? "" : (VYROCoins.usable(c.id) ? " (reconnect this wallet to turn on)" : " (not set up yet)"));
+        o.textContent = c.label + (ok ? "" : (VYROCoins.usable(c.id) ? " (not shared by this wallet)" : " (not set up yet)"));
         o.disabled = !ok;
         select.appendChild(o);
     });
@@ -941,10 +941,6 @@ if (continueSendButton) {
             alert("Unable to determine the sending wallet.");
             return;
         }
-        if (sendingWallet.network && sendingWallet.network !== "solana") {
-            alert("This wallet network is not supported for VYRO V1.");
-            return;
-        }
 
         const asset = (document.getElementById("send-asset").value || "USDC").toUpperCase();
         const coin = VYROCoins.get(asset);
@@ -1387,7 +1383,6 @@ async function payRequest(r, button) {
     }
     const wallet = VYROWallet.getActiveWallet();
     if (!wallet || !wallet.address) { alert("Unable to determine the sending wallet."); return; }
-    if (wallet.network && wallet.network !== "solana") { alert("This wallet network is not supported for VYRO V1."); return; }
 
     const reqAsset = r.asset || "USDC";
     if (!VYROCoins.walletCan(wallet, reqAsset)) {
@@ -3412,6 +3407,7 @@ async function refreshHomeBalance() {
 
     const token = ++homeBalanceToken;
     const wallet = VYROWallet.getActiveWallet();
+    renderHomeBalances(token);
 
     if (!wallet) {
         labelEl.textContent = "TOTAL BALANCE";
@@ -3422,10 +3418,18 @@ async function refreshHomeBalance() {
 
     labelEl.textContent = String(wallet.provider || "WALLET").toUpperCase() + " BALANCE";
     try {
-        const b = await VYROPayments.getBalances(wallet.address, wallet.evmAddress);
+        const b = await VYROPayments.getBalances(VYROCoins.walletAddressFor(wallet, "USDC"), VYROCoins.walletAddressFor(wallet, "ETH"));
         if (token !== homeBalanceToken) return;
-        amountEl.textContent = "$" + formatMoney(b.usdc);
-        subEl.textContent = "USDC · " + b.sol.toFixed(3) + " SOL" + (b.eth !== null && b.eth !== undefined ? " · " + b.eth.toFixed(4) + " ETH" : "");
+        const parts = [];
+        if (b.sol !== null) parts.push(b.sol.toFixed(3) + " SOL");
+        if (b.eth !== null && b.eth !== undefined) parts.push(b.eth.toFixed(4) + " ETH");
+        if (b.usdc !== null) {
+            amountEl.textContent = "$" + formatMoney(b.usdc);
+            subEl.textContent = ["USDC"].concat(parts).join(" · ");
+        } else {
+            amountEl.textContent = parts.length ? (b.eth !== null && b.eth !== undefined ? b.eth.toFixed(4) + " ETH" : "—") : "—";
+            subEl.textContent = "ETHEREUM WALLET";
+        }
     } catch (error) {
         if (token !== homeBalanceToken) return;
         console.error("VYRO: could not read balance:", error);
@@ -3434,6 +3438,52 @@ async function refreshHomeBalance() {
     }
 }
 window.refreshHomeBalance = refreshHomeBalance;
+
+// Two balances on Home: the wallet that SENDS (and its coin) and the wallet that RECEIVES (and its coin).
+async function coinBalance(wallet, coin) {
+    const b = await VYROPayments.getBalances(VYROCoins.walletAddressFor(wallet, "USDC"), VYROCoins.walletAddressFor(wallet, "ETH"));
+    const v = coin === "USDC" ? b.usdc : coin === "SOL" ? b.sol : b.eth;
+    if (v === null || v === undefined) return "—";
+    return coin === "USDC" ? "$" + formatMoney(v) : Number(v).toFixed(coin === "ETH" ? 4 : 3) + " " + coin;
+}
+
+async function renderHomeBalances(token) {
+    const box = document.getElementById("home-balances");
+    if (!box || !window.VYROCoins) return;
+    const sender = VYROWallet.getActiveWallet();
+    await VYROCoins.loadReceive();
+    const rp = receivePrimary();
+    const receiver = rp ? walletForReceiveAddress(rp.coin, rp.address) : null;
+    const rows = [
+        { cls: "send", tag: "SEND", wallet: sender, coin: sender ? VYROCoins.getSendCoin(sender) : null },
+        { cls: "receive", tag: "RECEIVE", wallet: receiver, coin: rp ? rp.coin : null }
+    ];
+    box.textContent = "";
+    const els = rows.map(function (r) {
+        const row = document.createElement("div");
+        row.className = "home-bal " + r.cls;
+        const tag = document.createElement("span");
+        tag.className = "role-pill " + r.cls;
+        tag.textContent = r.tag + (r.coin ? " " + r.coin : "");
+        const name = document.createElement("span");
+        name.className = "home-bal-name";
+        name.textContent = r.wallet ? String(r.wallet.provider || "Wallet") : (r.coin ? "Wallet not connected here" : "Not set");
+        const amt = document.createElement("span");
+        amt.className = "home-bal-amt";
+        amt.textContent = r.wallet && r.coin ? "…" : "—";
+        row.appendChild(tag); row.appendChild(name); row.appendChild(amt);
+        box.appendChild(row);
+        return amt;
+    });
+    for (let i = 0; i < rows.length; i++) {
+        if (!rows[i].wallet || !rows[i].coin) continue;
+        try {
+            const text = await coinBalance(rows[i].wallet, rows[i].coin);
+            if (token !== homeBalanceToken) return;
+            els[i].textContent = text;
+        } catch (e) { els[i].textContent = "unavailable"; }
+    }
+}
 
 // =========================================================
 // TRANSACTION HISTORY INITIALIZATION
