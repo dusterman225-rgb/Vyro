@@ -63,8 +63,11 @@
     // The address a wallet uses for a coin (null when the wallet cannot do that coin).
     function walletAddressFor(wallet, id) {
         if (!wallet || !defs[id]) return null;
-        if (defs[id].chain === "ethereum") return isEvmAddress(wallet.evmAddress) ? wallet.evmAddress : null;
-        return wallet.address || null;
+        if (defs[id].chain === "ethereum") {
+            if (isEvmAddress(wallet.evmAddress)) return wallet.evmAddress;
+            return isEvmAddress(wallet.address) ? wallet.address : null;   // an Ethereum-only wallet
+        }
+        return VYROTransfer.isValidSolanaAddress(wallet.address) ? wallet.address : null;
     }
     function walletCan(wallet, id) { return usable(id) && !!walletAddressFor(wallet, id); }
 
