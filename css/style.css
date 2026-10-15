@@ -2891,3 +2891,13 @@ input.input-bad {
 
 .coin-chip { width: auto; flex: 0 0 auto; min-width: 72px; padding: 0 14px; }
 .coin-chips { align-items: center; }
+
+.coin-avail { margin: 0 0 12px; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
+
+.open-with-note { margin: 12px 0 0; font-size: 13px; font-weight: 800; line-height: 1.45; color: var(--gold); text-align: center; }
+.wc-card .wc-hint.open-with-note { font-size: 13px; font-weight: 800; color: var(--gold); }
+.home-balances { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 18px; }
+.home-bal { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(245,201,91,0.25); }
+.home-bal-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--text-muted); }
+.home-bal-amt { font-size: 18px; font-weight: 800; color: var(--gold-bright); }
+#home-screen .balance-label, #home-screen .balance-amount, #home-screen .balance-subtitle { display: none; }
