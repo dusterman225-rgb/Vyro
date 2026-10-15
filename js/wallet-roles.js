@@ -57,11 +57,24 @@
         top.appendChild(left);
         el.appendChild(top);
 
-        const addr = document.createElement("div");
-        addr.className = "wallet-card-address";
-        addr.textContent = w.address;
-        addr.title = short(w.address);
-        el.appendChild(addr);
+        // One address line per network: a wallet has a different address on Solana and on Ethereum.
+        const sendNet = VYROCoins.get(sendCoin) ? VYROCoins.get(sendCoin).chain : "solana";
+        [["solana", "SOLANA (USDC, SOL)", VYROCoins.walletAddressFor(w, "USDC")],
+         ["ethereum", "ETHEREUM (ETH)", VYROCoins.walletAddressFor(w, "ETH")]].forEach(function (r) {
+            if (!r[2]) return;
+            const line = document.createElement("div");
+            line.className = "wallet-card-address" + (isSend && sendNet === r[0] ? " in-use" : "");
+            const lab = document.createElement("span");
+            lab.className = "addr-net";
+            lab.textContent = r[1];
+            const val = document.createElement("span");
+            val.className = "addr-val";
+            val.textContent = r[2];
+            val.title = short(r[2]);
+            line.appendChild(lab);
+            line.appendChild(val);
+            el.appendChild(line);
+        });
 
         // Which of VYRO's coins this wallet can use (a wallet only offers what it shares over WalletConnect).
         const can = VYROCoins.list().filter(function (c) { return VYROCoins.walletCan(w, c.id); }).map(function (c) { return c.label; });
@@ -129,7 +142,7 @@
 
         const actions = document.createElement("div");
         actions.className = "wallet-role-actions";
-        actions.appendChild(actionButton(isSend ? "SENDING ✓" : "USE TO SEND", "secondary-button", function () {
+        actions.appendChild(actionButton(isSend ? "CURRENTLY SENDING ✓" : "USE TO SEND", "secondary-button", function () {
             VYROWallet.setActiveWallet(w.address);
         }, isSend));
         actions.appendChild(actionButton("REMOVE", "secondary-button wallet-remove-button", async function () {
