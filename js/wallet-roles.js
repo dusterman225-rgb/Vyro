@@ -51,7 +51,7 @@
         prov.textContent = w.provider || "External Wallet";
         const net = document.createElement("div");
         net.className = "wallet-card-network";
-        net.textContent = "SOLANA" + (VYROCoins.walletAddressFor(w, "ETH") ? " · ETHEREUM" : "");
+        net.textContent = [VYROCoins.walletAddressFor(w, "USDC") ? "SOLANA" : "", VYROCoins.walletAddressFor(w, "ETH") ? "ETHEREUM" : ""].filter(Boolean).join(" · ");
         left.appendChild(prov);
         left.appendChild(net);
         top.appendChild(left);
@@ -62,6 +62,14 @@
         addr.textContent = w.address;
         addr.title = short(w.address);
         el.appendChild(addr);
+
+        // Which of VYRO's coins this wallet can use (a wallet only offers what it shares over WalletConnect).
+        const can = VYROCoins.list().filter(function (c) { return VYROCoins.walletCan(w, c.id); }).map(function (c) { return c.label; });
+        const cannot = VYROCoins.list().filter(function (c) { return !VYROCoins.walletCan(w, c.id); }).map(function (c) { return c.label; });
+        const avail = document.createElement("div");
+        avail.className = "coin-avail";
+        avail.textContent = "Works with: " + (can.join(", ") || "none") + (cannot.length ? ". Not shared by this wallet: " + cannot.join(", ") + "." : "");
+        el.appendChild(avail);
 
         // ---- SENDS: the coin this wallet pays with ----
         const sendRow = document.createElement("div");
@@ -75,7 +83,7 @@
             const o = document.createElement("option");
             const ok = VYROCoins.walletCan(w, c.id);
             o.value = c.id;
-            o.textContent = c.label + (ok ? "" : " (reconnect to turn on)");
+            o.textContent = c.label + (ok ? "" : " (not shared by this wallet)");
             o.disabled = !ok;
             sel.appendChild(o);
         });
