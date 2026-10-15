@@ -70,7 +70,7 @@
         const copyBtn = button("COPY LINK", "secondary-button", function () { copy(uri, copyBtn); });
         card.appendChild(copyBtn);
         if (mobile) {
-            card.appendChild(make("p", "wc-hint", "If your phone shows an \"Open with\" list, choose " + name + " and tap \"Just once\". If " + name + " is not in the list, tap COPY LINK, open " + name + ", find WalletConnect (often under Settings or the scan icon) and paste the link."));
+            card.appendChild(make("p", "wc-hint open-with-note", "If your phone shows an \"Open with\" list, choose " + name + " and tap \"Just once\". If " + name + " is not in the list, tap COPY LINK, open " + name + ", find WalletConnect (often under Settings or the scan icon) and paste the link."));
         }
         card.appendChild(button("CANCEL", "secondary-button", hide));
         overlay.appendChild(card);
