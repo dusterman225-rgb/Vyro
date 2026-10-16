@@ -53,6 +53,17 @@
         setTimeout(function () { btn.textContent = original; }, 1500);
     }
 
+    // Where to get each wallet (shown if it is not installed).
+    const DOWNLOADS = {
+        "Backpack": "https://backpack.app/download",
+        "Exodus": "https://www.exodus.com/download/",
+        "OKX Wallet": "https://www.okx.com/download",
+        "Bitget Wallet": "https://web3.bitget.com/en/wallet-download",
+        "TokenPocket": "https://www.tokenpocket.pro/en/download/app",
+        "OneKey": "https://onekey.so/download/",
+        "Trust Wallet": "https://trustwallet.com/download"
+    };
+
     // uri: the WalletConnect pairing link ("wc:…"); label: the wallet the user tapped (may be null).
     function show(uri, label) {
         hide();
@@ -71,6 +82,18 @@
         card.appendChild(copyBtn);
         if (mobile) {
             card.appendChild(make("p", "wc-hint open-with-note", "If your phone shows an \"Open with\" list, choose " + name + " and tap \"Just once\". If " + name + " is not in the list, tap COPY LINK, open " + name + ", find WalletConnect (often under Settings or the scan icon) and paste the link."));
+        }
+        // A phone opens whichever installed wallet handles WalletConnect links. Without the wallet installed,
+        // it can open a different one (often Trust Wallet), so say so and link to the download.
+        const warn = make("p", "wc-hint open-with-note", "You need " + name + " installed on this phone. If you don't have it, a different wallet may open instead. Cancel and install it first.");
+        card.appendChild(warn);
+        const dl = DOWNLOADS[label] || null;
+        if (dl) {
+            const a = make("a", "secondary-button wc-download", "DOWNLOAD " + String(label).toUpperCase());
+            a.href = dl;
+            a.target = "_blank";
+            a.rel = "noopener";
+            card.appendChild(a);
         }
         card.appendChild(button("CANCEL", "secondary-button", hide));
         overlay.appendChild(card);
