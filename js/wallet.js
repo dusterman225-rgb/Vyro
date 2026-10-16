@@ -247,6 +247,15 @@
         const backTo = window.location.origin + window.location.pathname;
         const metadata = Object.assign({}, CFG.walletConnectMetadata, { redirect: { universal: backTo } });
         wcClient = await SC.init({ projectId: projectId, metadata: metadata });
+        // A phone can pause this page while the wallet app is open. When the user comes back, wake the
+        // WalletConnect connection up again so the wallet's approval reaches VYRO.
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState !== "visible" || !wcClient) return;
+            try {
+                const r = wcClient.core && wcClient.core.relayer;
+                if (r && typeof r.restartTransport === "function") r.restartTransport().catch(function () { /* retried by the poller */ });
+            } catch (e) { /* ignore */ }
+        });
         return wcClient;
     }
 
@@ -314,7 +323,18 @@
                 console.info("VYRO WalletConnect URI:", res.uri);
             }
         }
-        wcSession = await res.approval();
+        // Wait for the wallet's approval. Also watch for a new session appearing, because a phone can pause
+        // this page while the wallet is open and the approval message can be missed.
+        const knownTopics = client.session.getAll().map(function (s) { return s.topic; });
+        let poller = null;
+        const watcher = new Promise(function (resolve) {
+            poller = setInterval(function () {
+                const fresh = client.session.getAll().find(function (s) { return knownTopics.indexOf(s.topic) === -1 && sessionAccounts(s).length; });
+                if (fresh) resolve(fresh);
+            }, 1500);
+        });
+        try { wcSession = await Promise.race([res.approval(), watcher]); }
+        finally { if (poller) clearInterval(poller); }
         const nsAll = (wcSession && wcSession.namespaces) || {};
         const solAccount = nsAll.solana && nsAll.solana.accounts && nsAll.solana.accounts[0];
         const evmAccount = nsAll.eip155 && nsAll.eip155.accounts && nsAll.eip155.accounts[0];
