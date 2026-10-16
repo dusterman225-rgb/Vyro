@@ -2901,3 +2901,8 @@ input.input-bad {
 .home-bal-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--text-muted); }
 .home-bal-amt { font-size: 18px; font-weight: 800; color: var(--gold-bright); }
 #home-screen .balance-label, #home-screen .balance-amount, #home-screen .balance-subtitle { display: none; }
+
+.inline-link { color: var(--gold); font-weight: 800; text-decoration: underline; }
+.wallet-card-address .addr-net { display: block; font-size: 10px; letter-spacing: .08em; color: var(--text-muted); }
+.wallet-card-address .addr-val { display: block; word-break: break-all; }
+.wallet-card-address.in-use .addr-net { color: var(--gold); }
