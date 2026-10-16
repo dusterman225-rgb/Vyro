@@ -2906,3 +2906,5 @@ input.input-bad {
 .wallet-card-address .addr-net { display: block; font-size: 10px; letter-spacing: .08em; color: var(--text-muted); }
 .wallet-card-address .addr-val { display: block; word-break: break-all; }
 .wallet-card-address.in-use .addr-net { color: var(--gold); }
+
+.wc-card .wc-download { display: flex; align-items: center; justify-content: center; text-decoration: none; margin-top: 10px; }
