@@ -164,9 +164,9 @@
         const noWallet = document.getElementById("no-wallet-connected");
         // The wallet cards (with the coin pickers) are drawn by wallet-roles.js; this plain version is only a fallback.
         const rolesDraws = typeof window.renderWalletRoles === "function";
+        if (noWallet) noWallet.style.display = wallets.length === 0 ? "block" : "none";
         if (list && !rolesDraws) {
             list.querySelectorAll(".wallet-card").forEach(function (x) { x.remove(); });
-            if (noWallet) noWallet.style.display = wallets.length === 0 ? "block" : "none";
             wallets.forEach(function (w) {
                 const isActive = w.address === activeAddress;
                 const isReceiving = w.address === receivingAddress;
