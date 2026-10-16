@@ -293,10 +293,11 @@
         const solNs = { methods: ["solana_signTransaction", "solana_signMessage"], chains: solanaChains(), events: [] };
         const ethNs = (CFG.ethereum && CFG.ethereum.chainId)
             ? { methods: ["eth_sendTransaction"], chains: [CFG.ethereum.chainId], events: [] } : null;
-        // Trust Wallet (no label) keeps its original request: Solana required, Ethereum optional.
+        // Trust Wallet keeps its original request: Solana required, Ethereum optional.
         // Every other wallet is asked for Solana AND Ethereum as optional, so a wallet that shares only
         // one of them (for example Ethereum only) can still connect.
-        const connectParams = label
+        // Only Trust Wallet is opened through its own deep link (deepLinkBase), so that is how it is told apart.
+        const connectParams = !deepLinkBase
             ? { optionalNamespaces: Object.assign({ solana: solNs }, ethNs ? { eip155: ethNs } : {}) }
             : { requiredNamespaces: { solana: { methods: solNs.methods, chains: [SOLANA_CHAIN], events: [] } },
                 optionalNamespaces: ethNs ? { eip155: ethNs } : {} };
