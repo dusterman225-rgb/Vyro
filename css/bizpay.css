@@ -1,0 +1,6 @@
+/* Pay a business (scan a Vyro Business invoice QR) */
+.bizpay-video{width:100%;max-height:48vh;object-fit:cover;border-radius:14px;margin:12px 0;background:#000}
+.bizpay-msg{min-height:1.2em;margin-top:12px;font-size:.85rem;color:#8B96A3;text-align:center}
+.bizpay-msg.bizpay-err{color:#ff8a8a}
+.bizpay-link{display:block;text-align:center;text-decoration:none;margin:12px 0}
+#bizpay-screen .secondary-button,#bizpay-screen .primary-button{width:100%;margin-top:12px}
