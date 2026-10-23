@@ -32,6 +32,8 @@
         href="css/style.css"
     >
 
+    <link rel="stylesheet" href="css/bizpay.css">
+
 </head>
 
 <body>
@@ -718,6 +720,14 @@
         </div>
 
         <button
+            id="home-scan-btn"
+            class="secondary-button requests-link"
+            type="button"
+        >
+            SCAN TO PAY A BUSINESS
+        </button>
+
+        <button
             id="home-requests-btn"
             class="secondary-button requests-link"
             type="button"
@@ -1101,6 +1111,63 @@
 <!-- =========================================================
      RECEIVE
      ========================================================= -->
+
+<!-- =========================================================
+     PAY A BUSINESS (scan a Vyro Business invoice QR)
+     ========================================================= -->
+
+<section id="bizpay-screen" class="screen">
+
+    <div class="internal-header">
+        <button id="bizpay-back-btn" class="back-button" type="button">‹</button>
+        <button id="bizpay-logo-btn" class="home-logo-button" type="button">VYRO</button>
+    </div>
+
+    <div class="send-content">
+
+        <div id="bizpay-scan">
+            <h1>Pay a business</h1>
+            <p class="auth-subtitle">Scan the QR code on the business's invoice.</p>
+
+            <video id="bizpay-video" class="bizpay-video" playsinline muted hidden></video>
+            <button id="bizpay-cam-btn" class="primary-button auth-button" type="button">SCAN QR CODE</button>
+
+            <div class="form-group">
+                <label for="bizpay-paste">OR PASTE THE PAYMENT LINK</label>
+                <input id="bizpay-paste" class="auth-input" type="text" placeholder="vyro://pay?..." autocomplete="off" autocapitalize="off" spellcheck="false">
+            </div>
+            <button id="bizpay-paste-btn" class="secondary-button" type="button">USE THIS LINK</button>
+            <p id="bizpay-scan-msg" class="bizpay-msg"></p>
+        </div>
+
+        <div id="bizpay-confirm" hidden>
+            <h1>Confirm Payment</h1>
+            <p class="auth-subtitle">Check the details before you approve.</p>
+            <div class="payment-summary">
+                <div class="summary-row"><span>PAY</span><strong id="bizpay-biz">-</strong></div>
+                <div class="summary-row"><span>INVOICE</span><strong id="bizpay-inv">-</strong></div>
+                <div class="summary-row"><span>YOU PAY</span><strong id="bizpay-amount">-</strong></div>
+                <div class="summary-row"><span>BUSINESS WALLET</span><strong id="bizpay-to">-</strong></div>
+                <div class="summary-row"><span>FROM</span><strong id="bizpay-wallet">-</strong></div>
+            </div>
+            <p id="bizpay-note" class="auth-card-text"></p>
+            <p class="auth-card-text">Your wallet will open a request, and the payment only happens if you approve and sign it there. VYRO cannot move your funds without your approval. Blockchain payments cannot be reversed.</p>
+            <button id="bizpay-pay-btn" class="primary-button auth-button" type="button">CONFIRM PAYMENT</button>
+            <button id="bizpay-cancel-btn" class="secondary-button" type="button">CANCEL</button>
+            <p id="bizpay-confirm-msg" class="bizpay-msg"></p>
+        </div>
+
+        <div id="bizpay-done" hidden>
+            <h1>Payment sent</h1>
+            <p id="bizpay-done-text" class="auth-subtitle"></p>
+            <a id="bizpay-done-link" class="secondary-button bizpay-link" target="_blank" rel="noopener" hidden>VIEW ON SOLSCAN</a>
+            <button id="bizpay-done-btn" class="primary-button auth-button" type="button">DONE</button>
+        </div>
+
+    </div>
+
+</section>
+
 
 <section id="receive-screen" class="screen">
 
@@ -2416,6 +2483,7 @@
 <script src="js/wallet-roles.js"></script>
 
 <script src="js/payments.js"></script>
+<script src="js/bizpay.js"></script>
 
 <script src="js/app.js"></script>
 
