@@ -156,6 +156,13 @@
         });
     }
 
+    // Pay with Vyro Business: a one-time public key added as a READ-ONLY account on the payment instruction,
+    // so the business can find this exact payment on the blockchain. It moves nothing.
+    function addReference(w, ix, reference) {
+        if (!reference) return;
+        ix.keys.push({ pubkey: new w.PublicKey(reference), isSigner: false, isWritable: false });
+    }
+
     // Reads on-chain state and returns everything the UI needs to show the user
     // BEFORE they are asked to sign, plus the unsigned transaction itself.
     // Optional fee: opts.feeUnits (BigInt-able) + opts.feeRecipient (owner address). The fee is a
@@ -205,7 +212,9 @@
         const ixs = [];
         if (needsAta) ixs.push(createAtaInstruction(w, sender, recipientAta, recipient, mint));
         if (needsFeeAta) ixs.push(createAtaInstruction(w, sender, feeAta, feeOwner, mint));
-        ixs.push(transferInstruction(w, senderAta, mint, recipientAta, sender, units, cfg.usdcDecimals));
+        const payIx = transferInstruction(w, senderAta, mint, recipientAta, sender, units, cfg.usdcDecimals);
+        addReference(w, payIx, opts.reference);
+        ixs.push(payIx);
         if (feeOwner) ixs.push(transferInstruction(w, senderAta, mint, feeAta, sender, chargedFee, cfg.usdcDecimals));
 
         // SOL needed: base fee (5000 lamports/signature) + rent for any account we open.
@@ -300,7 +309,9 @@
             throw err;
         }
 
-        const ixs = [solTransferInstruction(w, sender, recipient, lamports)];
+        const payIx = solTransferInstruction(w, sender, recipient, lamports);
+        addReference(w, payIx, opts.reference);
+        const ixs = [payIx];
         if (feeOwner) ixs.push(solTransferInstruction(w, sender, feeOwner, fee));
 
         const latest = await connection.getLatestBlockhash("confirmed");
@@ -320,6 +331,7 @@
 
     const api = {
         version: "2026-10-14-r6",
+        supportsReference: true,
         normalizeUsername, isValidUsername,
         parseAmount, formatUnits,
         base58Encode, base58Decode, isValidSolanaAddress,
