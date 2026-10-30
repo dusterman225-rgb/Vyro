@@ -268,9 +268,10 @@
 
     function wcSessionForAddress(address) {
         if (!wcClient) return null;
-        const all = wcClient.session.getAll();
         const want = String(address).toLowerCase();
-        for (let i = all.length - 1; i >= 0; i--) {
+        // Newest connection first: an old, dead connection to the same account must never be picked.
+        const all = wcClient.session.getAll().slice().sort(function (a, b) { return (b.expiry || 0) - (a.expiry || 0); });
+        for (let i = 0; i < all.length; i++) {
             if (sessionAccounts(all[i]).some(function (a) { return a.split(":").pop().toLowerCase() === want; })) return all[i];
         }
         return null;
@@ -355,6 +356,14 @@
         // WalletConnect is only the connection method. Show the REAL wallet's name:
         // the one the user tapped, or else the name the wallet itself reports.
         const peer = session.peer && session.peer.metadata && session.peer.metadata.name;
+        // Close older connections to this same account so a stale one can never be used for signing.
+        try {
+            if (wcClient) wcClient.session.getAll().forEach(function (s) {
+                if (s.topic !== session.topic && sessionAccounts(s).some(function (a) { return a.split(":").pop().toLowerCase() === address.toLowerCase(); })) {
+                    wcClient.disconnect({ topic: s.topic, reason: { code: 6000, message: "Replaced by a newer connection" } }).catch(function () { /* already gone */ });
+                }
+            });
+        } catch (e) { /* best effort */ }
         const added = addWallet(address, "walletconnect", label || peer || "WalletConnect");
         if (added && solAddress && evmAddress) { added.evmAddress = evmAddress; persist(); updateUI(); }
         return added;
@@ -484,7 +493,15 @@
                 request: { method: "solana_signTransaction", params: { transaction: VYROTransfer.bytesToBase64(raw) } }
             });
             openWalletApp(session);   // send the user to the approval request waiting in their wallet
-            const result = await pendingRequest;
+            let result;
+            try { result = await pendingRequest; }
+            catch (e) {
+                const m = String((e && (e.message || (e.error && e.error.message))) || "");
+                if (/session propert|no matching|expired|session topic|not approved/i.test(m) && !isUserRejection(e)) {
+                    throw new Error("Your wallet says this connection is out of date. Open Wallets in VYRO, remove this wallet, connect it again, then retry. (Wallet message: " + m.slice(0, 80) + ")");
+                }
+                throw e;
+            }
             if (result && result.transaction) return { signedRaw: VYROTransfer.base64ToBytes(result.transaction) };
             if (result && result.signature) {
                 tx.addSignature(new solanaWeb3.PublicKey(expectedAddress), solanaWeb3.Buffer ? solanaWeb3.Buffer.from(VYROTransfer.base58Decode(result.signature)) : VYROTransfer.base58Decode(result.signature));
