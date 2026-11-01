@@ -31,7 +31,7 @@ window.VYRO_CONFIG = Object.freeze({
     fee: Object.freeze({
         bps: 100,
         // Fee wallet for USDC and SOL (a Solana address).
-        treasuryAddress: "DcYrT4rwm3QgUQiEnxmT7Rk4uaR7vbGJsKQHDuH63aMF",
+        treasuryAddress: "kM5LgYU4Kzw4BkYf8G4oAfs5s47h1PNL3cxYoYVWuP6",
         // <<< PUT YOUR ETHEREUM FEE ADDRESS HERE (0x...). Until it is set, ETH payments are switched off.
         treasuryEthAddress: "0x09488B9AA40e4209feb56d75733671c190c98A5B"
     }),
