@@ -279,13 +279,21 @@
         const sender = new w.PublicKey(opts.sender);
         const recipient = new w.PublicKey(opts.recipient);
         const lamports = BigInt(opts.units);
-        const feeOwner = BigInt(opts.feeUnits || 0) > 0n && opts.feeRecipient ? new w.PublicKey(opts.feeRecipient) : null;
-        const fee = feeOwner ? BigInt(opts.feeUnits) : 0n;
-        const total = lamports + fee;
+        let feeOwner = BigInt(opts.feeUnits || 0) > 0n && opts.feeRecipient ? new w.PublicKey(opts.feeRecipient) : null;
+        let fee = feeOwner ? BigInt(opts.feeUnits) : 0n;
         const networkFee = 5000n;
 
-        const balance = BigInt(await connection.getBalance(sender, "confirmed"));
         const rentMin = BigInt(await connection.getMinimumBalanceForRentExemption(0));
+        // Solana refuses a payment that leaves ANY account holding a tiny balance. If the VYRO fee wallet is empty and this fee is
+        // smaller than the rent minimum, the whole payment would be rejected. In that case the fee is skipped this one time.
+        let feeWaived = false;
+        if (feeOwner) {
+            const finfo = await connection.getAccountInfo(feeOwner, "confirmed");
+            const have = finfo ? BigInt(finfo.lamports) : 0n;
+            if (have + fee < rentMin) { feeOwner = null; fee = 0n; feeWaived = true; }
+        }
+        const total = lamports + fee;
+        const balance = BigInt(await connection.getBalance(sender, "confirmed"));
 
         if (balance < total + networkFee) {
             const err = new Error("Insufficient SOL. This payment needs " + formatUnits(total, 9) + " SOL" +
@@ -325,12 +333,13 @@
             rentLamports: 0,
             feeLamports: Number(networkFee),
             feeUnits: fee,
+            feeWaived: feeWaived,
             totalUnits: total
         };
     }
 
     const api = {
-        version: "2026-10-14-r6",
+        version: "2026-11-01-r7",
         supportsReference: true,
         normalizeUsername, isValidUsername,
         parseAmount, formatUnits,
