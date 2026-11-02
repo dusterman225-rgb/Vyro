@@ -3500,16 +3500,11 @@ async function refreshHomeBalance() {
     try {
         const b = await VYROPayments.getBalances(VYROCoins.walletAddressFor(wallet, "USDC"), VYROCoins.walletAddressFor(wallet, "ETH"));
         if (token !== homeBalanceToken) return;
-        const parts = [];
-        if (b.sol !== null) parts.push(b.sol.toFixed(3) + " SOL");
-        if (b.eth !== null && b.eth !== undefined) parts.push(b.eth.toFixed(4) + " ETH");
-        if (b.usdc !== null) {
-            amountEl.textContent = "$" + formatMoney(b.usdc);
-            subEl.textContent = ["USDC"].concat(parts).join(" · ");
-        } else {
-            amountEl.textContent = parts.length ? (b.eth !== null && b.eth !== undefined ? b.eth.toFixed(4) + " ETH" : "—") : "—";
-            subEl.textContent = "ETHEREUM WALLET";
-        }
+        // Everything is shown in dollars. SOL and ETH use the live price (read-only, display only).
+        const usd = await homeUsd(b);
+        if (token !== homeBalanceToken) return;
+        amountEl.textContent = usd.total === null ? "—" : VYROPrice.fmtUsd(usd.total);
+        subEl.textContent = usd.parts.length ? usd.parts.join(" · ") : "NO BALANCE FOUND";
     } catch (error) {
         if (token !== homeBalanceToken) return;
         console.error("VYRO: could not read balance:", error);
@@ -3517,6 +3512,25 @@ async function refreshHomeBalance() {
         subEl.textContent = "BALANCE UNAVAILABLE";
     }
 }
+
+// Dollar value of the balances {usdc, sol, eth}. total is in cents (null when nothing could be priced).
+async function homeUsd(b) {
+    const parts = []; let total = 0, any = false;
+    async function add(label, amount, asset) {
+        if (amount === null || amount === undefined) return;
+        if (asset === "USDC") { const c = Math.round(amount * 100); total += c; any = true; parts.push(label + " " + VYROPrice.fmtUsd(c)); return; }
+        if (!(amount > 0)) { parts.push(label + " $0.00"); any = true; return; }
+        try {
+            const px = await VYROPrice.usdPerCoin(asset);
+            const c = Math.round(amount * px.price * 100); total += c; any = true; parts.push(label + " " + VYROPrice.fmtUsd(c));
+        } catch (e) { parts.push(label + " price unavailable"); }
+    }
+    await add("USDC", b.usdc, "USDC");
+    await add("SOL", b.sol, "SOL");
+    await add("ETH", b.eth, "ETH");
+    return { total: any ? total : null, parts: parts };
+}
+
 window.refreshHomeBalance = refreshHomeBalance;
 
 // Two balances on Home: the wallet that SENDS (and its coin) and the wallet that RECEIVES (and its coin).
@@ -3524,7 +3538,9 @@ async function coinBalance(wallet, coin) {
     const b = await VYROPayments.getBalances(VYROCoins.walletAddressFor(wallet, "USDC"), VYROCoins.walletAddressFor(wallet, "ETH"));
     const v = coin === "USDC" ? b.usdc : coin === "SOL" ? b.sol : b.eth;
     if (v === null || v === undefined) return "—";
-    return coin === "USDC" ? "$" + formatMoney(v) : Number(v).toFixed(coin === "ETH" ? 4 : 3) + " " + coin;
+    if (coin === "USDC") return VYROPrice.fmtUsd(Math.round(v * 100));
+    try { const px = await VYROPrice.usdPerCoin(coin); return VYROPrice.fmtUsd(Math.round(v * px.price * 100)); }
+    catch (e) { return Number(v).toFixed(coin === "ETH" ? 4 : 3) + " " + coin + " (dollar price unavailable)"; }
 }
 
 async function renderHomeBalances(token) {

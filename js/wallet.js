@@ -289,8 +289,9 @@
     function walletAppLink(session) {
         const meta = session && session.peer && session.peer.metadata;
         const r = meta && meta.redirect;
+        // Trust Wallet: its app link ("trust://") opens the app on the waiting request. Its web link opens a download page.
+        if (meta && /trust/i.test(meta.name || "")) return "trust://";
         if (r && (r.universal || r.native)) return r.universal || r.native;
-        if (meta && /trust/i.test(meta.name || "")) return "https://link.trustwallet.com";
         return null;
     }
     function openWalletApp(session) {
@@ -317,7 +318,15 @@
         if (res.uri) {
             if (isMobile() && deepLinkBase) {
                 setStatus("Opening your wallet…");
-                window.location.href = deepLinkBase + encodeURIComponent(res.uri);
+                // The wallet's own app link opens the app directly. The web link can land on a "download" page instead.
+                window.location.href = deepLinkBase.replace("https://link.trustwallet.com/", "trust://") + encodeURIComponent(res.uri);
+                // If the app did not take over, show the open / copy buttons so the connection can still be finished by hand.
+                setTimeout(function () {
+                    if (document.visibilityState === "visible" && window.VYROWalletConnectUI) {
+                        setStatus("If your wallet did not open, use the buttons on screen.");
+                        window.VYROWalletConnectUI.show(res.uri, label || "Trust Wallet");
+                    }
+                }, 3500);
             } else if (window.VYROWalletConnectUI) {
                 setStatus("Approve the connection in your wallet app.");
                 window.VYROWalletConnectUI.show(res.uri, label);   // open-wallet / copy-link panel (js/wc-ui.js)
@@ -413,6 +422,22 @@
         finally { adopting = false; }
     }
 
+
+    // If the wallet never answers, say so with facts instead of waiting forever. These facts are what to send back when asking for help.
+    function withAnswerTimeout(pending, client, session) {
+        let timer;
+        const limit = new Promise(function (_, reject) {
+            timer = setTimeout(function () {
+                let relay = "unknown";
+                try { const r = client.core && client.core.relayer; relay = r && r.connected ? "connected" : "disconnected"; } catch (e) { /* ignore */ }
+                const meta = session && session.peer && session.peer.metadata;
+                const ageMin = session && session.expiry ? Math.round((session.expiry * 1000 - Date.now()) / 60000) : "?";
+                reject(new Error("Your wallet did not answer within 2 minutes. Open the wallet app, check for a waiting request, or remove the wallet in VYRO and connect it again. Tip: open VYRO inside Trust Wallet's own browser. [wallet: " + ((meta && meta.name) || "?") + "; relay: " + relay + "; connection expires in " + ageMin + " min]"));
+            }, 120000);
+        });
+        return Promise.race([pending, limit]).finally(function () { clearTimeout(timer); });
+    }
+
     // Sends one request to the wallet that owns `address` (used for Ethereum). The wallet app opens
     // so the user can approve it; VYRO never signs.
     async function wcRequest(address, chainId, request) {
@@ -421,7 +446,23 @@
         if (!session) throw new Error("This WalletConnect session has expired. Remove the wallet and connect it again.");
         const pendingRequest = client.request({ topic: session.topic, chainId: chainId, request: request });
         openWalletApp(session);
-        return pendingRequest;
+        return withAnswerTimeout(pendingRequest, client, session);
+    }
+
+
+    function trustChooser() {
+        return new Promise(function (resolve) {
+            const bg = document.createElement("div"); bg.className = "wc-overlay";
+            const card = document.createElement("div"); card.className = "wc-card";
+            const h = document.createElement("h2"); h.textContent = "Connect Trust Wallet";
+            const p = document.createElement("p"); p.textContent = "Best way: open VYRO inside Trust Wallet's own browser. Sign in there once, then tap Trust Wallet again. Or use a WalletConnect connection from this browser.";
+            function btn(label, cls, val) { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.addEventListener("click", function () { bg.remove(); resolve(val); }); return b; }
+            card.appendChild(h); card.appendChild(p);
+            card.appendChild(btn("OPEN VYRO IN TRUST WALLET", "primary-button", "inapp"));
+            card.appendChild(btn("USE WALLETCONNECT INSTEAD", "secondary-button", "wc"));
+            card.appendChild(btn("CANCEL", "secondary-button", "cancel"));
+            bg.appendChild(card); document.body.appendChild(bg);
+        }).then(function (v) { if (v === "cancel") throw Object.assign(new Error("Connection cancelled."), { code: 4001 }); return v; });
     }
 
     // ---------- connect (public entry point) ----------
@@ -436,6 +477,12 @@
                 w = await connectWalletConnect(label ? null : "https://link.trustwallet.com/wc?uri=", label || null);
             } else if (injected(type)) {
                 w = await connectInjected(type);
+            } else if (type === "trust-wallet" && isMobile() && !window.__vyroSkipTrustChooser) {
+                // Trust Wallet's own browser has the wallet built in, which is far more reliable than a connection from outside.
+                const choice = await trustChooser();
+                if (choice === "inapp") { window.location.href = "https://link.trustwallet.com/open_url?coin_id=501&url=" + encodeURIComponent(window.location.origin + window.location.pathname); return null; }
+                if (!CFG.walletConnectProjectId) throw new Error("WalletConnect is not configured yet (missing project ID).");
+                w = await connectWalletConnect("https://link.trustwallet.com/wc?uri=", providerName(type));
             } else if (CFG.walletConnectProjectId) {
                 // Wallet not injected (e.g. normal mobile browser): fall back to WalletConnect.
                 w = await connectWalletConnect(type === "trust-wallet" ? "https://link.trustwallet.com/wc?uri=" : null, providerName(type));
@@ -494,7 +541,7 @@
             });
             openWalletApp(session);   // send the user to the approval request waiting in their wallet
             let result;
-            try { result = await pendingRequest; }
+            try { result = await withAnswerTimeout(pendingRequest, client, session); }
             catch (e) {
                 const m = String((e && (e.message || (e.error && e.error.message))) || "");
                 if (/session propert|no matching|expired|session topic|not approved/i.test(m) && !isUserRejection(e)) {
