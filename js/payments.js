@@ -115,6 +115,7 @@
             createsRecipientAccount: !!built.createsRecipientAccount,
             createsFeeAccount: !!built.createsFeeAccount,
             feeUnits: built.feeUnits.toString(),
+            feeWaived: !!built.feeWaived,
             totalUnits: built.totalUnits.toString(),
             feeBps: built.feeUnits > 0n ? FEE.bps : 0,
             rentLamports: built.rentLamports || 0,
