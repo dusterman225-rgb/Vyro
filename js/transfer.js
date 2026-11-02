@@ -339,7 +339,7 @@
     }
 
     const api = {
-        version: "2026-11-01-r7",
+        version: "2026-10-14-r6",
         supportsReference: true,
         normalizeUsername, isValidUsername,
         parseAmount, formatUnits,
