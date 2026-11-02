@@ -294,6 +294,27 @@
         if (r && (r.universal || r.native)) return r.universal || r.native;
         return null;
     }
+
+    // A phone often blocks a page from opening another app on its own. This button is a real tap, so it always works.
+    function showOpenWalletButton(session) {
+        if (!isMobile()) return function () { };
+        const link = walletAppLink(session) || "";
+        const name = (session && session.peer && session.peer.metadata && session.peer.metadata.name) || "your wallet";
+        const bar = document.createElement("div");
+        bar.style.cssText = "position:fixed;left:12px;right:12px;bottom:14px;z-index:99999;background:#0b1220;border:2px solid #4ba3ff;border-radius:14px;padding:12px;text-align:center;color:#fff;font:600 15px system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.6)";
+        const t = document.createElement("div"); t.textContent = "Waiting for " + name + " to approve."; t.style.marginBottom = "8px";
+        bar.appendChild(t);
+        if (link) {
+            const a = document.createElement("a"); a.href = link; a.textContent = "TAP TO OPEN " + name.toUpperCase();
+            a.style.cssText = "display:block;background:#4ba3ff;color:#031018;border-radius:999px;padding:12px;text-decoration:none;font-weight:800";
+            bar.appendChild(a);
+        }
+        const h = document.createElement("div"); h.textContent = "Approve the payment there, then come back here."; h.style.cssText = "font-weight:400;font-size:12px;opacity:.75;margin-top:8px";
+        bar.appendChild(h);
+        document.body.appendChild(bar);
+        return function () { if (bar.parentNode) bar.parentNode.removeChild(bar); };
+    }
+
     function openWalletApp(session) {
         if (!isMobile()) return;
         const link = walletAppLink(session);
@@ -446,7 +467,8 @@
         if (!session) throw new Error("This WalletConnect session has expired. Remove the wallet and connect it again.");
         const pendingRequest = client.request({ topic: session.topic, chainId: chainId, request: request });
         openWalletApp(session);
-        return withAnswerTimeout(pendingRequest, client, session);
+        const hideBtn2 = showOpenWalletButton(session);
+        return withAnswerTimeout(pendingRequest, client, session).finally(hideBtn2);
     }
 
 
@@ -540,8 +562,9 @@
                 request: { method: "solana_signTransaction", params: { transaction: VYROTransfer.bytesToBase64(raw) } }
             });
             openWalletApp(session);   // send the user to the approval request waiting in their wallet
+            const hideBtn = showOpenWalletButton(session);
             let result;
-            try { result = await withAnswerTimeout(pendingRequest, client, session); }
+            try { result = await withAnswerTimeout(pendingRequest, client, session).finally(hideBtn); }
             catch (e) {
                 const m = String((e && (e.message || (e.error && e.error.message))) || "");
                 if (/session propert|no matching|expired|session topic|not approved/i.test(m) && !isUserRejection(e)) {
