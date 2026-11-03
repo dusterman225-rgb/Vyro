@@ -3571,18 +3571,6 @@ async function renderHomeBalances(token) {
         box.appendChild(row);
         return amt;
     });
-    // Safety check: people who pay you are sent to the address saved on your profile. If that is not one of the wallets
-    // connected here (for example you changed wallets), say so loudly so money does not go to a wallet you no longer use.
-    try {
-        const pub = VYROWallet.getReceivingAddress && VYROWallet.getReceivingAddress();
-        if (pub && !VYROWallet.getWallets().some(function (w) { return w.address === pub || w.evmAddress === pub; })) {
-            const warn = document.createElement("div");
-            warn.className = "note";
-            warn.style.cssText = "color:#ffb15c;border:1px solid #ffb15c;border-radius:10px;padding:8px;margin-top:8px;font-size:.8rem";
-            warn.textContent = "Warning: people who pay you are sent to " + pub.slice(0, 6) + "..." + pub.slice(-6) + ", which is not one of the wallets connected here. Open Wallets and tap RECEIVE HERE on the wallet you want to be paid in.";
-            box.appendChild(warn);
-        }
-    } catch (e) { /* warning is optional */ }
     for (let i = 0; i < rows.length; i++) {
         if (!rows[i].wallet || !rows[i].coin) continue;
         try {

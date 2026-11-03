@@ -100,6 +100,7 @@
             if (snap.exists) receivingAddress = (snap.data() || {}).walletAddress || null;
         } catch (e) { console.warn("VYRO: could not read receiving address", e); }
         updateUI();
+        syncReceiving();
     }
 
     // Publishes the PUBLIC address that other VYRO users will pay when they send to @username.
@@ -110,6 +111,38 @@
         receivingAddress = address;
         updateUI();
         return address;
+    }
+
+
+    // The wallet that is connected and active here is always the one people pay. Whenever it changes, the public
+    // payment address on your profile is updated to match (Solana wallet -> USDC and SOL; Ethereum wallet -> ETH).
+    let lastSync = "";
+    async function syncReceiving() {
+        try {
+            if (!username) return;
+            const w = wallets.find(function (x) { return x.address === activeAddress; });
+            if (!w) return;
+            const key = username + ":" + w.address;
+            if (lastSync === key) return;
+            lastSync = key;
+            const ref = firebaseDB.collection("usernames").doc(username);
+            const snap = await ref.get();
+            if (!snap.exists) { lastSync = ""; return; }
+            const d = snap.data() || {};
+            const cur = d.receive && typeof d.receive === "object" ? Object.assign({}, d.receive) : {};
+            if (!d.receive && d.walletAddress) { cur.USDC = d.walletAddress; cur.SOL = d.walletAddress; }
+            const next = Object.assign({}, cur);
+            if (isEvm(w.address)) next.ETH = w.address; else { next.USDC = w.address; next.SOL = w.address; }
+            const legacy = next.USDC || next.SOL || null;
+            if (JSON.stringify(next) !== JSON.stringify(cur) || (legacy && d.walletAddress !== legacy)) {
+                const upd = { receive: next };
+                if (legacy) upd.walletAddress = legacy;
+                await ref.update(upd);
+                if (window.VYROCoins && VYROCoins.resetReceive) { try { VYROCoins.resetReceive(); } catch (e) { /* optional */ } }
+            }
+            receivingAddress = legacy || receivingAddress;
+            updateUI();
+        } catch (e) { lastSync = ""; console.warn("VYRO: could not update the payment address", e); }
     }
 
     // ---------- wallet list ----------
@@ -126,15 +159,7 @@
         }
         activeAddress = address;
         persist(); updateUI();
-        // First wallet becomes the receiving wallet automatically; the user can change it later.
-        if (isFirst && !receivingAddress && username) {
-            if (isEvm(address)) {
-                // An Ethereum-only wallet can only receive ETH.
-                if (window.VYROCoins) VYROCoins.setReceive("ETH", address).catch(function (e) { console.warn("VYRO: auto-publish receiving wallet failed", e); });
-            } else {
-                setReceivingWallet(address).catch(function (e) { console.warn("VYRO: auto-publish receiving wallet failed", e); });
-            }
-        }
+        syncReceiving();
         return w;
     }
 
@@ -150,6 +175,7 @@
         if (!wallets.some(function (w) { return w.address === address; })) return false;
         activeAddress = address;
         persist(); updateUI();
+        syncReceiving();
         return true;
     }
 
