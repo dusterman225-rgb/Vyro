@@ -2908,3 +2908,17 @@ input.input-bad {
 .wallet-card-address.in-use .addr-net { color: var(--gold); }
 
 .wc-card .wc-download { display: flex; align-items: center; justify-content: center; text-decoration: none; margin-top: 10px; }
+
+
+/* Long words (names, addresses, usernames) must stay inside their boxes on the payment screens */
+#confirm-payment-screen .payment-summary,
+#confirm-payment-screen .summary-row,
+#confirm-payment-screen .summary-row span,
+#confirm-payment-screen .confirm-content {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+#confirm-payment-screen .summary-row { flex-wrap: wrap; }
+#confirm-payment-screen .summary-row span:last-child { text-align: right; flex: 1 1 0; min-width: 0; }
