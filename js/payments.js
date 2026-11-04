@@ -227,6 +227,8 @@
             if (!wv.valid) throw userError(wv.error);
             const asset = pv.asset;
             const sender = wv.wallet.address;
+            // Open the wallet in the same moment Confirm was tapped (a phone only allows that straight after a tap).
+            try { VYROWallet.openForSigning(sender); } catch (e) { /* the Open wallet button is the fallback */ }
 
             // A dollar payment was priced when the confirm screen was made. If it has sat there a while, the price may have moved.
             if (p.usdCents && p.priceAt && Date.now() - p.priceAt > 120000)

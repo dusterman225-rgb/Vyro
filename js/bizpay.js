@@ -145,6 +145,7 @@
         const stage = function (t) { btn.textContent = t.toUpperCase(); };
         try {
             const d = pending.d, wallet = pending.wallet, sender = wallet.address;
+            try { VYROWallet.openForSigning(sender); } catch (e) { /* the Open wallet button is the fallback */ }
             stage("Preparing...");
             let built = await build(d, sender);          // fresh blockhash, fresh balance check
             stage("Approve in your wallet...");

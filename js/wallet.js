@@ -5,8 +5,8 @@
 // Keys never leave the user's wallet. Every transfer is signed inside the
 // user's own wallet app, where they see and approve it.
 //
-// Providers: injected Solana wallets (Trust Wallet, Backpack)
-// and WalletConnect v2 (any wallet that supports the Solana namespace).
+// Providers: WalletConnect v2 (Trust Wallet and any wallet that supports Solana or Ethereum), app-link wallets on phones
+// (Backpack, Phantom: see deeplink-wallets.js) and injected wallets inside a wallet's own browser.
 // Adding a wallet = add one entry to `adapters` below.
 // =========================================================
 (function () {
@@ -39,8 +39,10 @@
         "backpack":     { label: "Backpack",     get: () => window.backpack && window.backpack.solana }
     };
 
+    function isDeepLink(type) { return typeof type === "string" && type.indexOf("deeplink-") === 0; }
     function providerName(type) {
         if (type === "walletconnect") return "WalletConnect";
+        if (isDeepLink(type) && window.VYRODeepLink) return VYRODeepLink.labelOf(type.slice(9));
         return (adapters[type] && adapters[type].label) || "External Wallet";
     }
     function injected(type) {
@@ -165,6 +167,7 @@
 
     async function removeWallet(address) {
         if (!address) return false;
+        try { const rm = wallets.find(function (w) { return w.address === address; }); if (rm && isDeepLink(rm.type) && window.VYRODeepLink) VYRODeepLink.forget(rm.type.slice(9), address); } catch (e) { /* ignore */ }
         wallets = wallets.filter(function (w) { return w.address !== address; });
         if (activeAddress === address) activeAddress = wallets[0] ? wallets[0].address : null;
         persist(); updateUI();
@@ -338,11 +341,30 @@
         const h = document.createElement("div"); h.textContent = "Approve the payment there, then come back here."; h.style.cssText = "font-weight:400;font-size:12px;opacity:.75;margin-top:8px";
         bar.appendChild(h);
         document.body.appendChild(bar);
-        return function () { if (bar.parentNode) bar.parentNode.removeChild(bar); };
+        // If the phone refused to open the wallet by itself, the next tap anywhere on the page opens it.
+        function anywhere() { if (link) window.location.href = link; }
+        if (link) setTimeout(function () { document.addEventListener("click", anywhere, { once: true }); }, 600);
+        return function () { document.removeEventListener("click", anywhere); if (bar.parentNode) bar.parentNode.removeChild(bar); };
     }
 
+    // A phone only lets a page open another app straight after the person's own tap. So VYRO opens the wallet in the very
+    // same moment Confirm is tapped (before any waiting), and the payment request arrives in the wallet a second later.
+    let autoOpenedAt = 0;
+    function openForSigning(address) {
+        try {
+            if (!isMobile()) return false;
+            const w = wallets.find(function (x) { return x.address === address; });
+            if (!w || w.type !== "walletconnect" || !wcClient) return false;
+            const link = walletAppLink(wcSessionForAddress(address));
+            if (!link) return false;
+            autoOpenedAt = Date.now();
+            window.location.href = link;
+            return true;
+        } catch (e) { return false; }
+    }
     function openWalletApp(session) {
         if (!isMobile()) return;
+        if (Date.now() - autoOpenedAt < 90000) return;   // already opened when Confirm was tapped
         const link = walletAppLink(session);
         if (link) window.location.href = link;
     }
@@ -498,21 +520,6 @@
     }
 
 
-    function trustChooser() {
-        return new Promise(function (resolve) {
-            const bg = document.createElement("div"); bg.className = "wc-overlay";
-            const card = document.createElement("div"); card.className = "wc-card";
-            const h = document.createElement("h2"); h.textContent = "Connect Trust Wallet";
-            const p = document.createElement("p"); p.textContent = "Best way: open VYRO inside Trust Wallet's own browser. Sign in there once, then tap Trust Wallet again. Or use a WalletConnect connection from this browser.";
-            function btn(label, cls, val) { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.addEventListener("click", function () { bg.remove(); resolve(val); }); return b; }
-            card.appendChild(h); card.appendChild(p);
-            card.appendChild(btn("OPEN VYRO IN TRUST WALLET", "primary-button", "inapp"));
-            card.appendChild(btn("USE WALLETCONNECT INSTEAD", "secondary-button", "wc"));
-            card.appendChild(btn("CANCEL", "secondary-button", "cancel"));
-            bg.appendChild(card); document.body.appendChild(bg);
-        }).then(function (v) { if (v === "cancel") throw Object.assign(new Error("Connection cancelled."), { code: 4001 }); return v; });
-    }
-
     // ---------- connect (public entry point) ----------
     // type: "trust-wallet" | "phantom" | "backpack" | "walletconnect"
     async function connect(type, label) {
@@ -523,17 +530,19 @@
             if (type === "walletconnect") {
                 if (!CFG.walletConnectProjectId) throw new Error("WalletConnect is not configured yet (missing project ID).");
                 w = await connectWalletConnect(label ? null : "https://link.trustwallet.com/wc?uri=", label || null);
-            } else if (injected(type)) {
-                w = await connectInjected(type);
-            } else if (type === "trust-wallet" && isMobile() && !window.__vyroSkipTrustChooser) {
-                // Trust Wallet's own browser has the wallet built in, which is far more reliable than a connection from outside.
-                const choice = await trustChooser();
-                if (choice === "inapp") { window.location.href = "https://link.trustwallet.com/open_url?coin_id=501&url=" + encodeURIComponent(window.location.origin + window.location.pathname); return null; }
+            } else if (type === "trust-wallet") {
+                // Trust Wallet always connects through WalletConnect from the normal browser, never through its own in-app browser.
                 if (!CFG.walletConnectProjectId) throw new Error("WalletConnect is not configured yet (missing project ID).");
                 w = await connectWalletConnect("https://link.trustwallet.com/wc?uri=", providerName(type));
+            } else if (window.VYRODeepLink && VYRODeepLink.supported(type) && isMobile() && !injected(type)) {
+                // Backpack / Phantom on a phone: connect by app link (the wallet opens, you approve, you come back).
+                setStatus("Opening " + VYRODeepLink.labelOf(type) + "…");
+                VYRODeepLink.connect(type);
+                return null;
+            } else if (injected(type)) {
+                w = await connectInjected(type);
             } else if (CFG.walletConnectProjectId) {
-                // Wallet not injected (e.g. normal mobile browser): fall back to WalletConnect.
-                w = await connectWalletConnect(type === "trust-wallet" ? "https://link.trustwallet.com/wc?uri=" : null, providerName(type));
+                w = await connectWalletConnect(null, providerName(type));
             } else {
                 throw new Error(providerName(type) + " was not detected. Open VYRO inside the " + providerName(type) + " app's browser, or enable WalletConnect in js/config.js.");
             }
@@ -680,6 +689,12 @@
             throw new Error("The wallet returned no signature.");
         }
 
+        if (isDeepLink(w.type)) {
+            const raw = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
+            const signed = await VYRODeepLink.sign(w.type.slice(9), raw, expectedAddress);
+            return { signedRaw: signed };
+        }
+
         const provider = injected(w.type);
         if (!provider) throw new Error(w.provider + " is not available in this browser. Open VYRO inside the wallet app, or reconnect.");
         // Make sure the wallet is still on the account the user chose.
@@ -734,7 +749,7 @@
         setUser, setUsername, setReceivingWallet, getReceivingAddress, getUsername,
         getWallets, getActiveWallet, setActiveWallet, addWallet, removeWallet,
         getAddress, getActiveAddress: getAddress, isConnected, getWalletType, getProvider,
-        requestSignature, sendSigned, wcRequest, isUserRejection, updateUI
+        requestSignature, sendSigned, openForSigning, wcRequest, isUserRejection, updateUI
     };
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
