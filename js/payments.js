@@ -241,7 +241,7 @@
                 throw userError("@" + to.username + " changed their receiving wallet. Please review the payment again.");
 
             stage("Preparing…");
-            const built = await buildForAsset(asset, wv.wallet, to.address, pv.units);
+            let built = await buildForAsset(asset, wv.wallet, to.address, pv.units);
 
             let id, lastValidBlockHeight = null, feeNote = "";
             if (asset === "ETH") {
@@ -255,7 +255,12 @@
             } else {
                 stage("Approve in your wallet…");
                 let result;
-                try { result = await VYROWallet.requestSignature(built.transaction, sender); }
+                try {
+                    result = await VYROWallet.requestSignature(built.transaction, sender, {
+                        // If the wallet has to be reconnected, build again so the transaction is fresh.
+                        rebuild: async function () { built = await buildForAsset(asset, wv.wallet, to.address, pv.units); return built.transaction; }
+                    });
+                }
                 catch (e) {
                     if (VYROWallet.isUserRejection(e)) throw userError("You declined the request in your wallet. No payment was made.");
                     throw userError(e.message || "Your wallet could not sign this payment.");
@@ -264,10 +269,11 @@
                 if (!id) {
                     stage("Submitting…");
                     try {
-                        id = await getConnection().sendRawTransaction(result.signedRaw, { skipPreflight: false, preflightCommitment: "confirmed" });
+                        id = await VYROWallet.sendSigned(getConnection(), result.signedRaw, built.lastValidBlockHeight);
                     } catch (e) {
                         console.error("VYRO send error:", e);
-                        throw userError("The network rejected this payment: " + (e.message || "unknown error") + ". No funds were moved.");
+                        if (/time window ran out/.test(e.message || "")) throw userError(e.message);
+                        throw userError("The network rejected this payment: " + String(e.message || "unknown error").split(". Logs:")[0] + ". No funds were moved.");
                     }
                 }
                 lastValidBlockHeight = built.lastValidBlockHeight;

@@ -146,10 +146,10 @@
         try {
             const d = pending.d, wallet = pending.wallet, sender = wallet.address;
             stage("Preparing...");
-            const built = await build(d, sender);          // fresh blockhash, fresh balance check
+            let built = await build(d, sender);          // fresh blockhash, fresh balance check
             stage("Approve in your wallet...");
             let result;
-            try { result = await VYROWallet.requestSignature(built.transaction, sender); }
+            try { result = await VYROWallet.requestSignature(built.transaction, sender, { rebuild: async function () { built = await build(d, sender); return built.transaction; } }); }
             catch (e) {
                 if (VYROWallet.isUserRejection(e)) throw userError("You declined the request in your wallet. No payment was made.");
                 throw userError(e.message || "Your wallet could not sign this payment.");
@@ -157,8 +157,8 @@
             let id = result.signature;
             if (!id) {
                 stage("Submitting...");
-                try { id = await getConn().sendRawTransaction(result.signedRaw, { skipPreflight: false, preflightCommitment: "confirmed" }); }
-                catch (e) { console.error("VYRO biz send error:", e); throw userError("The network rejected this payment: " + (e.message || "unknown error") + ". No funds were moved."); }
+                try { id = await VYROWallet.sendSigned(getConn(), result.signedRaw, built.lastValidBlockHeight); }
+                catch (e) { console.error("VYRO biz send error:", e); if (/time window ran out/.test(e.message || "")) throw userError(e.message); throw userError("The network rejected this payment: " + String(e.message || "unknown error").split(". Logs:")[0] + ". No funds were moved."); }
             }
             saveRecord(d, id, sender);
             stage("Confirming...");
