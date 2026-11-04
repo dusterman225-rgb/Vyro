@@ -2285,13 +2285,23 @@
             <details class="more-wallets">
                 <summary>MORE WALLETS</summary>
                 <div class="more-wallets-list">
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Backpack">BACKPACK</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="backpack">BACKPACK</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="phantom">PHANTOM</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Solflare">SOLFLARE</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="MetaMask">METAMASK</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Coinbase Wallet">COINBASE WALLET</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Rainbow">RAINBOW</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Zerion">ZERION</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="SafePal">SAFEPAL</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Binance Wallet">BINANCE WALLET</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Ledger Live">LEDGER LIVE</button>
+                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Uniswap Wallet">UNISWAP WALLET</button>
                     <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Exodus">EXODUS</button>
                     <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OKX Wallet">OKX WALLET</button>
                     <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Bitget Wallet">BITGET WALLET</button>
                     <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="TokenPocket">TOKENPOCKET</button>
                     <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OneKey">ONEKEY</button>
-                    <p class="more-wallets-note">These wallets connect with WalletConnect and offer Solana and Ethereum.</p>
+                    <p class="more-wallets-note">Backpack and Phantom open their app and bring you back. The others connect with WalletConnect (Solana or Ethereum, whichever your wallet shares).</p>
                 </div>
             </details>
 
@@ -2479,11 +2489,13 @@
 
 <!-- VYRO Files -->
 
+<script src="js/nacl-fast.min.js"></script>
 <script src="js/transfer.js"></script>
 <script src="js/coins.js"></script>
 <script src="js/price.js"></script>
 
 <script src="js/wc-ui.js"></script>
+<script src="js/deeplink-wallets.js"></script>
 <script src="js/wallet.js"></script>
 <script src="js/wallet-roles.js"></script>
 
