@@ -319,10 +319,19 @@
         const meta = session && session.peer && session.peer.metadata;
         const r = meta && meta.redirect;
         // Trust Wallet: its app link ("trust://") opens the app on the waiting request. Its web link opens a download page.
-        if (meta && /trust/i.test(meta.name || "")) return "trust://";
+        if (meta && /trust/i.test(meta.name || "")) return trustLink();
         if (r && (r.universal || r.native)) return r.universal || r.native;
         return null;
     }
+
+    // Android browsers (Chrome and the apps built on it) open an app reliably through an "intent" link, which names the Trust Wallet
+    // app directly. A plain trust:// link is what iPhones use, and is only a fallback on Android.
+    function trustLink() {
+        if (/android/i.test(navigator.userAgent || ""))
+            return "intent://wc#Intent;scheme=trust;package=com.wallet.crypto.trustapp;S.browser_fallback_url=" + encodeURIComponent("https://link.trustwallet.com/") + ";end";
+        return "trust://";
+    }
+    const BUILD = "pay-4";
 
     // There is no box. VYRO opens the wallet itself the moment Confirm is tapped. Only if the wallet is STILL waiting after
     // 12 seconds (the phone refused to open it) does a small plain-text link appear, which disappears again on its own.
@@ -337,7 +346,7 @@
         const timer = setTimeout(function () {
             if (!link) return;
             el = document.createElement("a");
-            el.id = "vyro-wait-bar"; el.href = link; el.textContent = "Wallet did not open? Tap to open " + name;
+            el.id = "vyro-wait-bar"; el.href = link; el.textContent = "Wallet did not open? Tap to open " + name + " (" + BUILD + ")";
             el.style.cssText = "position:fixed;left:0;right:0;bottom:14px;z-index:99999;text-align:center;color:#62B6F5;font:600 13px system-ui,-apple-system,Segoe UI,sans-serif;text-decoration:underline;text-shadow:0 1px 6px #000";
             document.body.appendChild(el);
         }, 12000);
@@ -361,10 +370,10 @@
         try {
             if (!isMobile()) return false;
             const w = wallets.find(function (x) { return x.address === address; });
-            if (!w || w.type !== "walletconnect") return false;
+            if (!w || (w.type !== "walletconnect" && !/trust/i.test(w.provider || ""))) return false;
             let link = null;
             try { if (wcClient) link = walletAppLink(wcSessionForAddress(address)); } catch (e) { link = null; }
-            if (!link && /trust/i.test(w.provider || "")) link = "trust://";   // does not depend on anything loading first
+            if (!link && /trust/i.test(w.provider || "")) link = trustLink();   // does not depend on anything loading first
             if (!link) return false;
             autoOpenedAt = Date.now();
             window.location.href = link;
