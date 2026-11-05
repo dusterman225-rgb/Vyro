@@ -2223,55 +2223,46 @@
         </h1>
 
         <p class="auth-subtitle">
-            Connect your external wallet to VYRO.
+            Pick the wallet you already use, or get one below.
         </p>
 
 
-        <div class="auth-card">
+        <div class="auth-card wallet-page">
 
-            <div class="get-wallet-card">
-                <strong>Don't have a wallet?</strong>
-                <p>Trust Wallet is free and takes about two minutes to set up.</p>
-                <a class="primary-button" href="https://apps.apple.com/app/trust-crypto-bitcoin-wallet/id1288339409" target="_blank" rel="noopener">DOWNLOAD ON THE APP STORE</a>
-                <a class="primary-button" href="https://play.google.com/store/apps/details?id=com.wallet.crypto.trustapp" target="_blank" rel="noopener">DOWNLOAD ON GOOGLE PLAY</a>
-            </div>
-
-            <p class="auth-card-text">
-                VYRO does not hold your private keys or seed phrase.
-                Your external wallet remains in control of your funds.
-                VYRO currently only supports the listed wallets. If you don't have a wallet, <a class="inline-link" href="https://trustwallet.com/download" target="_blank" rel="noopener">download Trust Wallet</a>.
-            </p>
-
-            <div class="wallet-group-label">CONNECT TO YOUR CURRENT WALLET(S):</div>
+            <div class="wallet-group-label">CHOOSE YOUR WALLET</div>
             <button class="primary-button wallet-reco" type="button" data-wallet-connect="trust-wallet">TRUST WALLET<span class="reco-tag">RECOMMENDED</span></button>
 
-            <details class="more-wallets">
-                <summary>MORE WALLETS</summary>
-                <div class="more-wallets-list">
-                    <button class="secondary-button" type="button" data-wallet-connect="backpack">BACKPACK</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="phantom">PHANTOM</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Solflare">SOLFLARE</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="MetaMask">METAMASK</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Coinbase Wallet">COINBASE WALLET</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Rainbow">RAINBOW</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Zerion">ZERION</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="SafePal">SAFEPAL</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Binance Wallet">BINANCE WALLET</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Ledger Live">LEDGER LIVE</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Uniswap Wallet">UNISWAP WALLET</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Exodus">EXODUS</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OKX Wallet">OKX WALLET</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Bitget Wallet">BITGET WALLET</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="TokenPocket">TOKENPOCKET</button>
-                    <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OneKey">ONEKEY</button>
-                    <p class="more-wallets-note">Backpack and Phantom open their app and bring you back. The others connect with WalletConnect (Solana or Ethereum, whichever your wallet shares).</p>
+            <div class="get-wallet-card">
+                <span class="get-wallet-title">New to crypto? Get Trust Wallet, free:</span>
+                <div class="get-wallet-buttons">
+                    <a class="secondary-button" href="https://play.google.com/store/apps/details?id=com.wallet.crypto.trustapp" target="_blank" rel="noopener">Download from Google Play</a>
+                    <a class="secondary-button" href="https://apps.apple.com/app/trust-crypto-bitcoin-wallet/id1288339409" target="_blank" rel="noopener">Download from the App Store</a>
                 </div>
-            </details>
+            </div>
 
-            <p class="open-with-note">If your phone shows an "Open with" list, choose your wallet and tap "Just once".</p>
-            <p class="wallet-browser-note"><strong>How connecting works:</strong> VYRO stays in your normal browser. Tap your wallet, approve the connection in the wallet app, then come back to VYRO. Each payment opens your wallet for you to approve.</p>
+            <div class="wallet-group-label">OTHER WALLETS</div>
+            <div class="more-wallets-list">
+                <button class="secondary-button" type="button" data-wallet-connect="backpack">Backpack</button>
+                <button class="secondary-button" type="button" data-wallet-connect="phantom">Phantom</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Solflare">Solflare</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="MetaMask">MetaMask</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Coinbase Wallet">Coinbase Wallet</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Rainbow">Rainbow</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Zerion">Zerion</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="SafePal">SafePal</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Binance Wallet">Binance Wallet</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Ledger Live">Ledger Live</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Uniswap Wallet">Uniswap Wallet</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Exodus">Exodus</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OKX Wallet">OKX Wallet</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="Bitget Wallet">Bitget Wallet</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="TokenPocket">TokenPocket</button>
+                <button class="secondary-button" type="button" data-wallet-connect="walletconnect" data-wallet-label="OneKey">OneKey</button>
+            </div>
 
             <p id="wallet-connect-status" class="auth-card-text wallet-connect-status"></p>
+
+            <p class="wallet-fineprint">VYRO never holds your keys or seed phrase. Approve the connection in your wallet, then return here. If your phone shows an "Open with" list, choose your wallet and tap "Just once".</p>
 
         </div>
 
