@@ -331,7 +331,7 @@
             return "intent://wc#Intent;scheme=trust;package=com.wallet.crypto.trustapp;S.browser_fallback_url=" + encodeURIComponent("https://link.trustwallet.com/") + ";end";
         return "trust://";
     }
-    const BUILD = "pay-4";
+    const BUILD = "pay-5";
 
     // There is no box. VYRO opens the wallet itself the moment Confirm is tapped. Only if the wallet is STILL waiting after
     // 12 seconds (the phone refused to open it) does a small plain-text link appear, which disappears again on its own.
@@ -384,7 +384,8 @@
         if (!isMobile()) return;
         if (Date.now() - autoOpenedAt < 90000) return;   // already opened when Confirm was tapped
         const link = walletAppLink(session);
-        if (link) window.location.href = link;
+        // A moment's pause so the request has left this page before the wallet app takes over the screen.
+        if (link) setTimeout(function () { window.location.href = link; }, 350);
     }
 
     async function connectWalletConnect(deepLinkBase, label) {

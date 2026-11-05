@@ -94,6 +94,16 @@
 
     function userError(message) { const e = new Error(message); e.userFacing = true; return e; }
 
+    // What the confirm screen already worked out (recipient, balance checks, the unsigned payment). Confirm reuses it so the wallet
+    // request goes out within a moment of the tap, which is what lets the phone open the wallet app on its own.
+    let quoted = null;
+    function quoteKey(p, pv) { return [p.recipient, String(pv.units), pv.asset, p.fromWallet || "", p.requestId || ""].join("|"); }
+    async function refreshBlockhash(b) {
+        const latest = await getConnection().getLatestBlockhash("confirmed");
+        b.transaction.recentBlockhash = latest.blockhash;
+        b.lastValidBlockHeight = latest.lastValidBlockHeight;
+    }
+
     // ---------- quote (shown on the confirm screen) ----------
     async function quote() {
         const p = getPendingPayment();
@@ -105,6 +115,7 @@
         const to = await resolveRecipient(p.recipient, pv.asset);
         const built = await buildForAsset(pv.asset, wv.wallet, to.address, pv.units);
 
+        quoted = { key: quoteKey(p, pv), to: to, built: built, at: Date.now() };
         pending = Object.assign({}, p, {
             asset: pv.asset,
             network: pv.coin.network,
@@ -227,23 +238,32 @@
             if (!wv.valid) throw userError(wv.error);
             const asset = pv.asset;
             const sender = wv.wallet.address;
-            // Open the wallet in the same moment Confirm was tapped (a phone only allows that straight after a tap).
-            try { VYROWallet.openForSigning(sender); } catch (e) { /* the Open wallet button is the fallback */ }
-
             // A dollar payment was priced when the confirm screen was made. If it has sat there a while, the price may have moved.
             if (p.usdCents && p.priceAt && Date.now() - p.priceAt > 120000)
                 throw userError("The price may have changed. Go back and tap CONTINUE again to get a fresh price.");
 
-            stage("Checking recipient…");
-            await checkRequest(p);
-            // Re-resolve right before signing: if the recipient changed their address
-            // since the confirm screen was shown, stop rather than pay a different address.
-            const to = await resolveRecipient(p.recipient, asset);
-            if (p.recipientAddress && to.address !== p.recipientAddress)
-                throw userError("@" + to.username + " changed their receiving wallet. Please review the payment again.");
-
-            stage("Preparing…");
-            let built = await buildForAsset(asset, wv.wallet, to.address, pv.units);
+            // Re-check the recipient: if they changed their receiving address since the confirm screen, stop rather than pay a
+            // different address. On the fast path this check runs while the wallet is open and is finished BEFORE anything is sent.
+            async function verifyRecipient(expected) {
+                await checkRequest(p);
+                const t = await resolveRecipient(p.recipient, asset);
+                if ((p.recipientAddress && t.address !== p.recipientAddress) || (expected && t.address !== expected.address))
+                    throw userError("@" + t.username + " changed their receiving wallet. Nothing was sent. Please review the payment again.");
+                return t;
+            }
+            let to, built, verifying = null;
+            const fast = asset !== "ETH" && quoted && quoted.key === quoteKey(p, pv) && Date.now() - quoted.at < 5 * 60000;
+            if (fast) {
+                stage("Preparing…");
+                to = quoted.to; built = quoted.built;
+                await refreshBlockhash(built);
+                verifying = verifyRecipient(to); verifying.catch(function () { /* reported below, before sending */ });
+            } else {
+                stage("Checking recipient…");
+                to = await verifyRecipient(null);
+                stage("Preparing…");
+                built = await buildForAsset(asset, wv.wallet, to.address, pv.units);
+            }
 
             let id, lastValidBlockHeight = null, feeNote = "";
             if (asset === "ETH") {
@@ -268,6 +288,7 @@
                     throw userError(e.message || "Your wallet could not sign this payment.");
                 }
                 id = result.signature;
+                if (verifying) { try { await verifying; } catch (e) { throw userError(e.message || "The recipient could not be re-checked. Nothing was sent."); } }
                 if (!id) {
                     stage("Submitting…");
                     try {

@@ -116,7 +116,7 @@
             const wallet = activeWalletFor(r.d.coin);
             const built = await build(r.d, wallet.address);
             const s = split(r.d);
-            pending = { d: r.d, wallet: wallet };
+            pending = { d: r.d, wallet: wallet, built: built, at: Date.now() };
             const dec = r.d.dec, coin = r.d.coin;
             $("bizpay-biz").textContent = r.d.biz;
             $("bizpay-inv").textContent = r.d.inv || "-";
@@ -145,9 +145,13 @@
         const stage = function (t) { btn.textContent = t.toUpperCase(); };
         try {
             const d = pending.d, wallet = pending.wallet, sender = wallet.address;
-            try { VYROWallet.openForSigning(sender); } catch (e) { /* the Open wallet button is the fallback */ }
             stage("Preparing...");
-            let built = await build(d, sender);          // fresh blockhash, fresh balance check
+            let built;
+            if (pending.built && Date.now() - pending.at < 5 * 60000) {   // already built when the code was scanned: just refresh the blockhash so the wallet request goes out at once
+                built = pending.built;
+                const latest = await getConn().getLatestBlockhash("confirmed");
+                built.transaction.recentBlockhash = latest.blockhash; built.lastValidBlockHeight = latest.lastValidBlockHeight;
+            } else built = await build(d, sender);
             stage("Approve in your wallet...");
             let result;
             try { result = await VYROWallet.requestSignature(built.transaction, sender, { rebuild: async function () { built = await build(d, sender); return built.transaction; } }); }
