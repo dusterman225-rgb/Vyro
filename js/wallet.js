@@ -284,13 +284,24 @@
         if (Date.now() - rec.at > 10 * 60000) { disarmRecovery(); return; }
         recovering = true;
         try {
-            await new Promise(function (r) { setTimeout(r, 3000); });
-            try { if (!localStorage.getItem(SIGNREQ)) return; } catch (e) { /* ignore */ }   // the live page already handled it
-            const recs = (wcClient.core && wcClient.core.history && wcClient.core.history.records) || [];
+            // Wait for the wallet's answer to arrive (up to about 75 seconds), because a phone that just reopened the page
+            // may take a while to reconnect. A signed payment goes stale after roughly a minute.
             let found = null;
-            recs.forEach(function (r) {
-                if (r.topic === rec.topic && r.request && r.request.method === "solana_signTransaction" && Number(r.id) > rec.at * 1000 && r.response && (!found || r.id > found.id)) found = r;
-            });
+            const until = Date.now() + 75000;
+            do {
+                await new Promise(function (r) { setTimeout(r, 2000); });
+                try { if (!localStorage.getItem(SIGNREQ)) return; } catch (e) { /* ignore */ }   // the live page already handled it
+                const recs = (wcClient.core && wcClient.core.history && wcClient.core.history.records) || [];
+                recs.forEach(function (r) {
+                    if (r.topic === rec.topic && r.request && r.request.method === "solana_signTransaction" && Number(r.id) > rec.at * 1000 && r.response && (!found || r.id > found.id)) found = r;
+                });
+                if (!found) {
+                    try {
+                        const r2 = wcClient.core && wcClient.core.relayer;
+                        if (r2 && !r2.connected && typeof r2.restartTransport === "function") r2.restartTransport().catch(function () { /* retried */ });
+                    } catch (e) { /* ignore */ }
+                }
+            } while (!found && Date.now() < until);
             if (!found) return;
             disarmRecovery();
             const res = found.response.result;
