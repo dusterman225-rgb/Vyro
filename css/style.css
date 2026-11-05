@@ -2941,3 +2941,57 @@ input:focus, select:focus, textarea:focus, .auth-input:focus, .input-wrapper:foc
 }
 .auth-subtitle, .summary-row > span:first-child, label { color: #8CCBF6; }
 h1, h2 { color: #FFFFFF; }
+
+
+/* ---------- Connect Wallet page ---------- */
+#connect-wallet-screen .auth-card.wallet-page { padding: 18px 16px 16px; }
+#connect-wallet-screen .wallet-group-label {
+    margin: 4px 2px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; color: #8CCBF6;
+}
+#connect-wallet-screen .wallet-group-label + .more-wallets-list { margin-top: 0; }
+#connect-wallet-screen .wallet-reco {
+    width: 100%; margin: 0; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+#connect-wallet-screen .reco-tag {
+    font-size: 9.5px; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,.5);
+}
+#connect-wallet-screen .get-wallet-card {
+    margin: 12px 0 20px; padding: 12px; border: 1px dashed rgba(98, 182, 245, 0.45); border-radius: 12px; background: rgba(98, 182, 245, 0.05);
+    display: flex; flex-direction: column; gap: 10px; text-align: center;
+}
+#connect-wallet-screen .get-wallet-title { font-size: 13px; color: #F1F6FB; font-weight: 600; }
+#connect-wallet-screen .get-wallet-buttons { display: flex; flex-direction: column; gap: 8px; }
+#connect-wallet-screen .get-wallet-buttons a {
+    margin: 0; min-height: 40px; display: flex; align-items: center; justify-content: center; text-decoration: none;
+    font-size: 12px; letter-spacing: 0.04em; text-transform: none; color: #fff; border-color: rgba(98, 182, 245, 0.55);
+}
+#connect-wallet-screen .more-wallets-list {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; padding: 0; border: 0; background: none;
+}
+#connect-wallet-screen .more-wallets-list .secondary-button {
+    margin: 0; min-height: 44px; padding: 0 8px; font-size: 13px; letter-spacing: 0.02em; text-transform: none; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+}
+#connect-wallet-screen .wallet-connect-status { min-height: 0; margin-top: 12px; text-align: center; }
+#connect-wallet-screen .wallet-connect-status:empty { display: none; }
+#connect-wallet-screen .wallet-fineprint {
+    margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(201, 209, 217, 0.14);
+    font-size: 11.5px; line-height: 1.55; color: #A9B8C8; text-align: center;
+}
+
+/* Other wallets drop-down */
+#connect-wallet-screen details.more-wallets { margin-top: 4px; }
+#connect-wallet-screen details.more-wallets > summary {
+    list-style: none; cursor: pointer; min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid rgba(98, 182, 245, 0.55); border-radius: 12px; color: #8CCBF6; font-weight: 700; font-size: 13px;
+    letter-spacing: 0.06em; text-transform: uppercase; background: #14202e;
+}
+#connect-wallet-screen details.more-wallets > summary::-webkit-details-marker { display: none; }
+#connect-wallet-screen details.more-wallets > summary::after { content: "\25BE"; transition: transform .2s; }
+#connect-wallet-screen details.more-wallets[open] > summary::after { transform: rotate(180deg); }
+#connect-wallet-screen details.more-wallets[open] > summary { margin-bottom: 10px; }
+
+/* One recipient box, not two: the wrapper draws the box, the input inside is plain */
+.input-wrapper input, .input-wrapper input:focus {
+    background: transparent !important; border: 0 !important; box-shadow: none !important; outline: 0 !important;
+}
