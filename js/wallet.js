@@ -267,6 +267,54 @@
         return null;
     }
 
+    // ---- finishing a payment the page was no longer alive to finish ----
+    // When the wallet app is on screen, a phone may pause or even close this page. The wallet's signed answer waits at the
+    // WalletConnect relay for a few minutes. If VYRO finds that answer after the page comes back, it sends the payment itself,
+    // so an approved payment is never lost. (A payment finished this way has no receipt in VYRO's history; the blockchain has it.)
+    const SIGNREQ = "vyro:wc:signreq";
+    function armRecovery(session, address) {
+        try { localStorage.setItem(SIGNREQ, JSON.stringify({ topic: session.topic, address: address, at: Date.now() })); } catch (e) { /* ignore */ }
+    }
+    function disarmRecovery() { try { localStorage.removeItem(SIGNREQ); } catch (e) { /* ignore */ } }
+    let recovering = false;
+    async function recoverSignedPayment() {
+        let rec = null;
+        try { rec = JSON.parse(localStorage.getItem(SIGNREQ) || "null"); } catch (e) { rec = null; }
+        if (!rec || recovering || !wcClient) return;
+        if (Date.now() - rec.at > 10 * 60000) { disarmRecovery(); return; }
+        recovering = true;
+        try {
+            await new Promise(function (r) { setTimeout(r, 3000); });
+            try { if (!localStorage.getItem(SIGNREQ)) return; } catch (e) { /* ignore */ }   // the live page already handled it
+            const recs = (wcClient.core && wcClient.core.history && wcClient.core.history.records) || [];
+            let found = null;
+            recs.forEach(function (r) {
+                if (r.topic === rec.topic && r.request && r.request.method === "solana_signTransaction" && Number(r.id) > rec.at * 1000 && r.response && (!found || r.id > found.id)) found = r;
+            });
+            if (!found) return;
+            disarmRecovery();
+            const res = found.response.result;
+            if (!res || !res.transaction) return;   // declined or no result: nothing to send
+            const rpc = CFG.solana && CFG.solana.rpcUrl;
+            if (!rpc || !window.solanaWeb3) return;
+            const raw = VYROTransfer.base64ToBytes(res.transaction);
+            const conn = new solanaWeb3.Connection(rpc, "confirmed");
+            let sig;
+            try { sig = await sendSigned(conn, raw, null); }
+            catch (e) { notice("Your wallet approved the payment, but VYRO could not send it: " + String((e && e.message) || e).split(". Logs:")[0] + ". No funds were moved.", false); return; }
+            notice("Payment sent. Reference: " + sig + ". It may take a few seconds to confirm. The blockchain has the receipt.", true);
+        } catch (e) { /* nothing to recover */ }
+        finally { recovering = false; }
+    }
+    function notice(text, good) {
+        const bar = document.createElement("div");
+        bar.style.cssText = "position:fixed;left:14px;right:14px;top:14px;z-index:99999;max-width:460px;margin:0 auto;background:#0C1117;border:1px solid " + (good ? "#3ddc97" : "#ff6b6b") + ";border-radius:14px;padding:12px 14px;color:#F1F6FB;font:600 13px system-ui,-apple-system,Segoe UI,sans-serif;overflow-wrap:anywhere;box-shadow:0 8px 24px rgba(0,0,0,.6)";
+        bar.textContent = text;
+        const x = document.createElement("button"); x.type = "button"; x.textContent = "OK";
+        x.style.cssText = "display:block;margin:10px 0 0 auto;padding:6px 18px;border-radius:10px;border:1px solid #62B6F5;background:rgba(98,182,245,.2);color:#fff;font-weight:700";
+        x.addEventListener("click", function () { bar.remove(); }); bar.appendChild(x); document.body.appendChild(bar);
+    }
+
     async function ensureWcClient() {
         if (wcClient) return wcClient;
         const projectId = CFG.walletConnectProjectId;
@@ -282,11 +330,13 @@
         document.addEventListener("visibilitychange", function () {
             if (document.visibilityState !== "visible" || !wcClient) return;
             adoptPending();
+            setTimeout(recoverSignedPayment, 1500);
             try {
                 const r = wcClient.core && wcClient.core.relayer;
                 if (r && typeof r.restartTransport === "function") r.restartTransport().catch(function () { /* retried by the poller */ });
             } catch (e) { /* ignore */ }
         });
+        setTimeout(recoverSignedPayment, 1500);
         return wcClient;
     }
 
@@ -331,7 +381,7 @@
             return "intent://wc#Intent;scheme=trust;package=com.wallet.crypto.trustapp;S.browser_fallback_url=" + encodeURIComponent("https://link.trustwallet.com/") + ";end";
         return "trust://";
     }
-    const BUILD = "pay-6";
+    const BUILD = "pay-7";
 
     // There is no box. VYRO opens the wallet itself the moment Confirm is tapped. Only if the wallet is STILL waiting after
     // 12 seconds (the phone refused to open it) does a small plain-text link appear, which disappears again on its own.
@@ -685,9 +735,10 @@
                     chainId: sessionSolanaChain(session),
                     request: { method: "solana_signTransaction", params: { transaction: VYROTransfer.bytesToBase64(raw) } }
                 });
+                armRecovery(session, expectedAddress);
                 openWalletApp(session);   // send the user to the approval request waiting in their wallet
                 const hideBtn = showOpenWalletButton(session);
-                try { result = await withAnswerTimeout(pendingRequest, client, session).finally(hideBtn); break; }
+                try { result = await withAnswerTimeout(pendingRequest, client, session).finally(function () { hideBtn(); disarmRecovery(); }); break; }
                 catch (e) {
                     const m = String((e && (e.message || (e.error && e.error.message))) || "");
                     if (/session propert|invalid session|no matching|expired|session topic|not approved|unknown topic|pairing/i.test(m) && !isUserRejection(e)) {
