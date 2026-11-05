@@ -324,27 +324,34 @@
         return null;
     }
 
-    // A phone often blocks a page from opening another app on its own. This button is a real tap, so it always works.
+    // There is no box. VYRO opens the wallet itself the moment Confirm is tapped. Only if the wallet is STILL waiting after
+    // 12 seconds (the phone refused to open it) does a small plain-text link appear, which disappears again on its own.
+    let cancelWait = null, barCleanup = null;
+    function cancelWalletWait() { if (cancelWait) { try { cancelWait(); } catch (e) { /* ignore */ } } if (barCleanup) barCleanup(); }
     function showOpenWalletButton(session) {
+        if (barCleanup) barCleanup();
         if (!isMobile()) return function () { };
         const link = walletAppLink(session) || "";
         const name = (session && session.peer && session.peer.metadata && session.peer.metadata.name) || "your wallet";
-        const bar = document.createElement("div");
-        bar.style.cssText = "position:fixed;left:12px;right:12px;bottom:14px;z-index:99999;background:#0b1220;border:2px solid #4ba3ff;border-radius:14px;padding:12px;text-align:center;color:#fff;font:600 15px system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.6)";
-        const t = document.createElement("div"); t.textContent = "Waiting for " + name + " to approve."; t.style.marginBottom = "8px";
-        bar.appendChild(t);
-        if (link) {
-            const a = document.createElement("a"); a.href = link; a.textContent = "TAP TO OPEN " + name.toUpperCase();
-            a.style.cssText = "display:block;background:#4ba3ff;color:#031018;border-radius:999px;padding:12px;text-decoration:none;font-weight:800";
-            bar.appendChild(a);
-        }
-        const h = document.createElement("div"); h.textContent = "Approve the payment there, then come back here."; h.style.cssText = "font-weight:400;font-size:12px;opacity:.75;margin-top:8px";
-        bar.appendChild(h);
-        document.body.appendChild(bar);
-        // If the phone refused to open the wallet by itself, the next tap anywhere on the page opens it.
-        function anywhere() { if (link) window.location.href = link; }
-        if (link) setTimeout(function () { document.addEventListener("click", anywhere, { once: true }); }, 600);
-        return function () { document.removeEventListener("click", anywhere); if (bar.parentNode) bar.parentNode.removeChild(bar); };
+        let el = null;
+        const timer = setTimeout(function () {
+            if (!link) return;
+            el = document.createElement("a");
+            el.id = "vyro-wait-bar"; el.href = link; el.textContent = "Wallet did not open? Tap to open " + name;
+            el.style.cssText = "position:fixed;left:0;right:0;bottom:14px;z-index:99999;text-align:center;color:#62B6F5;font:600 13px system-ui,-apple-system,Segoe UI,sans-serif;text-decoration:underline;text-shadow:0 1px 6px #000";
+            document.body.appendChild(el);
+        }, 12000);
+        const home = document.querySelector(".screen.active");
+        let mo = null;
+        try { if (home) { mo = new MutationObserver(function () { if (!home.classList.contains("active")) cancelWalletWait(); }); mo.observe(home, { attributes: true, attributeFilter: ["class"] }); } } catch (e) { /* ignore */ }
+        const cleanup = function () {
+            clearTimeout(timer);
+            if (mo) mo.disconnect();
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+            if (barCleanup === cleanup) barCleanup = null;
+        };
+        barCleanup = cleanup;
+        return cleanup;
     }
 
     // A phone only lets a page open another app straight after the person's own tap. So VYRO opens the wallet in the very
@@ -354,8 +361,10 @@
         try {
             if (!isMobile()) return false;
             const w = wallets.find(function (x) { return x.address === address; });
-            if (!w || w.type !== "walletconnect" || !wcClient) return false;
-            const link = walletAppLink(wcSessionForAddress(address));
+            if (!w || w.type !== "walletconnect") return false;
+            let link = null;
+            try { if (wcClient) link = walletAppLink(wcSessionForAddress(address)); } catch (e) { link = null; }
+            if (!link && /trust/i.test(w.provider || "")) link = "trust://";   // does not depend on anything loading first
             if (!link) return false;
             autoOpenedAt = Date.now();
             window.location.href = link;
@@ -504,7 +513,10 @@
                 reject(new Error("Your wallet did not answer within 2 minutes. Open the wallet app, check for a waiting request, or remove the wallet in VYRO and connect it again. Tip: open VYRO inside Trust Wallet's own browser. [wallet: " + ((meta && meta.name) || "?") + "; relay: " + relay + "; connection expires in " + ageMin + " min]"));
             }, 120000);
         });
-        return Promise.race([pending, limit]).finally(function () { clearTimeout(timer); });
+        const cancelled = new Promise(function (_, reject) {
+            cancelWait = function () { const e = new Error("You cancelled the wallet request. Nothing was sent."); e.vyroCancelled = true; reject(e); };
+        });
+        return Promise.race([pending, limit, cancelled]).finally(function () { clearTimeout(timer); cancelWait = null; });
     }
 
     // Sends one request to the wallet that owns `address` (used for Ethereum). The wallet app opens
@@ -749,7 +761,7 @@
         setUser, setUsername, setReceivingWallet, getReceivingAddress, getUsername,
         getWallets, getActiveWallet, setActiveWallet, addWallet, removeWallet,
         getAddress, getActiveAddress: getAddress, isConnected, getWalletType, getProvider,
-        requestSignature, sendSigned, openForSigning, wcRequest, isUserRejection, updateUI
+        requestSignature, sendSigned, openForSigning, cancelWalletWait, wcRequest, isUserRejection, updateUI
     };
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
