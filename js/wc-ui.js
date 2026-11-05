@@ -1,10 +1,10 @@
 // =========================================================
-// VYRO — WALLETCONNECT PANEL
+// VYQIL — WALLETCONNECT PANEL
 // Shown when a wallet is connected through WalletConnect (any wallet app, from a normal
-// browser). VYRO never sees keys: this only hands the wallet a connection request.
+// browser). VYQIL never sees keys: this only hands the wallet a connection request.
 //
-// VYRO connects wallets with WalletConnect only. The wallet app approves the connection and every
-// payment; VYRO stays in your normal browser.
+// VYQIL connects wallets with WalletConnect only. The wallet app approves the connection and every
+// payment; VYQIL stays in your normal browser.
 // =========================================================
 (function () {
     "use strict";
@@ -74,7 +74,7 @@
         const card = make("div", "wc-card");
         card.appendChild(make("h2", "", "Connect " + name));
         card.appendChild(make("p", "", mobile
-            ? "Tap OPEN WALLET and approve the connection in " + name + ", then come back to VYRO."
+            ? "Tap OPEN WALLET and approve the connection in " + name + ", then come back to VYQIL."
             : "Open " + name + " on this device and approve the connection, or copy the link into it."));
         card.appendChild(make("div", "wc-uri", uri));
         card.appendChild(button("OPEN WALLET", "primary-button", function () { window.location.href = uri; }));

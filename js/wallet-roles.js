@@ -1,7 +1,7 @@
 // =========================================================
-// VYRO — WALLET CARDS WITH SEND / RECEIVE INDICATORS
+// VYQIL — WALLET CARDS WITH SEND / RECEIVE INDICATORS
 // Draws every connected wallet with a bright SEND tag (the wallet that signs and pays) and a bright
-// RECEIVE tag (the wallet other VYRO users pay when they send to your @username).
+// RECEIVE tag (the wallet other VYQIL users pay when they send to your @username).
 // Uses only the public VYROWallet API; no keys are involved.
 // =========================================================
 (function () {
@@ -76,7 +76,7 @@
             el.appendChild(line);
         });
 
-        // Which of VYRO's coins this wallet can use (a wallet only offers what it shares over WalletConnect).
+        // Which of VYQIL's coins this wallet can use (a wallet only offers what it shares over WalletConnect).
         const can = VYROCoins.list().filter(function (c) { return VYROCoins.walletCan(w, c.id); }).map(function (c) { return c.label; });
         const cannot = VYROCoins.list().filter(function (c) { return !VYROCoins.walletCan(w, c.id); }).map(function (c) { return c.label; });
         const avail = document.createElement("div");
@@ -147,8 +147,8 @@
         }, isSend));
         actions.appendChild(actionButton("REMOVE", "secondary-button wallet-remove-button", async function () {
             const msg = isReceive
-                ? "This wallet receives " + myReceive.join(", ") + " for @" + VYROWallet.getUsername() + ". People will keep paying it until you choose another wallet for those coins. Remove it from VYRO anyway? Your funds are not affected."
-                : "Remove this wallet from VYRO? Your wallet funds are not affected.";
+                ? "This wallet receives " + myReceive.join(", ") + " for @" + VYROWallet.getUsername() + ". People will keep paying it until you choose another wallet for those coins. Remove it from VYQIL anyway? Your funds are not affected."
+                : "Remove this wallet from VYQIL? Your wallet funds are not affected.";
             if (confirm(msg)) await VYROWallet.removeWallet(w.address);
         }, false));
         el.appendChild(actions);
@@ -172,7 +172,7 @@
         if (typeof VYROWallet === "undefined") return;
         if (typeof VYROCoins === "undefined") { showProblem("The coin options could not load (coins.js is missing). Upload js/coins.js, then refresh."); return; }
         try { draw(); }
-        catch (err) { console.error("VYRO: wallet cards failed", err); showProblem("The wallet options could not be drawn: " + (err && err.message ? err.message : err)); }
+        catch (err) { console.error("VYQIL: wallet cards failed", err); showProblem("The wallet options could not be drawn: " + (err && err.message ? err.message : err)); }
     }
 
     function draw() {

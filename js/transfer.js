@@ -1,9 +1,9 @@
 // =========================================================
-// VYRO — TRANSFER HELPERS (Solana / SPL token)
+// VYQIL — TRANSFER HELPERS (Solana / SPL token)
 // =========================================================
 // Pure helpers (amount parsing, base58, instruction data) plus the
-// transaction builder. VYRO only ever BUILDS an UNSIGNED transaction here.
-// The user's own wallet signs it; VYRO never sees a private key.
+// transaction builder. VYQIL only ever BUILDS an UNSIGNED transaction here.
+// The user's own wallet signs it; VYQIL never sees a private key.
 //
 // The pure helpers have no dependencies and are unit-tested in tests/.
 // buildUsdcTransfer() needs @solana/web3.js (global `solanaWeb3`).
@@ -156,7 +156,7 @@
         });
     }
 
-    // Pay with Vyro Business: a one-time public key added as a READ-ONLY account on the payment instruction,
+    // Pay with Vyqil Business: a one-time public key added as a READ-ONLY account on the payment instruction,
     // so the business can find this exact payment on the blockchain. It moves nothing.
     function addReference(w, ix, reference) {
         if (!reference) return;
@@ -194,7 +194,7 @@
             const err = new Error(chargedFee > 0n
                 ? "Insufficient USDC. This payment needs " + formatUnits(totalUnits, cfg.usdcDecimals) + " USDC (" +
                   formatUnits(units, cfg.usdcDecimals) + " + " + formatUnits(chargedFee, cfg.usdcDecimals) +
-                  " VYRO fee) and this wallet holds " + formatUnits(senderUnits, cfg.usdcDecimals) + " USDC."
+                  " VYQIL fee) and this wallet holds " + formatUnits(senderUnits, cfg.usdcDecimals) + " USDC."
                 : "Insufficient USDC. This wallet holds " + formatUnits(senderUnits, cfg.usdcDecimals) + " USDC.");
             err.code = "INSUFFICIENT_USDC";
             throw err;
@@ -271,7 +271,7 @@
         });
     }
 
-    // Builds an UNSIGNED SOL transfer (plus the VYRO fee as a second transfer in the same transaction).
+    // Builds an UNSIGNED SOL transfer (plus the VYQIL fee as a second transfer in the same transaction).
     // opts: connection, sender, recipient, units (lamports), feeUnits, feeRecipient
     async function buildSolTransfer(opts) {
         const w = web3();
@@ -284,7 +284,7 @@
         const networkFee = 5000n;
 
         const rentMin = BigInt(await connection.getMinimumBalanceForRentExemption(0));
-        // Solana refuses a payment that leaves ANY account holding a tiny balance. If the VYRO fee wallet is empty and this fee is
+        // Solana refuses a payment that leaves ANY account holding a tiny balance. If the VYQIL fee wallet is empty and this fee is
         // smaller than the rent minimum, the whole payment would be rejected. In that case the fee is skipped this one time.
         let feeWaived = false;
         if (feeOwner) {
@@ -297,7 +297,7 @@
 
         if (balance < total + networkFee) {
             const err = new Error("Insufficient SOL. This payment needs " + formatUnits(total, 9) + " SOL" +
-                (fee > 0n ? " (" + formatUnits(lamports, 9) + " + " + formatUnits(fee, 9) + " VYRO fee)" : "") +
+                (fee > 0n ? " (" + formatUnits(lamports, 9) + " + " + formatUnits(fee, 9) + " VYQIL fee)" : "") +
                 " plus about 0.000005 SOL for the network, and this wallet holds " + formatUnits(balance, 9) + " SOL.");
             err.code = "INSUFFICIENT_SOL";
             throw err;

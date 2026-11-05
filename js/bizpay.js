@@ -1,11 +1,11 @@
 // =========================================================
-// VYRO — PAY A BUSINESS (scan a Vyro Business invoice QR)
+// VYQIL — PAY A BUSINESS (scan a Vyqil Business invoice QR)
 // =========================================================
 // The business's QR says how much the customer pays in total. This app splits it in ONE transaction:
-//   98% to the business wallet, 2% to VYRO's own fee wallet (taken from js/config.js, never from the QR).
+//   98% to the business wallet, 2% to VYQIL's own fee wallet (taken from js/config.js, never from the QR).
 // A one-time "reference" key from the QR is added to the payment so the business can find it on chain.
 // No extra sender fee is added on these payments: the business pays the 2%.
-// VYRO never holds funds or keys. The user's own wallet shows and signs the payment.
+// VYQIL never holds funds or keys. The user's own wallet shows and signs the payment.
 (function () {
     "use strict";
 
@@ -31,13 +31,13 @@
     // ---------- read and check the QR text ----------
     function parseCode(text) {
         text = String(text || "").trim();
-        if (!/^vyro:\/\/pay\?/i.test(text)) return bad("This is not a Vyro Business payment code.");
+        if (!/^vyro:\/\/pay\?/i.test(text)) return bad("This is not a Vyqil Business payment code.");
         let q;
         try { q = new URLSearchParams(text.slice(text.indexOf("?") + 1)); } catch (e) { return bad("This payment code could not be read."); }
-        if (q.get("v") !== "1") return bad("This payment code is from a newer version. Please update VYRO.");
-        if (q.get("net") !== "mainnet") return bad("This is a TEST payment code (test network). VYRO pays on Solana mainnet only, so nothing was paid. Ask the business to switch to live payments.");
+        if (q.get("v") !== "1") return bad("This payment code is from a newer version. Please update VYQIL.");
+        if (q.get("net") !== "mainnet") return bad("This is a TEST payment code (test network). VYQIL pays on Solana mainnet only, so nothing was paid. Ask the business to switch to live payments.");
         const coin = String(q.get("coin") || "").toUpperCase();
-        if (coin !== "USDC" && coin !== "SOL") return bad("This payment code uses a coin VYRO can't pay yet.");
+        if (coin !== "USDC" && coin !== "SOL") return bad("This payment code uses a coin VYQIL can't pay yet.");
         if (!COINS || !COINS.usable(coin)) return bad(coin + " payments are not set up in this app yet.");
         const to = q.get("to") || "", ref = q.get("ref") || "";
         if (!T.isValidSolanaAddress(to)) return bad("The business wallet in this code is not valid.");
@@ -50,7 +50,7 @@
         if (coin === "USDC" && q.get("mint") !== SOL.usdcMint) return bad("This code asks for a different token than USDC.");
         const c = COINS.get(coin);
         if (units < T.parseAmount(c.min, c.decimals).units) return bad("The minimum payment is " + c.min + " " + coin + ".");
-        if (units > T.parseAmount(c.max, c.decimals).units) return bad("This is above the " + c.max + " " + coin + " per-payment limit in VYRO.");
+        if (units > T.parseAmount(c.max, c.decimals).units) return bad("This is above the " + c.max + " " + coin + " per-payment limit in VYQIL.");
         const usd = parseInt(q.get("usd"), 10);
         if (coin === "USDC" && Number.isFinite(usd) && BigInt(usd) * 10000n !== units) return bad("The dollar amount and the USDC amount in this code do not match. Do not pay it.");
         return { ok: true, d: { coin: coin, to: to, ref: ref, units: units, dec: dec, inv: clean(q.get("inv"), 30), biz: clean(q.get("biz"), 60) || "Business", usd: Number.isFinite(usd) ? usd : null } };
@@ -64,9 +64,9 @@
     // ---------- build the unsigned payment ----------
     async function build(d, sender) {
         const treasury = COINS.feeAddress(d.coin);
-        if (!treasury) throw userError("Setup problem: no VYRO fee address for " + d.coin + " in js/config.js.");
-        if (sender === treasury) throw userError("This wallet is VYRO's own fee wallet. Pick a different wallet to pay with.");
-        if (d.to === treasury) throw userError("This payment code is not valid (it pays VYRO's fee wallet).");
+        if (!treasury) throw userError("Setup problem: no VYQIL fee address for " + d.coin + " in js/config.js.");
+        if (sender === treasury) throw userError("This wallet is VYQIL's own fee wallet. Pick a different wallet to pay with.");
+        if (d.to === treasury) throw userError("This payment code is not valid (it pays VYQIL's fee wallet).");
         if (d.to === sender) throw userError("You can't pay your own wallet.");
         const s = split(d);
         if (s.biz <= 0n) throw userError("This amount is too small to split.");
@@ -76,7 +76,7 @@
             built = d.coin === "SOL" ? await T.buildSolTransfer(common) : await T.buildUsdcTransfer(Object.assign({ config: SOL }, common));
         } catch (e) {
             if (e.code === "INSUFFICIENT_USDC" || e.code === "INSUFFICIENT_SOL") throw userError(e.message);
-            console.error("VYRO biz build error:", e);
+            console.error("VYQIL biz build error:", e);
             throw userError("Could not reach the Solana network. Please try again in a moment.");
         }
         // The customer must be charged exactly what the code says, no more.
@@ -124,13 +124,13 @@
             $("bizpay-to").textContent = short(r.d.to);
             $("bizpay-wallet").textContent = (wallet.provider || wallet.type || "Wallet") + " - " + short(wallet.address);
             $("bizpay-note").textContent = "You pay " + T.formatUnits(r.d.units, dec) + " " + coin + " in total. " +
-                T.formatUnits(s.biz, dec) + " goes to the business and " + T.formatUnits(s.fee, dec) + " is VYRO's 2% fee, which the business pays. " +
+                T.formatUnits(s.biz, dec) + " goes to the business and " + T.formatUnits(s.fee, dec) + " is VYQIL's 2% fee, which the business pays. " +
                 "Network fee: about 0.000005 SOL from your wallet." +
                 (built.createsRecipientAccount ? " About " + (built.rentLamports / 1e9).toFixed(5) + " SOL is also needed once to open the business's USDC account." : "");
             say("bizpay-confirm-msg", "", false);
             view("confirm");
         } catch (e) {
-            console.error("VYRO biz check failed:", e);
+            console.error("VYQIL biz check failed:", e);
             view("scan");
             say("bizpay-scan-msg", e.userFacing ? e.message : "Unable to prepare this payment. Please try again.", true);
         }
@@ -163,7 +163,7 @@
             if (!id) {
                 stage("Submitting...");
                 try { id = await VYROWallet.sendSigned(getConn(), result.signedRaw, built.lastValidBlockHeight); }
-                catch (e) { console.error("VYRO biz send error:", e); if (/time window ran out/.test(e.message || "")) throw userError(e.message); throw userError("The network rejected this payment: " + String(e.message || "unknown error").split(". Logs:")[0] + ". No funds were moved."); }
+                catch (e) { console.error("VYQIL biz send error:", e); if (/time window ran out/.test(e.message || "")) throw userError(e.message); throw userError("The network rejected this payment: " + String(e.message || "unknown error").split(". Logs:")[0] + ". No funds were moved."); }
             }
             saveRecord(d, id, sender);
             stage("Confirming...");
@@ -181,7 +181,7 @@
             pending = null;
             view("done");
         } catch (e) {
-            console.error("VYRO biz payment failed:", e);
+            console.error("VYQIL biz payment failed:", e);
             say("bizpay-confirm-msg", e.userFacing ? e.message : "Your payment could not be completed. If your wallet shows a pending transaction, check it there before retrying.", true);
         } finally {
             busy = false; btn.disabled = false; btn.textContent = label;
@@ -216,8 +216,8 @@
                 amount: T.formatUnits(d.units, d.dec), asset: d.coin, network: COINS.get(d.coin).network,
                 status: "Submitted", type: "Send", businessPayment: true, invoice: d.inv,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(function (e) { console.warn("VYRO: could not save history", e); });
-        } catch (e) { console.warn("VYRO: could not save history", e); }
+            }).catch(function (e) { console.warn("VYQIL: could not save history", e); });
+        } catch (e) { console.warn("VYQIL: could not save history", e); }
     }
 
     // ---------- camera scanning ----------

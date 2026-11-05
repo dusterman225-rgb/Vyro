@@ -1,9 +1,9 @@
 // =========================================================
-// VYRO — PRICES (dollars <-> coins)
+// VYQIL — PRICES (dollars <-> coins)
 // People type DOLLARS. This file looks up the live price and works out the exact coin amount.
 //   USDC is always $1.
 //   SOL and ETH: Coinbase (main) and Kraken (cross-check). If the two disagree by more than 3%,
-//   VYRO refuses to continue rather than guess. Prices are only read here; nothing is ever sent.
+//   VYQIL refuses to continue rather than guess. Prices are only read here; nothing is ever sent.
 // This file holds no keys and moves no money.
 // =========================================================
 (function () {
@@ -58,7 +58,7 @@
         const a = got[0], b = got[1];
         if (!a && !b) throw userError("Could not get the current " + asset + " price. Check your connection and try again.");
         if (a && b && Math.abs(a - b) / Math.min(a, b) > 0.03)
-            throw userError("The " + asset + " price sources disagree right now, so VYRO will not guess. Please try again in a minute.");
+            throw userError("The " + asset + " price sources disagree right now, so VYQIL will not guess. Please try again in a minute.");
         const out = { price: a || b, at: Date.now() };
         cache[asset] = out;
         return out;

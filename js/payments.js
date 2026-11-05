@@ -1,11 +1,11 @@
 // =========================================================
-// VYRO — PAYMENT ENGINE (non-custodial)
+// VYQIL — PAYMENT ENGINE (non-custodial)
 // =========================================================
 // Flow:  quote()  → resolves @username → address, checks balances, builds a preview
 //        submit() → rebuilds a fresh unsigned tx, hands it to the USER's wallet to sign,
 //                   broadcasts/confirms it, and records it in the sender's own history.
 //
-// VYRO never holds funds, never holds keys and never signs. If the user declines in
+// VYQIL never holds funds, never holds keys and never signs. If the user declines in
 // their wallet, nothing happens.
 // =========================================================
 (function () {
@@ -44,7 +44,7 @@
         const asset = assetOf(p);
         const coin = COINS.get(asset);
         if (!coin || !COINS.enabled(asset)) return { valid: false, error: "This payment asset is not supported yet." };
-        if (!COINS.usable(asset)) return { valid: false, error: "Setup problem: " + asset + " payments are not fully set up yet (no VYRO fee address for " + asset + " in js/config.js)." };
+        if (!COINS.usable(asset)) return { valid: false, error: "Setup problem: " + asset + " payments are not fully set up yet (no VYQIL fee address for " + asset + " in js/config.js)." };
         if (p.network && String(p.network).toLowerCase() !== coin.network.toLowerCase()) return { valid: false, error: "This payment network is not supported yet." };
         const amt = VYROTransfer.parseAmount(p.amount, coin.decimals);
         if (!amt.ok) return { valid: false, error: amt.error.replace("USDC supports", asset + " supports") };
@@ -60,14 +60,14 @@
     }
 
     function validateWallet(address, asset) {
-        if (!window.VYROWallet) return { valid: false, error: "VYRO wallet system is unavailable." };
+        if (!window.VYROWallet) return { valid: false, error: "VYQIL wallet system is unavailable." };
         if (!VYROWallet.isConnected()) return { valid: false, error: "Please connect a wallet before sending." };
         const wallet = address
             ? VYROWallet.getWallets().find(function (w) { return w.address === address; })
             : VYROWallet.getActiveWallet();
         if (!wallet || !wallet.address) return { valid: false, error: "The selected wallet is not available." };
         if (asset && !COINS.walletAddressFor(wallet, asset))
-            return { valid: false, error: "This wallet did not share a " + COINS.get(asset).network + " account with VYRO, so it cannot send " + asset + ". Pick another coin or wallet." };
+            return { valid: false, error: "This wallet did not share a " + COINS.get(asset).network + " account with VYQIL, so it cannot send " + asset + ". Pick another coin or wallet." };
         return { valid: true, wallet: wallet, error: null };
     }
 
@@ -75,11 +75,11 @@
     async function resolveRecipient(rawUsername, asset) {
         asset = asset || "USDC";
         const name = VYROTransfer.normalizeUsername(rawUsername);
-        if (!VYROTransfer.isValidUsername(name)) throw userError("Enter a valid VYRO username.");
+        if (!VYROTransfer.isValidUsername(name)) throw userError("Enter a valid VYQIL username.");
         let snap;
         try { snap = await firebaseDB.collection("usernames").doc(name).get(); }
-        catch (e) { console.error("VYRO resolve error:", e); throw userError("Could not look up @" + name + ". Check your connection and try again."); }
-        if (!snap.exists) throw userError("@" + name + " was not found on VYRO.");
+        catch (e) { console.error("VYQIL resolve error:", e); throw userError("Could not look up @" + name + ". Check your connection and try again."); }
+        if (!snap.exists) throw userError("@" + name + " was not found on VYQIL.");
         const data = snap.data() || {};
         const accepted = COINS.acceptedFromDirectory(data);
         const address = COINS.addressFromDirectory(data, asset);
@@ -136,7 +136,7 @@
         return getPendingPayment();
     }
 
-    // VYRO's service fee for a payment of `units`, paid by the sender on top. Zero when no fee is
+    // VYQIL's service fee for a payment of `units`, paid by the sender on top. Zero when no fee is
     // configured, and when the fee wallet itself is the sender (it does not pay itself).
     function feeFor(senderAddress, units, asset) {
         const treasury = COINS.feeAddress(asset || "USDC");
@@ -160,7 +160,7 @@
             return await VYROTransfer.buildUsdcTransfer(Object.assign({ config: SOL }, common));
         } catch (e) {
             if (e.code === "INSUFFICIENT_USDC" || e.code === "INSUFFICIENT_SOL") throw userError(e.message);
-            console.error("VYRO build error:", e);
+            console.error("VYQIL build error:", e);
             throw userError("Could not reach the Solana network. Please try again in a moment.");
         }
     }
@@ -179,7 +179,7 @@
     function weiHex(units) { return "0x" + BigInt(units).toString(16); }
 
     // Checks the balance and builds the preview. ETH has no way to put two payments in one
-    // transaction, so the payment and the VYRO fee are two approvals in the wallet.
+    // transaction, so the payment and the VYQIL fee are two approvals in the wallet.
     async function buildEth(sender, recipient, units) {
         const fee = feeFor(sender, units, "ETH");
         const total = units + fee;
@@ -188,14 +188,14 @@
             balance = BigInt(await ethRpc("eth_getBalance", [sender, "latest"]));
             gasPrice = BigInt(await ethRpc("eth_gasPrice", []));
         } catch (e) {
-            console.error("VYRO ETH read error:", e);
+            console.error("VYQIL ETH read error:", e);
             throw userError("Could not reach the Ethereum network. Please try again in a moment.");
         }
         const txCount = fee > 0n ? 2n : 1n;
         const gasWei = 21000n * gasPrice * txCount * 2n;   // x2 headroom so a busy network does not fail it
         if (balance < total + gasWei) {
             throw userError("Insufficient ETH. This payment needs " + VYROTransfer.formatUnits(total, 18) + " ETH" +
-                (fee > 0n ? " (" + VYROTransfer.formatUnits(units, 18) + " + " + VYROTransfer.formatUnits(fee, 18) + " VYRO fee)" : "") +
+                (fee > 0n ? " (" + VYROTransfer.formatUnits(units, 18) + " + " + VYROTransfer.formatUnits(fee, 18) + " VYQIL fee)" : "") +
                 " plus about " + VYROTransfer.formatUnits(gasWei, 18) + " ETH for network fees, and this wallet holds " +
                 VYROTransfer.formatUnits(balance, 18) + " ETH.");
         }
@@ -294,7 +294,7 @@
                     try {
                         id = await VYROWallet.sendSigned(getConnection(), result.signedRaw, built.lastValidBlockHeight);
                     } catch (e) {
-                        console.error("VYRO send error:", e);
+                        console.error("VYQIL send error:", e);
                         if (/time window ran out/.test(e.message || "")) throw userError(e.message);
                         throw userError("The network rejected this payment: " + String(e.message || "unknown error").split(". Logs:")[0] + ". No funds were moved.");
                     }
@@ -323,11 +323,11 @@
             saveRecord(record);
             if (p.requestId) markRequestPaid(p.requestId, id);
 
-            // Ethereum: the VYRO fee is a second approval, asked for right after the payment.
+            // Ethereum: the VYQIL fee is a second approval, asked for right after the payment.
             if (asset === "ETH" && built.feeUnits > 0n) {
-                stage("Approve the VYRO fee in your wallet…");
+                stage("Approve the VYQIL fee in your wallet…");
                 try { await requestEthSend(sender, COINS.walletAddressFor(wv.wallet, "ETH"), COINS.feeAddress("ETH"), built.feeUnits); }
-                catch (e) { feeNote = "Your payment was sent, but the VYRO fee was not approved."; }
+                catch (e) { feeNote = "Your payment was sent, but the VYQIL fee was not approved."; }
             }
 
             stage("Confirming on " + pv.coin.network + "…");
@@ -381,14 +381,14 @@
                     // If the database rules do not know the dollar fields yet, save the receipt without them.
                     if (record.usdCents && e && e.code === "permission-denied") {
                         const plain = Object.assign({}, full); delete plain.usdCents; delete plain.priceUsd;
-                        return paymentsCol().doc(record.id).set(plain).catch(function (e2) { console.warn("VYRO: could not save history", e2); });
+                        return paymentsCol().doc(record.id).set(plain).catch(function (e2) { console.warn("VYQIL: could not save history", e2); });
                     }
-                    console.warn("VYRO: could not save history", e);
+                    console.warn("VYQIL: could not save history", e);
                 });
-        } catch (e) { console.warn("VYRO: could not save history", e); }
+        } catch (e) { console.warn("VYQIL: could not save history", e); }
     }
     function updateRecordStatus(signature, status) {
-        try { paymentsCol().doc(signature).update({ status: status }).catch(function (e) { console.warn("VYRO: status update failed", e); }); }
+        try { paymentsCol().doc(signature).update({ status: status }).catch(function (e) { console.warn("VYQIL: status update failed", e); }); }
         catch (e) { /* history is best-effort; the chain is the source of truth */ }
     }
 
@@ -518,7 +518,7 @@
 
     // ---------- payment requests ----------
     // A request is a document the requester writes and the payer can read. It moves no money:
-    // the payer must still approve and sign a normal VYRO payment in their own wallet.
+    // the payer must still approve and sign a normal VYQIL payment in their own wallet.
     function requestsCol() { return firebaseDB.collection("requests"); }
 
     // Requests are typed in dollars. The coin amount is worked out from the live price now; the dollar amount is saved
@@ -546,14 +546,14 @@
             throw userError("Turn on " + asset + " as a coin you receive first (Wallets → RECEIVES), so the money has somewhere to go.");
 
         const name = VYROTransfer.normalizeUsername(rawUsername);
-        if (!VYROTransfer.isValidUsername(name)) throw userError("Enter a valid VYRO username.");
+        if (!VYROTransfer.isValidUsername(name)) throw userError("Enter a valid VYQIL username.");
         const ap = await amountProblem(usdText, asset);
         if (ap.error) throw userError(ap.error);
 
         let snap;
         try { snap = await firebaseDB.collection("usernames").doc(name).get(); }
-        catch (e) { console.error("VYRO request lookup error:", e); throw userError("Could not look up @" + name + ". Check your connection and try again."); }
-        if (!snap.exists) throw userError("@" + name + " was not found on VYRO.");
+        catch (e) { console.error("VYQIL request lookup error:", e); throw userError("Could not look up @" + name + ". Check your connection and try again."); }
+        if (!snap.exists) throw userError("@" + name + " was not found on VYQIL.");
         const data = snap.data() || {};
         if (data.uid === me.uid) throw userError("You can't request money from yourself.");
 
@@ -573,7 +573,7 @@
                 const plain = Object.assign({}, doc); delete plain.usdCents;
                 try { await ref.set(plain); return Object.assign({ id: ref.id }, plain); } catch (e2) { e = e2; }
             }
-            console.error("VYRO request save error:", e); throw userError("Could not send the request. Please try again.");
+            console.error("VYQIL request save error:", e); throw userError("Could not send the request. Please try again.");
         }
         return Object.assign({ id: ref.id }, doc);
     }
@@ -601,11 +601,11 @@
     // Payer declines (status Declined) or requester withdraws (status Cancelled).
     async function respondToRequest(id, status) {
         try { await requestsCol().doc(id).update({ status: status }); }
-        catch (e) { console.error("VYRO request update error:", e); throw userError("Could not update the request. Please try again."); }
+        catch (e) { console.error("VYQIL request update error:", e); throw userError("Could not update the request. Please try again."); }
     }
 
     function markRequestPaid(id, signature) {
-        try { requestsCol().doc(id).update({ status: "Paid", paymentId: signature }).catch(function (e) { console.warn("VYRO: could not mark request paid", e); }); }
+        try { requestsCol().doc(id).update({ status: "Paid", paymentId: signature }).catch(function (e) { console.warn("VYQIL: could not mark request paid", e); }); }
         catch (e) { /* the payment itself is on chain; the request status is a convenience */ }
     }
 

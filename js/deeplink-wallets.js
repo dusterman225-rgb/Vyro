@@ -1,10 +1,10 @@
 // =========================================================
-// VYRO — WALLETS THAT CONNECT BY APP LINK (Backpack, Phantom, Solflare)
+// VYQIL — WALLETS THAT CONNECT BY APP LINK (Backpack, Phantom, Solflare)
 // =========================================================
-// These wallets do not need WalletConnect on a phone. VYRO sends you to the wallet app with an encrypted request,
-// the wallet asks you to approve, then sends you back to VYRO with an encrypted answer. The keys that protect the
+// These wallets do not need WalletConnect on a phone. VYQIL sends you to the wallet app with an encrypted request,
+// the wallet asks you to approve, then sends you back to VYQIL with an encrypted answer. The keys that protect the
 // conversation are made fresh for each connection and stay in this browser; they never hold money.
-// Your wallet's own private key never leaves your wallet. VYRO only ever receives your public address and a signed payment.
+// Your wallet's own private key never leaves your wallet. VYQIL only ever receives your public address and a signed payment.
 // Protocol: Backpack and Phantom "universal links" v1 (x25519 key exchange + NaCl box). Backpack's published steps are
 // followed exactly; Phantom and Solflare use the same design.
 // =========================================================
@@ -48,11 +48,11 @@
     }
 
     // ---------- sign ----------
-    // Resolves with the signed transaction bytes. The wallet does NOT send it; VYRO sends it afterwards.
+    // Resolves with the signed transaction bytes. The wallet does NOT send it; VYQIL sends it afterwards.
     function sign(key, txBytes, address) {
         need();
         const w = REG[key], conn = load("conn:" + key + ":" + address);
-        if (!conn || !conn.session) return Promise.reject(new Error("This wallet connection is out of date. Open Wallets in VYRO, remove it, and connect it again."));
+        if (!conn || !conn.session) return Promise.reject(new Error("This wallet connection is out of date. Open Wallets in VYQIL, remove it, and connect it again."));
         const sk = unb64(conn.sk), theirPk = unb64(conn.walletPk), shared = window.nacl.box.before(theirPk, sk);
         const nonce = window.nacl.randomBytes(24);
         const payload = window.nacl.box.after(new TextEncoder().encode(JSON.stringify({ transaction: b58(txBytes), session: conn.session })), nonce, shared);
@@ -102,7 +102,7 @@
         if (!kind || !supported(key)) return;
         const pend = load("pending");
         const fail = function (m) { cleanUrl(); store("pending", null); banner(m, false); };
-        if (!pend || pend.wallet !== key || Date.now() - pend.at > MAX_AGE) return fail("That wallet request is too old or was not started here. Please start again in VYRO.");
+        if (!pend || pend.wallet !== key || Date.now() - pend.at > MAX_AGE) return fail("That wallet request is too old or was not started here. Please start again in VYQIL.");
         try {
             need();
             if (kind === "connect") {
@@ -123,7 +123,7 @@
             }
             if (kind === "sign") {
                 const conn = load("conn:" + key + ":" + pend.address);
-                if (!conn) throw new Error("The wallet connection was lost. Remove the wallet in VYRO and connect it again.");
+                if (!conn) throw new Error("The wallet connection was lost. Remove the wallet in VYQIL and connect it again.");
                 let theirPk = conn.walletPk; // stored base64 of the wallet's key
                 const nonce = params.get("nonce"), data = params.get("data");
                 if (params.get("errorCode") || params.get("errorMessage")) { readResult(key, params, pend, conn); }
@@ -138,11 +138,11 @@
                 // Hand it to the page that is waiting (same tab, or the tab the person started in).
                 const alive = load("alive");
                 if (waiters[pend.id]) { store("pending", null); waiters[pend.id].resolve(signed); return; }
-                if (alive && alive.tab !== tabId && Date.now() - alive.at < 6000) { store("signed", { id: pend.id, tx: b64(signed), at: Date.now() }); store("pending", null); banner("Approved. Go back to the VYRO tab where you started the payment; it will finish by itself.", true); return; }
+                if (alive && alive.tab !== tabId && Date.now() - alive.at < 6000) { store("signed", { id: pend.id, tx: b64(signed), at: Date.now() }); store("pending", null); banner("Approved. Go back to the VYQIL tab where you started the payment; it will finish by itself.", true); return; }
                 // Nobody is waiting (the page was reloaded): send the signed payment now so the approval is not wasted.
                 store("pending", null);
                 const rpc = window.VYRO_CONFIG && VYRO_CONFIG.solana && VYRO_CONFIG.solana.rpcUrl;
-                if (!rpc || !window.solanaWeb3 || !window.VYROWallet) throw new Error("Approved in the wallet, but VYRO could not send it. Nothing was sent. Please try the payment again.");
+                if (!rpc || !window.solanaWeb3 || !window.VYROWallet) throw new Error("Approved in the wallet, but VYQIL could not send it. Nothing was sent. Please try the payment again.");
                 const conn2 = new solanaWeb3.Connection(rpc, "confirmed");
                 const sig = await VYROWallet.sendSigned(conn2, signed, null);
                 banner("Payment sent. Reference: " + sig + ". It may take a few seconds to confirm. (This page was reloaded, so the receipt is not in your history; the blockchain has it.)", true);

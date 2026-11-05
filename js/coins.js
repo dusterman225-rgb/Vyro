@@ -1,6 +1,6 @@
 // =========================================================
-// VYRO — COINS
-// What VYRO can send and receive, the limits for each coin, which wallet sends which coin, and
+// VYQIL — COINS
+// What VYQIL can send and receive, the limits for each coin, which wallet sends which coin, and
 // which wallet receives which coin.
 //
 //   USDC  on Solana    (a token)
@@ -45,7 +45,7 @@
         return FEE.treasuryAddress || "";
     }
 
-    // A coin is usable when it is on AND, if a VYRO fee is set, that coin has a fee address.
+    // A coin is usable when it is on AND, if a VYQIL fee is set, that coin has a fee address.
     // (Otherwise the fee would silently be skipped for that coin.)
     function usable(id) {
         return enabled(id) && (!FEE.bps || !!feeAddress(id));
@@ -126,7 +126,7 @@
             receive = next;
             receiveFor = name;
             if (changed) emit();
-        } catch (e) { console.warn("VYRO: could not read receiving coins", e); return receive; }
+        } catch (e) { console.warn("VYQIL: could not read receiving coins", e); return receive; }
         return receive;
     }
     function getReceive() { return Object.assign({}, receive || {}); }

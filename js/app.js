@@ -1,6 +1,6 @@
 
 // =========================================================
-// VYRO — SCREEN NAVIGATION
+// VYQIL — SCREEN NAVIGATION
 // =========================================================
 
 const welcomeScreen = document.getElementById(
@@ -44,7 +44,7 @@ const receiveScreen = document.getElementById(
 );
 
 // =========================================================
-// VYRO — ADDITIONAL SCREEN REFERENCES
+// VYQIL — ADDITIONAL SCREEN REFERENCES
 // =========================================================
 
 const transactionHistoryScreen =
@@ -99,7 +99,7 @@ const paymentFailedScreen =
 
 
 // =========================================================
-// VYRO — ACCOUNT SCREENS
+// VYQIL — ACCOUNT SCREENS
 // =========================================================
 
 const profileScreen =
@@ -124,7 +124,7 @@ const walletsScreen =
 
 
 // =========================================================
-// VYRO — SHOW SCREEN
+// VYQIL — SHOW SCREEN
 // =========================================================
 
 // Screens shown before the user is fully signed in (no profile avatar there).
@@ -133,7 +133,7 @@ const VYRO_AUTH_SCREENS = ["welcome-screen", "create-account-screen", "login-scr
 
 function showScreen(screen, options) {
     if (!screen) {
-        console.error("VYRO: Screen not found.");
+        console.error("VYQIL: Screen not found.");
         return;
     }
 
@@ -160,7 +160,7 @@ function showScreen(screen, options) {
         avatar.classList.toggle("visible", VYRO_AUTH_SCREENS.indexOf(screen.id) === -1);
     }
 
-    // The VYRO logo (top centre) is on every screen except the Welcome screen, which has the big one.
+    // The VYQIL logo (top centre) is on every screen except the Welcome screen, which has the big one.
     const logoButton = document.getElementById("global-logo-btn");
     if (logoButton) logoButton.classList.toggle("visible", screen.id !== "welcome-screen");
 
@@ -188,10 +188,10 @@ function showScreen(screen, options) {
     }
 }
 
-// Make navigation helpers available to the other VYRO modules.
+// Make navigation helpers available to the other VYQIL modules.
 window.showScreen = showScreen;
 // =========================================================
-// VYRO STAGE 5
+// VYQIL STAGE 5
 // WALLET SELECTORS — SEND / RECEIVE
 // =========================================================
 
@@ -229,7 +229,7 @@ function formatWalletForSelector(wallet) {
 
 function coinNoteText(id) {
     const c = VYROCoins.get(id);
-    return "Enter dollars. Minimum payment: $1.00. VYRO adds a 1% service fee on top. You pay in " + id + ", worked out from the live price.";
+    return "Enter dollars. Minimum payment: $1.00. VYQIL adds a 1% service fee on top. You pay in " + id + ", worked out from the live price.";
 }
 
 // Shows "about 0.0067 SOL at $150.12" under the dollar box while the person types.
@@ -297,7 +297,7 @@ function syncSendCoin() {
     if (unit) unit.textContent = "(USD)";
     updateUsdPreview("send");
     const coinNote = document.getElementById("send-coin-note");
-    if (coinNote) coinNote.textContent = id === "USDC" ? "USDC on Solana." : (id === "SOL" ? "Native SOL on Solana." : "Native ETH on Ethereum. Your wallet will ask you to approve twice: the payment, then the VYRO fee.");
+    if (coinNote) coinNote.textContent = id === "USDC" ? "USDC on Solana." : (id === "SOL" ? "Native SOL on Solana." : "Native ETH on Ethereum. Your wallet will ask you to approve twice: the payment, then the VYQIL fee.");
 }
 
 function refreshRequestCoinSelect() {
@@ -550,7 +550,7 @@ if (receiveWalletSelector) {
 
 
 // =========================================================
-// VYRO — ANDROID / BROWSER BACK BUTTON
+// VYQIL — ANDROID / BROWSER BACK BUTTON
 // =========================================================
 
 window.addEventListener(
@@ -582,7 +582,7 @@ window.addEventListener(
         }
         
         /*
-         * If there is no VYRO history state,
+         * If there is no VYQIL history state,
          * return to the Welcome screen.
          */
         
@@ -596,7 +596,7 @@ window.addEventListener(
 );
 
 // =========================================================
-// VYRO — INITIAL BROWSER HISTORY STATE
+// VYQIL — INITIAL BROWSER HISTORY STATE
 // =========================================================
 
 history.replaceState(
@@ -735,7 +735,7 @@ emailVerificationBackButton.addEventListener(
 // HOME — PROFILE MENU
 // =========================================================
 
-// The old Home VYRO logo button was replaced
+// The old Home VYQIL logo button was replaced
 // by the profile avatar.
 
 
@@ -793,7 +793,7 @@ if (skipTwoFactorButton) {
         async function () {
 
             console.log(
-                "VYRO: SKIP FOR NOW clicked."
+                "VYQIL: SKIP FOR NOW clicked."
             );
 
             const user =
@@ -811,7 +811,7 @@ if (skipTwoFactorButton) {
             try {
 
                 console.log(
-                    "VYRO: Saving 2FA preference..."
+                    "VYQIL: Saving 2FA preference..."
                 );
 
                 await firebaseDB
@@ -828,11 +828,11 @@ if (skipTwoFactorButton) {
                     );
 
                 console.log(
-                    "VYRO: 2FA preference saved."
+                    "VYQIL: 2FA preference saved."
                 );
 
                 console.log(
-                    "VYRO: Opening Home screen."
+                    "VYQIL: Opening Home screen."
                 );
 
                 showScreen(
@@ -842,7 +842,7 @@ if (skipTwoFactorButton) {
             } catch (error) {
 
                 console.error(
-                    "VYRO 2FA SKIP ERROR:",
+                    "VYQIL 2FA SKIP ERROR:",
                     error
                 );
 
@@ -985,7 +985,7 @@ if (continueSendButton) {
         const amountText = document.getElementById("send-amount").value.trim();
 
         if (!VYROTransfer.isValidUsername(recipientName)) {
-            alert("Please enter a valid VYRO username (3–20 letters, numbers or underscores).");
+            alert("Please enter a valid VYQIL username (3–20 letters, numbers or underscores).");
             return;
         }
         const usd = VYROPrice.parseUsd(amountText);
@@ -1041,7 +1041,7 @@ if (continueSendButton) {
             renderConfirmScreen(q, sendingWallet);
             showScreen(confirmPaymentScreen);
         } catch (error) {
-            console.error("VYRO: quote failed:", error);
+            console.error("VYQIL: quote failed:", error);
             alert(error.userFacing ? error.message : "Unable to prepare this payment. Please try again.");
         } finally {
             continueSendButton.disabled = false;
@@ -1050,7 +1050,7 @@ if (continueSendButton) {
     });
 }
 
-// Every payment file must be the matching version, or the VYRO fee could silently be skipped.
+// Every payment file must be the matching version, or the VYQIL fee could silently be skipped.
 // If a file on the site is old (not yet replaced, or cached), say exactly which one.
 const VYRO_EXPECTED_BUILD = { transfer: "2026-10-14-r6", payments: "2026-10-30-usd1", coins: "2026-10-14-r6" };
 
@@ -1064,7 +1064,7 @@ function checkBuild() {
         return "Setup problem: " + stale.join(" and ") + " on your site is an old version. Replace it with the latest file, wait a minute for the site to update, then reload.";
     }
     if (!window.VYROPayments.feeConfigured) {
-        return "Setup problem: js/config.js has no \"fee\" block (bps and treasuryAddress), so the VYRO fee would not be charged. Add it and reload.";
+        return "Setup problem: js/config.js has no \"fee\" block (bps and treasuryAddress), so the VYQIL fee would not be charged. Add it and reload.";
     }
     return null;
 }
@@ -1083,7 +1083,7 @@ function renderConfirmScreen(q, wallet) {
     set("confirm-amount", usdMode ? VYROPrice.fmtUsd(q.usdCents) + " (" + coinText(q.units) + ")" : coinText(q.units));
     set("confirm-fee", feeUnits > 0n
         ? (usdMode ? "about " + usdText(feeUnits) + " (" + coinText(feeUnits) + ", " + (q.feeBps / 100) + "%)" : coinText(feeUnits) + " (" + (q.feeBps / 100) + "%)")
-        : (q.feeWaived ? "None this time (the VYRO fee wallet is new and empty)" : "None"));
+        : (q.feeWaived ? "None this time (the VYQIL fee wallet is new and empty)" : "None"));
     set("confirm-total", usdMode ? "about " + usdText(totalUnits) + " (" + coinText(totalUnits) + ")" : coinText(totalUnits));
     set("confirm-word", q.recipientWord || "Not set yet");
     set("confirm-network", q.network);
@@ -1095,10 +1095,10 @@ function renderConfirmScreen(q, wallet) {
     set("confirm-disclaimer",
         "By tapping CONFIRM PAYMENT, you authorize a transfer of " +
         (usdMode ? VYROPrice.fmtUsd(q.usdCents) + " worth, " : "") + VYROTransfer.formatUnits(BigInt(q.units), dec) + " " + asset + " to " + q.recipient +
-        (feeUnits > 0n ? ", plus a " + VYROTransfer.formatUnits(feeUnits, dec) + " " + asset + " VYRO fee (" + VYROTransfer.formatUnits(totalUnits, dec) + " " + asset + " in total)" : "") +
-        ". Your " + walletName + " will open a request" + (twoSteps ? " (two approvals: the payment, then the VYRO fee)" : "") +
+        (feeUnits > 0n ? ", plus a " + VYROTransfer.formatUnits(feeUnits, dec) + " " + asset + " VYQIL fee (" + VYROTransfer.formatUnits(totalUnits, dec) + " " + asset + " in total)" : "") +
+        ". Your " + walletName + " will open a request" + (twoSteps ? " (two approvals: the payment, then the VYQIL fee)" : "") +
         ", and the payment only happens if you approve and sign it there. " +
-        "VYRO cannot move your funds without your approval. Blockchain payments cannot be reversed.");
+        "VYQIL cannot move your funds without your approval. Blockchain payments cannot be reversed.");
 
     let note;
     if (asset === "ETH") {
@@ -1111,7 +1111,7 @@ function renderConfirmScreen(q, wallet) {
             note += " This is your first payment to " + q.recipient + ", so about " + (q.rentLamports / 1e9).toFixed(5) +
                 " SOL is also needed once to open their USDC account.";
         } else if (q.createsFeeAccount) {
-            note += " About " + (q.rentLamports / 1e9).toFixed(5) + " SOL is also needed once to open VYRO's fee account.";
+            note += " About " + (q.rentLamports / 1e9).toFixed(5) + " SOL is also needed once to open VYQIL's fee account.";
         }
     }
     if (usdMode && asset !== "USDC") note += " Price used: 1 " + asset + " = " + VYROPrice.fmtUsd(Math.round(q.priceUsd * 100)) + ", locked for about 2 minutes. If you wait longer, go back and tap CONTINUE for a fresh price.";
@@ -1171,7 +1171,7 @@ if (confirmHomeLogoButton) {
 
 // =========================================================
 // CONFIRM PAYMENT → USER'S WALLET SIGNS
-// VYRO builds the unsigned transfer; the user approves it in their own wallet.
+// VYQIL builds the unsigned transfer; the user approves it in their own wallet.
 // =========================================================
 
 const confirmPaymentButton = document.getElementById("confirm-payment-btn");
@@ -1192,7 +1192,7 @@ if (confirmPaymentButton) {
             });
             showPaymentResult(result);
         } catch (error) {
-            console.error("VYRO: payment failed:", error);
+            console.error("VYQIL: payment failed:", error);
             if (error.userFacing) {
                 alert(error.message);                 // stay on the confirm screen so the user can retry
             } else {
@@ -1213,7 +1213,7 @@ function showPaymentResult(result) {
     const summary = document.getElementById("payment-success-summary");
     if (summary) {
         summary.textContent = (result.usdCents ? VYROPrice.fmtUsd(result.usdCents) + " (" + result.amount + " " + result.asset + ")" : result.amount + " " + result.asset) + " to " + result.recipient +
-            (result.fee && result.fee !== "0" ? " (+ " + result.fee + " " + result.asset + " VYRO fee)" : "") +
+            (result.fee && result.fee !== "0" ? " (+ " + result.fee + " " + result.asset + " VYQIL fee)" : "") +
             (result.status === "Confirmed" ? " · Confirmed on " + result.network : " · Submitted, waiting for confirmation") +
             (result.note ? ". " + result.note : "");
     }
@@ -1235,7 +1235,7 @@ function showPaymentFailed(message, result) {
 }
 
 // =========================================================
-// VYRO — RECIPIENT LOOKUP (as you type)
+// VYQIL — RECIPIENT LOOKUP (as you type)
 // Reads the username directory, which holds no private data.
 // =========================================================
 
@@ -1265,14 +1265,14 @@ if (sendRecipientInput && recipientResult && recipientDisplay) {
                     recipientResult.classList.add("visible");
                 }
             } catch (error) {
-                console.error("VYRO RECIPIENT LOOKUP ERROR:", error);
+                console.error("VYQIL RECIPIENT LOOKUP ERROR:", error);
             }
         }, 300);
     });
 }
 
 // =========================================================
-// VYRO — LIVE USERNAME SEARCH (partial names)
+// VYQIL — LIVE USERNAME SEARCH (partial names)
 // Shows matching usernames as the user types. Tapping one fills the box.
 // =========================================================
 
@@ -1294,7 +1294,7 @@ function attachUserSearch(input, list, onPick) {
         timer = setTimeout(async function () {
             let names = [];
             try { names = await VYROPayments.searchUsernames(q); }
-            catch (error) { console.warn("VYRO: username search failed:", error); hide(); return; }
+            catch (error) { console.warn("VYQIL: username search failed:", error); hide(); return; }
             if (mine !== seq) return;   // the user kept typing
             list.innerHTML = "";
             if (!names.length) { hide(); return; }
@@ -1323,8 +1323,8 @@ attachUserSearch(document.getElementById("send-recipient"), document.getElementB
 attachUserSearch(document.getElementById("request-username"), document.getElementById("request-suggestions"));
 
 // =========================================================
-// VYRO — PAYMENT REQUESTS
-// A requester asks; the payer sees it in VYRO and approves a normal payment in their wallet.
+// VYQIL — PAYMENT REQUESTS
+// A requester asks; the payer sees it in VYQIL and approves a normal payment in their wallet.
 // =========================================================
 
 const requestMoneyScreen = document.getElementById("request-money-screen");
@@ -1339,7 +1339,7 @@ async function refreshRequestsBadge() {
         badge.textContent = String(n);
         badge.hidden = n === 0;
     } catch (error) {
-        console.warn("VYRO: could not load requests:", error);
+        console.warn("VYQIL: could not load requests:", error);
     }
 }
 window.refreshRequestsBadge = refreshRequestsBadge;
@@ -1405,7 +1405,7 @@ async function loadRequestsScreen() {
     let list = [];
     let failed = false;
     try { list = await VYROPayments.loadRequests(); }
-    catch (error) { failed = true; console.error("VYRO: could not load requests:", error); }
+    catch (error) { failed = true; console.error("VYQIL: could not load requests:", error); }
     if (mine !== requestsLoadId) return;
 
     inBox.innerHTML = "";
@@ -1434,7 +1434,7 @@ async function answerRequest(r, status, button) {
     refreshRequestsBadge();
 }
 
-// Paying a request is an ordinary VYRO payment (same fee, same wallet approval).
+// Paying a request is an ordinary VYQIL payment (same fee, same wallet approval).
 async function payRequest(r, button) {
     const problem = checkBuild();
     if (problem) { alert(problem); return; }
@@ -1489,7 +1489,7 @@ async function payRequest(r, button) {
         renderConfirmScreen(q, wallet);
         showScreen(confirmPaymentScreen);
     } catch (error) {
-        console.error("VYRO: request quote failed:", error);
+        console.error("VYQIL: request quote failed:", error);
         alert(error.userFacing ? error.message : "Unable to prepare this payment. Please try again.");
     } finally {
         button.disabled = false;
@@ -1526,7 +1526,7 @@ if (sendRequestButton) {
             alert("Request sent to @" + req.toUsername + " for " + (req.usdCents ? VYROPrice.fmtUsd(req.usdCents) + " (paid in " + req.asset + ")" : req.amount + " " + req.asset) + ". They will see it under Payment Requests.");
             openRequestsScreen();
         } catch (error) {
-            console.error("VYRO: request failed:", error);
+            console.error("VYQIL: request failed:", error);
             alert(error.userFacing ? error.message : "Could not send the request. Please try again.");
         } finally {
             sendRequestButton.disabled = false;
@@ -1536,7 +1536,7 @@ if (sendRequestButton) {
 }
 
 // =========================================================
-// VYRO — LOGO BUTTON (top centre): back to Home once signed in, otherwise to Welcome
+// VYQIL — LOGO BUTTON (top centre): back to Home once signed in, otherwise to Welcome
 // =========================================================
 
 const globalLogoButton = document.getElementById("global-logo-btn");
@@ -1628,7 +1628,7 @@ async function copyText(text, button) {
         button.textContent = "COPIED ✓";
         setTimeout(function () { button.textContent = original; }, 1500);
     } catch (error) {
-        console.error("VYRO COPY ERROR:", error);
+        console.error("VYQIL COPY ERROR:", error);
         alert("Unable to copy. Please select the text and copy it manually.");
     }
 }
@@ -1762,7 +1762,7 @@ if (resendTwoFactorCodeButton) {
 }
 
 // =========================================================
-// VYRO — CUSTOM POPUP SYSTEM
+// VYQIL — CUSTOM POPUP SYSTEM
 // =========================================================
 
 window.alert = function (message) {
@@ -1808,7 +1808,7 @@ window.alert = function (message) {
         "vyro-modal-logo";
 
     logo.textContent =
-        "VYRO";
+        "VYQIL";
 
 
     const messageElement =
@@ -1871,7 +1871,7 @@ window.alert = function (message) {
 };
 
 // =========================================================
-// VYRO — PROFILE AVATAR
+// VYQIL — PROFILE AVATAR
 // =========================================================
 
 const profileMenuButton =
@@ -2019,7 +2019,7 @@ if (profileMenuButton && profileDropdown) {
     window.addEventListener("scroll", positionProfileMenu, true);
 }
 // =========================================================
-// VYRO — PROFILE MENU ACTIONS
+// VYQIL — PROFILE MENU ACTIONS
 // =========================================================
 
 
@@ -2415,7 +2415,7 @@ if (connectWalletBackButton) {
 
 
 // =========================================================
-// VYRO WALLET SYSTEM — INITIALIZE
+// VYQIL WALLET SYSTEM — INITIALIZE
 // =========================================================
 
 // wallet.js initializes itself and exposes VYROWallet.
@@ -2747,7 +2747,7 @@ await user.verifyBeforeUpdateEmail(
             } catch (error) {
 
                 console.error(
-                    "VYRO CHANGE EMAIL ERROR:",
+                    "VYQIL CHANGE EMAIL ERROR:",
                     error
                 );
 
@@ -2981,7 +2981,7 @@ if (savePasswordButton) {
             } catch (error) {
 
                 console.error(
-                    "VYRO CHANGE PASSWORD ERROR:",
+                    "VYQIL CHANGE PASSWORD ERROR:",
                     error
                 );
 
@@ -3112,7 +3112,7 @@ if (saveVerificationWordButton) {
                     try {
                         await firebaseDB.collection("usernames").doc(myName).update({ verificationWord: newWord });
                     } catch (syncError) {
-                        console.warn("VYRO: could not update the directory word:", syncError);
+                        console.warn("VYQIL: could not update the directory word:", syncError);
                     }
                 }
 
@@ -3135,7 +3135,7 @@ if (saveVerificationWordButton) {
             } catch (error) {
 
                 console.error(
-                    "VYRO VERIFICATION WORD ERROR:",
+                    "VYQIL VERIFICATION WORD ERROR:",
                     error
                 );
 
@@ -3322,7 +3322,7 @@ if (viewAllActivityButton) {
         function () {
 
             console.log(
-                "VYRO: Opening transaction history."
+                "VYQIL: Opening transaction history."
             );
 
             loadTransactionHistory();
@@ -3337,7 +3337,7 @@ if (viewAllActivityButton) {
 }
 
 // =========================================================
-// VYRO — TRANSACTION HISTORY
+// VYQIL — TRANSACTION HISTORY
 // =========================================================
 
 const transactionList =
@@ -3424,7 +3424,7 @@ async function loadTransactionHistory() {
         }
     } catch (error) {
         failed = true;
-        console.error("VYRO: could not load history:", error);
+        console.error("VYQIL: could not load history:", error);
     }
 
     // Several parts of the app ask for a refresh at once (for example the VIEW ALL button and
@@ -3447,7 +3447,7 @@ async function loadTransactionHistory() {
 window.loadTransactionHistory = loadTransactionHistory;
 
 // =========================================================
-// VYRO — TRANSACTION DETAILS
+// VYQIL — TRANSACTION DETAILS
 // =========================================================
 
 function openTransactionDetails(transaction) {
@@ -3507,7 +3507,7 @@ async function refreshHomeBalance() {
         subEl.textContent = usd.parts.length ? usd.parts.join(" · ") : "NO BALANCE FOUND";
     } catch (error) {
         if (token !== homeBalanceToken) return;
-        console.error("VYRO: could not read balance:", error);
+        console.error("VYQIL: could not read balance:", error);
         amountEl.textContent = "—";
         subEl.textContent = "BALANCE UNAVAILABLE";
     }

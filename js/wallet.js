@@ -1,5 +1,5 @@
 // =========================================================
-// VYRO — EXTERNAL WALLET SYSTEM
+// VYQIL — EXTERNAL WALLET SYSTEM
 // =========================================================
 // Non-custodial by design: this module only ever stores PUBLIC addresses.
 // Keys never leave the user's wallet. Every transfer is signed inside the
@@ -68,7 +68,7 @@
         try {
             localStorage.setItem(key("wallets"), JSON.stringify(wallets));
             if (activeAddress) localStorage.setItem(key("active"), activeAddress); else localStorage.removeItem(key("active"));
-        } catch (e) { console.warn("VYRO: could not persist wallets", e); }
+        } catch (e) { console.warn("VYQIL: could not persist wallets", e); }
     }
 
     // ---------- accessors ----------
@@ -100,15 +100,15 @@
         try {
             const snap = await firebaseDB.collection("usernames").doc(username).get();
             if (snap.exists) receivingAddress = (snap.data() || {}).walletAddress || null;
-        } catch (e) { console.warn("VYRO: could not read receiving address", e); }
+        } catch (e) { console.warn("VYQIL: could not read receiving address", e); }
         updateUI();
         syncReceiving();
     }
 
-    // Publishes the PUBLIC address that other VYRO users will pay when they send to @username.
+    // Publishes the PUBLIC address that other VYQIL users will pay when they send to @username.
     async function setReceivingWallet(address) {
         if (!username) throw new Error("Your username is not loaded yet. Please try again.");
-        if (!wallets.some(function (w) { return w.address === address; })) throw new Error("That wallet is not connected to VYRO.");
+        if (!wallets.some(function (w) { return w.address === address; })) throw new Error("That wallet is not connected to VYQIL.");
         await firebaseDB.collection("usernames").doc(username).update({ walletAddress: address });
         receivingAddress = address;
         updateUI();
@@ -144,7 +144,7 @@
             }
             receivingAddress = legacy || receivingAddress;
             updateUI();
-        } catch (e) { lastSync = ""; console.warn("VYRO: could not update the payment address", e); }
+        } catch (e) { lastSync = ""; console.warn("VYQIL: could not update the payment address", e); }
     }
 
     // ---------- wallet list ----------
@@ -228,8 +228,8 @@
                 });
                 card.querySelector(".wallet-remove-button").addEventListener("click", async function () {
                     const msg = isReceiving
-                        ? "This is your receiving wallet. People who send to @" + username + " will keep paying this address until you choose another. Remove it from VYRO anyway? Your funds are not affected."
-                        : "Remove this wallet from VYRO? Your wallet funds are not affected.";
+                        ? "This is your receiving wallet. People who send to @" + username + " will keep paying this address until you choose another. Remove it from VYQIL anyway? Your funds are not affected."
+                        : "Remove this wallet from VYQIL? Your wallet funds are not affected.";
                     if (confirm(msg)) await removeWallet(w.address);
                 });
                 list.appendChild(card);
@@ -269,8 +269,8 @@
 
     // ---- finishing a payment the page was no longer alive to finish ----
     // When the wallet app is on screen, a phone may pause or even close this page. The wallet's signed answer waits at the
-    // WalletConnect relay for a few minutes. If VYRO finds that answer after the page comes back, it sends the payment itself,
-    // so an approved payment is never lost. (A payment finished this way has no receipt in VYRO's history; the blockchain has it.)
+    // WalletConnect relay for a few minutes. If VYQIL finds that answer after the page comes back, it sends the payment itself,
+    // so an approved payment is never lost. (A payment finished this way has no receipt in VYQIL's history; the blockchain has it.)
     const SIGNREQ = "vyro:wc:signreq";
     function armRecovery(session, address) {
         try { localStorage.setItem(SIGNREQ, JSON.stringify({ topic: session.topic, address: address, at: Date.now() })); } catch (e) { /* ignore */ }
@@ -312,7 +312,7 @@
             const conn = new solanaWeb3.Connection(rpc, "confirmed");
             let sig;
             try { sig = await sendSigned(conn, raw, null); }
-            catch (e) { notice("Your wallet approved the payment, but VYRO could not send it: " + String((e && e.message) || e).split(". Logs:")[0] + ". No funds were moved.", false); return; }
+            catch (e) { notice("Your wallet approved the payment, but VYQIL could not send it: " + String((e && e.message) || e).split(". Logs:")[0] + ". No funds were moved.", false); return; }
             notice("Payment sent. Reference: " + sig + ". It may take a few seconds to confirm. The blockchain has the receipt.", true);
         } catch (e) { /* nothing to recover */ }
         finally { recovering = false; }
@@ -337,7 +337,7 @@
         const metadata = Object.assign({}, CFG.walletConnectMetadata, { redirect: { universal: backTo } });
         wcClient = await SC.init({ projectId: projectId, metadata: metadata });
         // A phone can pause this page while the wallet app is open. When the user comes back, wake the
-        // WalletConnect connection up again so the wallet's approval reaches VYRO.
+        // WalletConnect connection up again so the wallet's approval reaches VYQIL.
         document.addEventListener("visibilitychange", function () {
             if (document.visibilityState !== "visible" || !wcClient) return;
             adoptPending();
@@ -394,7 +394,7 @@
     }
     const BUILD = "pay-7";
 
-    // There is no box. VYRO opens the wallet itself the moment Confirm is tapped. Only if the wallet is STILL waiting after
+    // There is no box. VYQIL opens the wallet itself the moment Confirm is tapped. Only if the wallet is STILL waiting after
     // 12 seconds (the phone refused to open it) does a small plain-text link appear, which disappears again on its own.
     let cancelWait = null, barCleanup = null;
     function cancelWalletWait() { if (cancelWait) { try { cancelWait(); } catch (e) { /* ignore */ } } if (barCleanup) barCleanup(); }
@@ -424,7 +424,7 @@
         return cleanup;
     }
 
-    // A phone only lets a page open another app straight after the person's own tap. So VYRO opens the wallet in the very
+    // A phone only lets a page open another app straight after the person's own tap. So VYQIL opens the wallet in the very
     // same moment Confirm is tapped (before any waiting), and the payment request arrives in the wallet a second later.
     let autoOpenedAt = 0;
     function openForSigning(address) {
@@ -481,7 +481,7 @@
                 window.VYROWalletConnectUI.show(res.uri, label);   // open-wallet / copy-link panel (js/wc-ui.js)
             } else {
                 setStatus("Open your wallet app and approve the connection request.");
-                console.info("VYRO WalletConnect URI:", res.uri);
+                console.info("VYQIL WalletConnect URI:", res.uri);
             }
         }
         // Wait for the wallet's approval. Also watch for a new session appearing, because a phone can pause
@@ -502,7 +502,7 @@
         return added;
     }
 
-    // Turns an approved WalletConnect session into a wallet in VYRO.
+    // Turns an approved WalletConnect session into a wallet in VYQIL.
     function registerSession(session, label) {
         const nsAll = (session && session.namespaces) || {};
         const solAccount = nsAll.solana && nsAll.solana.accounts && nsAll.solana.accounts[0];
@@ -528,8 +528,8 @@
     }
 
     // ---------- finishing a connection after the wallet sent the user back ----------
-    // Many phones reload VYRO (or open it in a new tab) when the wallet redirects back, so the page that
-    // started the connection is gone. We remember that a connection was started, and when VYRO loads
+    // Many phones reload VYQIL (or open it in a new tab) when the wallet redirects back, so the page that
+    // started the connection is gone. We remember that a connection was started, and when VYQIL loads
     // again we pick up the session the wallet approved.
     const PENDING_KEY = "vyro:wc:pending";
     function savePending(label, known) {
@@ -567,7 +567,7 @@
                 }
                 await new Promise(function (r) { setTimeout(r, 1500); });
             }
-        } catch (e) { console.warn("VYRO: could not finish the wallet connection", e); }
+        } catch (e) { console.warn("VYQIL: could not finish the wallet connection", e); }
         finally { adopting = false; }
     }
 
@@ -581,7 +581,7 @@
                 try { const r = client.core && client.core.relayer; relay = r && r.connected ? "connected" : "disconnected"; } catch (e) { /* ignore */ }
                 const meta = session && session.peer && session.peer.metadata;
                 const ageMin = session && session.expiry ? Math.round((session.expiry * 1000 - Date.now()) / 60000) : "?";
-                reject(new Error("Your wallet did not answer within 2 minutes. Open the wallet app, check for a waiting request, or remove the wallet in VYRO and connect it again. Tip: open VYRO inside Trust Wallet's own browser. [wallet: " + ((meta && meta.name) || "?") + "; relay: " + relay + "; connection expires in " + ageMin + " min]"));
+                reject(new Error("Your wallet did not answer within 2 minutes. Open the wallet app, check for a waiting request, or remove the wallet in VYQIL and connect it again. Tip: open VYQIL inside Trust Wallet's own browser. [wallet: " + ((meta && meta.name) || "?") + "; relay: " + relay + "; connection expires in " + ageMin + " min]"));
             }, 120000);
         });
         const cancelled = new Promise(function (_, reject) {
@@ -591,7 +591,7 @@
     }
 
     // Sends one request to the wallet that owns `address` (used for Ethereum). The wallet app opens
-    // so the user can approve it; VYRO never signs.
+    // so the user can approve it; VYQIL never signs.
     async function wcRequest(address, chainId, request) {
         const client = await ensureWcClient();
         const session = client && wcSessionForAddress(address);
@@ -627,14 +627,14 @@
             } else if (CFG.walletConnectProjectId) {
                 w = await connectWalletConnect(null, providerName(type));
             } else {
-                throw new Error(providerName(type) + " was not detected. Open VYRO inside the " + providerName(type) + " app's browser, or enable WalletConnect in js/config.js.");
+                throw new Error(providerName(type) + " was not detected. Open VYQIL inside the " + providerName(type) + " app's browser, or enable WalletConnect in js/config.js.");
             }
             if (!w) throw new Error("Wallet connection was not completed.");
             setStatus("Wallet connected.");
             showConnectedWallet();
             return w;
         } catch (error) {
-            console.error("VYRO WALLET CONNECT ERROR:", error);
+            console.error("VYQIL WALLET CONNECT ERROR:", error);
             clearPending();
             const msg = isUserRejection(error) ? "Connection was declined in your wallet." : (error.message || "Wallet connection failed.");
             setStatus(msg);
@@ -722,11 +722,11 @@
     }
 
     // ---------- signing ----------
-    // VYRO builds the unsigned transaction; the USER's wallet displays and signs it.
-    // Returns { signature } (wallet already broadcast it) or { signedRaw } (VYRO broadcasts the signed bytes).
+    // VYQIL builds the unsigned transaction; the USER's wallet displays and signs it.
+    // Returns { signature } (wallet already broadcast it) or { signedRaw } (VYQIL broadcasts the signed bytes).
     async function requestSignature(tx, expectedAddress, opts) {
         const w = wallets.find(function (x) { return x.address === expectedAddress; });
-        if (!w) throw new Error("That wallet is not connected to VYRO.");
+        if (!w) throw new Error("That wallet is not connected to VYQIL.");
 
         if (w.type === "walletconnect") {
             // If the wallet no longer knows this connection (another phone connected to the same wallet, an old session,
@@ -760,7 +760,7 @@
                             curTx = await opts.rebuild();
                             continue;
                         }
-                        throw new Error("Your wallet says this connection is out of date. Open Wallets in VYRO, remove this wallet, connect it again, then retry. (Wallet message: " + m.slice(0, 80) + ")");
+                        throw new Error("Your wallet says this connection is out of date. Open Wallets in VYQIL, remove this wallet, connect it again, then retry. (Wallet message: " + m.slice(0, 80) + ")");
                     }
                     throw e;
                 }
@@ -780,7 +780,7 @@
         }
 
         const provider = injected(w.type);
-        if (!provider) throw new Error(w.provider + " is not available in this browser. Open VYRO inside the wallet app, or reconnect.");
+        if (!provider) throw new Error(w.provider + " is not available in this browser. Open VYQIL inside the wallet app, or reconnect.");
         // Make sure the wallet is still on the account the user chose.
         try { if (!provider.publicKey && typeof provider.connect === "function") await provider.connect(); } catch (e) { /* surfaced below */ }
         const current = provider.publicKey && provider.publicKey.toString();
@@ -816,12 +816,12 @@
     }
 
     // One-tap clean start for WalletConnect: ends every saved session, wipes this browser's saved WalletConnect data (a half-finished
-    // connection left there can make a wallet say "connecting" forever) and removes the WalletConnect wallets from VYRO.
+    // connection left there can make a wallet say "connecting" forever) and removes the WalletConnect wallets from VYQIL.
     async function resetConnections() {
         try {
             if (wcClient) {
                 const list = wcClient.session.getAll();
-                for (let i = 0; i < list.length; i++) { try { await wcClient.disconnect({ topic: list[i].topic, reason: { code: 6000, message: "Reset from VYRO" } }); } catch (e) { /* already gone */ } }
+                for (let i = 0; i < list.length; i++) { try { await wcClient.disconnect({ topic: list[i].topic, reason: { code: 6000, message: "Reset from VYQIL" } }); } catch (e) { /* already gone */ } }
             }
         } catch (e) { /* ignore */ }
         try {
@@ -844,7 +844,7 @@
     function bind() {
         const resetBtn = document.getElementById("reset-wc-btn");
         if (resetBtn) resetBtn.addEventListener("click", function () {
-            if (confirm("Reset wallet connections? This signs VYRO out of your connected wallets on this device (your money and wallets are not touched). You can reconnect straight away.")) resetConnections();
+            if (confirm("Reset wallet connections? This signs VYQIL out of your connected wallets on this device (your money and wallets are not touched). You can reconnect straight away.")) resetConnections();
         });
         document.querySelectorAll("[data-wallet-connect]").forEach(function (btn) {
             btn.addEventListener("click", function () { connect(btn.getAttribute("data-wallet-connect"), btn.getAttribute("data-wallet-label")); });

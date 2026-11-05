@@ -1,5 +1,5 @@
 // =========================================================
-// VYRO — FIREBASE AUTHENTICATION
+// VYQIL — FIREBASE AUTHENTICATION
 // =========================================================
 (function () {
     "use strict";
@@ -34,7 +34,7 @@
                 return data;
             }
         } catch (error) {
-            console.error("VYRO profile read error:", error);
+            console.error("VYQIL profile read error:", error);
             return null;   // could not read it: different from "no profile yet"
         }
         return {};
@@ -48,7 +48,7 @@
             "auth/weak-password":"Password must be at least 8 characters.",
             "auth/invalid-credential":"Incorrect email or password.",
             "auth/wrong-password":"Incorrect email or password.",
-            "auth/user-not-found":"No VYRO account was found with this email.",
+            "auth/user-not-found":"No VYQIL account was found with this email.",
             "auth/too-many-requests":"Too many attempts. Please wait and try again.",
             "auth/network-request-failed":"Network error. Check your internet connection and try again.",
             "username-taken":"That username is already taken. Please choose another."
@@ -69,7 +69,7 @@
         }
 
         // The Firestore rules require email_verified in the ID token, so refresh it now.
-        try { await current.getIdToken(true); } catch (e) { console.warn("VYRO token refresh failed:", e); }
+        try { await current.getIdToken(true); } catch (e) { console.warn("VYQIL token refresh failed:", e); }
 
         const data = await loadProfile(current.uid);
         if (data === null) {
@@ -86,13 +86,13 @@
         if (data.username && data.verificationWord) {
             firebaseDB.collection("usernames").doc(data.username)
                 .update({ verificationWord: data.verificationWord })
-                .catch(function (e) { console.warn("VYRO: directory word sync skipped:", e); });
+                .catch(function (e) { console.warn("VYQIL: directory word sync skipped:", e); });
         }
         // Make sure this user can be found by partial-name search (accounts made before it existed).
         if (data.username) {
             const indexRef = firebaseDB.collection("usernameIndex").doc(data.username);
             indexRef.get().then(function (s) { if (!s.exists) return indexRef.set({ username: data.username }); })
-                .catch(function (e) { console.warn("VYRO: search index sync skipped:", e); });
+                .catch(function (e) { console.warn("VYQIL: search index sync skipped:", e); });
         }
         if (window.VYROWallet) { VYROWallet.setUser(current.uid); VYROWallet.setUsername(data.username || null); }
         if (data.securitySetupComplete !== true) {
@@ -100,7 +100,7 @@
             return;
         }
 
-        // The existing VYRO security screen handles the user's 2FA preference.
+        // The existing VYQIL security screen handles the user's 2FA preference.
         if (data.twoFactorEnabled === true) go("two-factor-screen");
         else go("home-screen");
     }
@@ -119,7 +119,7 @@
         });
         try { await batch.commit(); }
         catch (e) {
-            console.error("VYRO USERNAME CLAIM ERROR:", e);
+            console.error("VYQIL USERNAME CLAIM ERROR:", e);
             throw (e && e.code === "permission-denied") ? { code: "username-taken" } : e;
         }
     }
@@ -191,7 +191,7 @@
                 await claimProfile(user, username, email, verificationWord);
             } catch (claimError) {
                 // Roll back the half-created account so the email can be used again.
-                try { await user.delete(); } catch (e) { console.warn("VYRO rollback failed:", e); }
+                try { await user.delete(); } catch (e) { console.warn("VYQIL rollback failed:", e); }
                 throw claimError;
             }
             await user.sendEmailVerification();
@@ -200,7 +200,7 @@
             saveProfileLocally({username});
             go("email-verification-screen");
         } catch (error) {
-            console.error("VYRO REGISTRATION ERROR:", error);
+            console.error("VYQIL REGISTRATION ERROR:", error);
             if (error && error.code === "username-taken") {
                 setStatus(statusEl, usernameInput, "@" + username + " is already taken. Please choose another.", "bad");
             } else {
@@ -224,7 +224,7 @@
         } catch (error) {
             const code = error && error.code || "";
             if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return;
-            console.error("VYRO GOOGLE SIGN-IN ERROR:", error);
+            console.error("VYQIL GOOGLE SIGN-IN ERROR:", error);
             if (code === "auth/popup-blocked") alert("Your browser blocked the Google window. Allow pop-ups for this site and try again.");
             else if (code === "auth/unauthorized-domain") alert("Google sign-in is not enabled for this website address yet. Add it under Firebase → Authentication → Settings → Authorized domains.");
             else if (code === "auth/operation-not-allowed") alert("Google sign-in is not turned on yet. Enable it under Firebase → Authentication → Sign-in method.");
@@ -254,7 +254,7 @@
             await routeAuthenticatedUser(user);
         } catch (error) {
             if (error && error.code === "username-taken") setStatus(statusEl, input, "@" + username + " is already taken. Please choose another.", "bad");
-            else { console.error("VYRO SETUP ERROR:", error); alert("Could not finish setting up your account: " + friendlyAuthError(error)); }
+            else { console.error("VYQIL SETUP ERROR:", error); alert("Could not finish setting up your account: " + friendlyAuthError(error)); }
         } finally {
             if (button) { button.disabled = false; button.textContent = "CONTINUE"; }
         }
@@ -270,7 +270,7 @@
             const credential = await firebaseAuth.signInWithEmailAndPassword(email,password);
             await routeAuthenticatedUser(credential.user);
         } catch (error) {
-            console.error("VYRO LOGIN ERROR:",error);
+            console.error("VYQIL LOGIN ERROR:",error);
             alert("Login error: " + friendlyAuthError(error));
         } finally {
             if (button) { button.disabled=false; button.textContent="LOG IN"; }
@@ -295,7 +295,7 @@
             localStorage.removeItem("vyro_pending_user_id");
             if (typeof window.closeProfileMenu === "function") window.closeProfileMenu();
             go("welcome-screen");
-        } catch (error) { console.error("VYRO LOGOUT ERROR:",error); alert("Unable to log out. Please try again."); }
+        } catch (error) { console.error("VYQIL LOGOUT ERROR:",error); alert("Unable to log out. Please try again."); }
     }
 
     function bind(id, handler) { const el=screen(id); if (el) el.addEventListener("click",handler); }
@@ -327,7 +327,7 @@
             catch(error){ alert("Unable to resend verification email: "+friendlyAuthError(error)); }
         });
 
-        firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(error){ console.error("VYRO persistence error:",error); });
+        firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(error){ console.error("VYQIL persistence error:",error); });
 
         let firstAuthEvent=true;
         firebaseAuth.onAuthStateChanged(async function(user){
