@@ -331,7 +331,7 @@
             return "intent://wc#Intent;scheme=trust;package=com.wallet.crypto.trustapp;S.browser_fallback_url=" + encodeURIComponent("https://link.trustwallet.com/") + ";end";
         return "trust://";
     }
-    const BUILD = "pay-5";
+    const BUILD = "pay-6";
 
     // There is no box. VYRO opens the wallet itself the moment Confirm is tapped. Only if the wallet is STILL waiting after
     // 12 seconds (the phone refused to open it) does a small plain-text link appear, which disappears again on its own.
@@ -753,7 +753,37 @@
         if (screen && typeof window.showScreen === "function") window.showScreen(screen);
     }
 
+    // One-tap clean start for WalletConnect: ends every saved session, wipes this browser's saved WalletConnect data (a half-finished
+    // connection left there can make a wallet say "connecting" forever) and removes the WalletConnect wallets from VYRO.
+    async function resetConnections() {
+        try {
+            if (wcClient) {
+                const list = wcClient.session.getAll();
+                for (let i = 0; i < list.length; i++) { try { await wcClient.disconnect({ topic: list[i].topic, reason: { code: 6000, message: "Reset from VYRO" } }); } catch (e) { /* already gone */ } }
+            }
+        } catch (e) { /* ignore */ }
+        try {
+            const names = ["WALLET_CONNECT_V2_INDEXED_DB"];
+            if (indexedDB.databases) { const dbs = await indexedDB.databases(); dbs.forEach(function (d) { if (d.name && /walletconnect|wc@2|WALLET_CONNECT/i.test(d.name) && names.indexOf(d.name) < 0) names.push(d.name); }); }
+            await Promise.all(names.map(function (n) { return new Promise(function (res) { const r = indexedDB.deleteDatabase(n); r.onsuccess = r.onerror = r.onblocked = function () { res(); }; }); }));
+        } catch (e) { /* ignore */ }
+        try {
+            Object.keys(localStorage).forEach(function (k) { if (/^wc@2|^WCM_|^@w3m|^walletconnect|^vyro:wc:/i.test(k)) localStorage.removeItem(k); });
+        } catch (e) { /* ignore */ }
+        wallets.filter(function (w) { return w.type === "walletconnect" || isDeepLink(w.type); }).forEach(function (w) { try { removeWalletSync(w.address); } catch (e) { /* ignore */ } });
+        persist();
+        window.location.reload();
+    }
+    function removeWalletSync(address) {
+        wallets = wallets.filter(function (w) { return w.address !== address; });
+        if (activeAddress === address) activeAddress = wallets[0] ? wallets[0].address : null;
+    }
+
     function bind() {
+        const resetBtn = document.getElementById("reset-wc-btn");
+        if (resetBtn) resetBtn.addEventListener("click", function () {
+            if (confirm("Reset wallet connections? This signs VYRO out of your connected wallets on this device (your money and wallets are not touched). You can reconnect straight away.")) resetConnections();
+        });
         document.querySelectorAll("[data-wallet-connect]").forEach(function (btn) {
             btn.addEventListener("click", function () { connect(btn.getAttribute("data-wallet-connect"), btn.getAttribute("data-wallet-label")); });
         });
@@ -771,7 +801,7 @@
         setUser, setUsername, setReceivingWallet, getReceivingAddress, getUsername,
         getWallets, getActiveWallet, setActiveWallet, addWallet, removeWallet,
         getAddress, getActiveAddress: getAddress, isConnected, getWalletType, getProvider,
-        requestSignature, sendSigned, openForSigning, cancelWalletWait, wcRequest, isUserRejection, updateUI
+        requestSignature, sendSigned, openForSigning, cancelWalletWait, resetConnections, wcRequest, isUserRejection, updateUI
     };
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
