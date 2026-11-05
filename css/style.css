@@ -4,23 +4,26 @@
    ========================================================= */
 
 :root {
-    --black: #050505;
-    --black-soft: #0b0b0b;
-    --card: #11110f;
-    --card-light: #171713;
+    /* Vyro black / blue palette (same as the other Vyro apps). The --gold names are kept so older rules keep working. */
+    --black: #05070A;
+    --black-soft: #080c12;
+    --card: #0C1117;
+    --card-light: #111a24;
 
-    --gold: #f5c95b;
-    --gold-light: #ffe9a3;
-    --gold-bright: #fff1b8;
-    --gold-dark: #9b7424;
+    --blue: #4B9CD3;
+    --blue-glow: rgba(75, 156, 211, 0.45);
+    --gold: #4B9CD3;
+    --gold-light: #8cc6ee;
+    --gold-bright: #c4e3f7;
+    --gold-dark: #2d6c97;
 
-    --text: #f7f7f4;
-    --text-muted: #999993;
+    --text: #E6EDF3;
+    --text-muted: #8B96A3;
 
-    --border: rgba(245, 201, 91, 0.42);
-    --border-soft: rgba(245, 201, 91, 0.18);
+    --border: rgba(75, 156, 211, 0.42);
+    --border-soft: rgba(201, 209, 217, 0.14);
 
-    --radius: 18px;
+    --radius: 14px;
     --page-padding: 20px;
 }
 
@@ -39,7 +42,12 @@ html,
 body {
     width: 100%;
     min-height: 100%;
-    background: var(--black);
+    background:
+        radial-gradient(900px 500px at 50% -10%, rgba(75, 156, 211, 0.22), transparent 60%),
+        linear-gradient(rgba(75, 156, 211, 0.05) 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, rgba(75, 156, 211, 0.05) 1px, transparent 1px) 0 0 / 40px 40px,
+        var(--black);
+    background-attachment: fixed;
 }
 
 body {
@@ -66,12 +74,12 @@ body {
     background:
         radial-gradient(
             circle at 50% 18%,
-            rgba(245, 201, 91, 0.08),
+            rgba(114, 177, 222, 0.08),
             transparent 32%
         ),
         radial-gradient(
             circle at 50% 100%,
-            rgba(245, 201, 91, 0.06),
+            rgba(114, 177, 222, 0.06),
             transparent 35%
         ),
         #050505;
@@ -122,15 +130,15 @@ body {
         linear-gradient(
             90deg,
             transparent 0%,
-            rgba(245, 201, 91, 0.08) 18%,
-            rgba(245, 201, 91, 0.55) 50%,
-            rgba(245, 201, 91, 0.08) 82%,
+            rgba(114, 177, 222, 0.08) 18%,
+            rgba(114, 177, 222, 0.55) 50%,
+            rgba(114, 177, 222, 0.08) 82%,
             transparent 100%
         );
 
     box-shadow:
-        0 0 10px rgba(245, 201, 91, 0.18),
-        0 0 28px rgba(245, 201, 91, 0.10);
+        0 0 10px rgba(114, 177, 222, 0.18),
+        0 0 28px rgba(114, 177, 222, 0.10);
 
     pointer-events: none;
     z-index: 0;
@@ -153,9 +161,9 @@ body {
     background:
         radial-gradient(
             ellipse at center bottom,
-            rgba(245, 201, 91, 0.16) 0%,
-            rgba(245, 201, 91, 0.07) 32%,
-            rgba(245, 201, 91, 0.025) 52%,
+            rgba(114, 177, 222, 0.16) 0%,
+            rgba(114, 177, 222, 0.07) 32%,
+            rgba(114, 177, 222, 0.025) 52%,
             transparent 74%
         );
 
@@ -184,12 +192,12 @@ body {
     background:
         radial-gradient(
             ellipse at 50% 35%,
-            rgba(245, 201, 91, 0.09),
+            rgba(114, 177, 222, 0.09),
             transparent 38%
         ),
         radial-gradient(
             ellipse at 50% 82%,
-            rgba(245, 201, 91, 0.07),
+            rgba(114, 177, 222, 0.07),
             transparent 30%
         ),
         #050505;
@@ -212,10 +220,10 @@ body {
     background:
         linear-gradient(
             180deg,
-            #fff8d9 0%,
-            #ffe89a 35%,
-            #d9a83d 75%,
-            #fff0ae 100%
+            #e0eef8 0%,
+            #add2ec 35%,
+            #5095c5 75%,
+            #bddbf0 100%
         );
 
     -webkit-background-clip: text;
@@ -223,8 +231,8 @@ body {
     -webkit-text-fill-color: transparent;
 
     filter:
-        drop-shadow(0 0 7px rgba(245, 201, 91, 0.45))
-        drop-shadow(0 0 22px rgba(245, 201, 91, 0.16));
+        drop-shadow(0 0 7px rgba(114, 177, 222, 0.45))
+        drop-shadow(0 0 22px rgba(114, 177, 222, 0.16));
 }
 
 #welcome-screen .logo {
@@ -233,8 +241,8 @@ body {
     padding: 0;
 
     filter:
-        drop-shadow(0 0 10px rgba(245, 201, 91, 0.35))
-        drop-shadow(0 0 25px rgba(245, 201, 91, 0.12));
+        drop-shadow(0 0 10px rgba(114, 177, 222, 0.35))
+        drop-shadow(0 0 25px rgba(114, 177, 222, 0.12));
 }
 
 #welcome-screen .logo img {
@@ -269,8 +277,8 @@ body {
         linear-gradient(
             180deg,
             #ffffff 0%,
-            #f5e8bd 45%,
-            #d9b457 100%
+            #c4dcee 45%,
+            #67a0c9 100%
         );
 
     -webkit-background-clip: text;
@@ -309,45 +317,35 @@ button:active {
 }
 
 .primary-button {
-    min-height: 58px;
-    border-radius: 30px;
-
-    color: #111;
-
-    background:
-        linear-gradient(
-            180deg,
-            #fff1b2 0%,
-            #f5c95b 45%,
-            #dcae3e 100%
-        );
-
-    box-shadow:
-        0 0 10px rgba(245, 201, 91, 0.25),
-        0 8px 30px rgba(245, 201, 91, 0.13);
-
-    letter-spacing: 0.03em;
+    min-height: 46px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: 1px solid var(--blue);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, rgba(75, 156, 211, 0.34), rgba(75, 156, 211, 0.12));
+    box-shadow: 0 0 16px rgba(75, 156, 211, 0.3);
 }
 
 .secondary-button {
-    min-height: 58px;
-    margin-top: 12px;
-    border-radius: 30px;
-
+    min-height: 42px;
+    margin-top: 10px;
+    padding: 0 16px;
+    border-radius: 12px;
     color: var(--text);
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.025),
-            rgba(255, 255, 255, 0.008)
-        );
-
-    border: 1px solid var(--border);
-
-    box-shadow:
-        inset 0 0 18px rgba(245, 201, 91, 0.025);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(12, 17, 23, 0.85);
+    border: 1px solid var(--border-soft);
+    box-shadow: none;
 }
+
+.secondary-button:hover { border-color: var(--blue); }
 
 /* =========================================================
    AUTH HEADER
@@ -375,9 +373,9 @@ button:active {
     background:
         linear-gradient(
             180deg,
-            #fff8d9 0%,
-            #ffe89a 40%,
-            #d9a83d 100%
+            #e0eef8 0%,
+            #add2ec 40%,
+            #5095c5 100%
         );
 
     -webkit-background-clip: text;
@@ -385,7 +383,7 @@ button:active {
     -webkit-text-fill-color: transparent;
 
     filter:
-        drop-shadow(0 0 8px rgba(245, 201, 91, 0.3));
+        drop-shadow(0 0 8px rgba(114, 177, 222, 0.3));
 }
 
 /* =========================================================
@@ -480,8 +478,8 @@ button:active {
     box-shadow: none;
 
     filter:
-        drop-shadow(0 0 7px rgba(245, 201, 91, 0.35))
-        drop-shadow(0 0 18px rgba(245, 201, 91, 0.10));
+        drop-shadow(0 0 7px rgba(114, 177, 222, 0.35))
+        drop-shadow(0 0 18px rgba(114, 177, 222, 0.10));
 }
 
 .screen-home-button:active img,
@@ -514,8 +512,8 @@ button:active {
         linear-gradient(
             180deg,
             #ffffff 0%,
-            #f5e8bd 50%,
-            #d9b457 100%
+            #c4dcee 50%,
+            #67a0c9 100%
         );
 
     -webkit-background-clip: text;
@@ -549,7 +547,7 @@ button:active {
         );
 
     box-shadow:
-        inset 0 0 25px rgba(245, 201, 91, 0.02);
+        inset 0 0 25px rgba(114, 177, 222, 0.02);
 }
 
 .auth-card-title {
@@ -643,11 +641,11 @@ button:active {
 
 .form-group input:focus,
 .input-wrapper:focus-within {
-    border-color: rgba(245, 201, 91, 0.65);
+    border-color: rgba(114, 177, 222, 0.65);
 
     box-shadow:
-        0 0 0 3px rgba(245, 201, 91, 0.06),
-        0 0 18px rgba(245, 201, 91, 0.06);
+        0 0 0 3px rgba(114, 177, 222, 0.06),
+        0 0 18px rgba(114, 177, 222, 0.06);
 }
 
 /* =========================================================
@@ -693,8 +691,8 @@ button:active {
     border-color: var(--gold);
 
     box-shadow:
-        0 0 0 3px rgba(245, 201, 91, 0.08),
-        0 0 22px rgba(245, 201, 91, 0.10),
+        0 0 0 3px rgba(114, 177, 222, 0.08),
+        0 0 22px rgba(114, 177, 222, 0.10),
         inset 0 0 15px rgba(0, 0, 0, 0.35);
 }
 
@@ -783,8 +781,8 @@ button:active {
     margin-top: -3px;
 
     filter:
-        drop-shadow(0 0 7px rgba(245, 201, 91, 0.35))
-        drop-shadow(0 0 18px rgba(245, 201, 91, 0.10));
+        drop-shadow(0 0 7px rgba(114, 177, 222, 0.35))
+        drop-shadow(0 0 18px rgba(114, 177, 222, 0.10));
 }
 
 /* The home header is intentionally a little taller so
@@ -1141,7 +1139,7 @@ button:active {
     border-color: var(--gold);
 
     box-shadow:
-        0 0 12px rgba(245, 201, 91, 0.08);
+        0 0 12px rgba(114, 177, 222, 0.08);
 }
 
 #send-amount {
@@ -1159,7 +1157,7 @@ button:active {
 
 .vyro-select {
     width: 100%;
-    min-height: 56px;
+    min-height: 48px;
 
     appearance: none;
     -webkit-appearance: none;
@@ -1195,8 +1193,8 @@ button:active {
     border-color: var(--gold);
 
     box-shadow:
-        0 0 0 3px rgba(245, 201, 91, 0.06),
-        0 0 18px rgba(245, 201, 91, 0.06);
+        0 0 0 3px rgba(114, 177, 222, 0.06),
+        0 0 18px rgba(114, 177, 222, 0.06);
 }
 
 .form-group select {
@@ -1211,7 +1209,7 @@ button:active {
 
 .receive-content select {
     width: 100%;
-    min-height: 56px;
+    min-height: 48px;
     box-sizing: border-box;
 
     appearance: none;
@@ -1249,8 +1247,8 @@ button:active {
     border-color: var(--gold);
 
     box-shadow:
-        0 0 0 3px rgba(245, 201, 91, 0.06),
-        0 0 18px rgba(245, 201, 91, 0.06);
+        0 0 0 3px rgba(114, 177, 222, 0.06),
+        0 0 18px rgba(114, 177, 222, 0.06);
 }
 
 /* =========================================================
@@ -1310,7 +1308,7 @@ button:active {
     border: 1px solid var(--border);
     border-radius: 14px;
 
-    background: rgba(245, 201, 91, 0.04);
+    background: rgba(114, 177, 222, 0.04);
 }
 
 .recipient-result.visible {
@@ -1428,7 +1426,7 @@ button:active {
     border: 1px dashed var(--border-soft);
     border-radius: var(--radius);
 
-    background: rgba(245, 201, 91, 0.025);
+    background: rgba(114, 177, 222, 0.025);
 
     text-align: center;
 }
@@ -1471,11 +1469,11 @@ button:active {
 }
 
 .wallet-card.active {
-    border-color: rgba(245, 201, 91, 0.65);
-    background: rgba(245, 201, 91, 0.045);
+    border-color: rgba(114, 177, 222, 0.65);
+    background: rgba(114, 177, 222, 0.045);
 
     box-shadow:
-        0 0 18px rgba(245, 201, 91, 0.06);
+        0 0 18px rgba(114, 177, 222, 0.06);
 }
 
 .wallet-card-header {
@@ -1534,14 +1532,14 @@ button:active {
     background:
         linear-gradient(
             180deg,
-            #fff1b2,
-            #f5c95b
+            #c1dcf0,
+            #72b1de
         );
 }
 
 .wallet-copy-button {
     color: var(--gold);
-    background: rgba(245, 201, 91, 0.04);
+    background: rgba(114, 177, 222, 0.04);
     border: 1px solid var(--border-soft);
 }
 
@@ -1555,7 +1553,7 @@ button:active {
     border: 1px solid var(--border-soft);
     border-radius: 14px;
 
-    background: rgba(245, 201, 91, 0.025);
+    background: rgba(114, 177, 222, 0.025);
 
     color: var(--text-muted);
     font-size: 11px;
@@ -1564,7 +1562,7 @@ button:active {
 }
 
 .wallet-security-note {
-    border-color: rgba(245, 201, 91, 0.14);
+    border-color: rgba(114, 177, 222, 0.14);
 }
 
 .wallet-security-note strong,
@@ -1594,7 +1592,7 @@ button:active {
     border: 1px solid var(--border);
     border-radius: var(--radius);
 
-    background: rgba(245, 201, 91, 0.035);
+    background: rgba(114, 177, 222, 0.035);
 
     text-align: center;
 }
@@ -1614,9 +1612,9 @@ button:active {
 
     background: transparent;
 
-    border: 1px solid rgba(212, 175, 55, 0.65);
+    border: 1px solid rgba(75, 143, 192, 0.65);
 
-    color: #f5c84c;
+    color: #66aadb;
 
     font-family: inherit;
     font-size: 12px;
@@ -1641,14 +1639,14 @@ button:active {
 }
 
 .view-all-button:hover {
-    background: rgba(212, 175, 55, 0.10);
-    border-color: #f5c84c;
-    color: #ffd966;
+    background: rgba(75, 143, 192, 0.10);
+    border-color: #66aadb;
+    color: #83bae2;
 }
 
 .view-all-button:active {
     transform: scale(0.97);
-    background: rgba(212, 175, 55, 0.16);
+    background: rgba(75, 143, 192, 0.16);
 }
 
 .view-all-button:focus {
@@ -1656,7 +1654,7 @@ button:active {
 }
 
 .view-all-button:focus-visible {
-    outline: 2px solid #f5c84c;
+    outline: 2px solid #66aadb;
     outline-offset: 3px;
 }
 
@@ -1674,12 +1672,12 @@ button:active {
 #home-screen .balance-amount {
     text-shadow:
         0 0 12px rgba(255, 255, 255, 0.08),
-        0 0 28px rgba(245, 201, 91, 0.10);
+        0 0 28px rgba(114, 177, 222, 0.10);
 }
 
 #home-screen .balance-subtitle {
     text-shadow:
-        0 0 12px rgba(245, 201, 91, 0.35);
+        0 0 12px rgba(114, 177, 222, 0.35);
 }
 
 /* =========================================================
@@ -1715,13 +1713,13 @@ button:active {
     background:
         radial-gradient(
             circle at 50% 0%,
-            rgba(245, 201, 91, 0.09),
+            rgba(114, 177, 222, 0.09),
             transparent 55%
         ),
         #0b0b0a;
 
     box-shadow:
-        0 0 35px rgba(245, 201, 91, 0.12),
+        0 0 35px rgba(114, 177, 222, 0.12),
         0 25px 80px rgba(0, 0, 0, 0.65);
 
     text-align: center;
@@ -1745,7 +1743,7 @@ button:active {
 }
 
 .vyro-modal-button {
-    min-height: 50px;
+    min-height: 44px;
     border-radius: 26px;
 
     color: #111;
@@ -1753,9 +1751,9 @@ button:active {
     background:
         linear-gradient(
             180deg,
-            #fff1b2 0%,
-            #f5c95b 50%,
-            #dcae3e 100%
+            #c1dcf0 0%,
+            #72b1de 50%,
+            #5297c8 100%
         );
 
     font-weight: 700;
@@ -1787,10 +1785,8 @@ button:active {
         margin-bottom: 22px;
     }
 
-    .primary-button,
-    .secondary-button {
-        min-height: 52px;
-    }
+    .primary-button { min-height: 46px; }
+    .secondary-button { min-height: 42px; }
 
     .auth-content h1 {
         font-size: 34px;
@@ -1839,8 +1835,8 @@ button:active {
         max-width: 480px;
         margin: 0 auto;
 
-        border-left: 1px solid rgba(245, 201, 91, 0.08);
-        border-right: 1px solid rgba(245, 201, 91, 0.08);
+        border-left: 1px solid rgba(114, 177, 222, 0.08);
+        border-right: 1px solid rgba(114, 177, 222, 0.08);
 
         box-shadow:
             0 0 80px rgba(0, 0, 0, 0.8);
@@ -1896,7 +1892,7 @@ button:active {
 #send-wallet,
 #receive-wallet {
     width: 100%;
-    min-height: 56px;
+    min-height: 48px;
     padding: 0 16px;
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -1916,7 +1912,7 @@ button:active {
 #send-wallet:focus,
 #receive-wallet:focus {
     border-color: var(--gold);
-    box-shadow: 0 0 0 2px rgba(245, 201, 91, 0.10);
+    box-shadow: 0 0 0 2px rgba(114, 177, 222, 0.10);
 }
 
 #send-wallet option,
@@ -1967,13 +1963,13 @@ button:active {
     width: 100%;
     box-sizing: border-box;
     padding: 16px;
-    border: 1px solid rgba(212, 175, 55, 0.28);
+    border: 1px solid rgba(75, 143, 192, 0.28);
     border-radius: 14px;
     background: rgba(255,255,255,0.03);
 }
 .wallet-card.active {
-    border-color: rgba(212, 175, 55, 0.75);
-    box-shadow: 0 0 0 1px rgba(212,175,55,0.12);
+    border-color: rgba(75, 143, 192, 0.75);
+    box-shadow: 0 0 0 1px rgba(75, 143, 192,0.12);
 }
 .wallet-card-top {
     display: flex;
@@ -2009,7 +2005,7 @@ button:active {
     letter-spacing: 0.08em;
     padding: 5px 8px;
     border-radius: 999px;
-    border: 1px solid rgba(212,175,55,0.5);
+    border: 1px solid rgba(75, 143, 192,0.5);
 }
 .wallet-connect-status {
     min-height: 18px;
@@ -2209,7 +2205,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     padding: 14px 16px;
     border: 1px solid var(--border);
     border-radius: 14px;
-    background: rgba(245, 201, 91, 0.04);
+    background: rgba(114, 177, 222, 0.04);
 }
 
 .verification-box .verification-title {
@@ -2260,7 +2256,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .suggestion:active {
-    background: rgba(245, 201, 91, 0.12);
+    background: rgba(114, 177, 222, 0.12);
 }
 
 /* =========================================================
@@ -2313,7 +2309,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     padding: 14px 16px;
     border: 1px solid var(--border);
     border-radius: 14px;
-    background: rgba(245, 201, 91, 0.04);
+    background: rgba(114, 177, 222, 0.04);
 }
 
 .request-title {
@@ -2366,8 +2362,8 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     background-clip: border-box;
 
     filter:
-        drop-shadow(0 0 10px rgba(245, 201, 91, 0.30))
-        drop-shadow(0 0 25px rgba(245, 201, 91, 0.10));
+        drop-shadow(0 0 10px rgba(114, 177, 222, 0.30))
+        drop-shadow(0 0 25px rgba(114, 177, 222, 0.10));
 }
 
 /* Every other screen: one logo button, top centre, that returns to Home. */
@@ -2402,8 +2398,8 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     height: 19px;               /* shows the V and VYRO, crops the tagline */
     background: var(--vyro-wordmark) top center / 112px auto no-repeat;
     filter:
-        drop-shadow(0 0 7px rgba(245, 201, 91, 0.35))
-        drop-shadow(0 0 18px rgba(245, 201, 91, 0.10));
+        drop-shadow(0 0 7px rgba(114, 177, 222, 0.35))
+        drop-shadow(0 0 18px rgba(114, 177, 222, 0.10));
 }
 
 .global-logo-btn:active .logo-crop {
@@ -2520,7 +2516,7 @@ input.input-bad {
     padding: 10px 12px;
     border: 1px solid var(--border);
     border-radius: 12px;
-    background: rgba(245, 201, 91, 0.04);
+    background: rgba(114, 177, 222, 0.04);
     color: var(--text-muted);
     font-size: 11px;
     word-break: break-all;
@@ -2548,7 +2544,7 @@ input.input-bad {
 
 .suggestion:hover,
 .suggestion:focus-visible {
-    background: rgba(245, 201, 91, 0.10);
+    background: rgba(114, 177, 222, 0.10);
     outline: none;
 }
 
@@ -2749,9 +2745,9 @@ input.input-bad {
 }
 
 .role-pill.send {
-    color: #1a1200;
-    background: linear-gradient(180deg, #ffe08a, #f5c95b);
-    box-shadow: 0 0 14px rgba(245, 201, 91, 0.75);
+    color: #050e15;
+    background: linear-gradient(180deg, #a0cbe9, #72b1de);
+    box-shadow: 0 0 14px rgba(114, 177, 222, 0.75);
 }
 
 .role-pill.receive {
@@ -2760,9 +2756,9 @@ input.input-bad {
     box-shadow: 0 0 14px rgba(56, 224, 123, 0.75);
 }
 
-.wallet-card.is-send { border-color: #f5c95b; box-shadow: 0 0 0 1px rgba(245, 201, 91, 0.35), 0 0 18px rgba(245, 201, 91, 0.18); }
+.wallet-card.is-send { border-color: #72b1de; box-shadow: 0 0 0 1px rgba(114, 177, 222, 0.35), 0 0 18px rgba(114, 177, 222, 0.18); }
 .wallet-card.is-receive { border-color: #38e07b; box-shadow: 0 0 0 1px rgba(56, 224, 123, 0.35), 0 0 18px rgba(56, 224, 123, 0.18); }
-.wallet-card.is-send.is-receive { border-color: #f5c95b; box-shadow: 0 0 0 1px rgba(245, 201, 91, 0.35), 0 0 18px rgba(56, 224, 123, 0.22); }
+.wallet-card.is-send.is-receive { border-color: #72b1de; box-shadow: 0 0 0 1px rgba(114, 177, 222, 0.35), 0 0 18px rgba(56, 224, 123, 0.22); }
 
 .wallet-card .wallet-active-badge,
 .wallet-card .wallet-select-button,
@@ -2806,7 +2802,7 @@ input.input-bad {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 52px;
+    min-height: 44px;
     padding: 0 16px;
     border-radius: 999px;
 }
@@ -2817,7 +2813,7 @@ input.input-bad {
     text-align: left;
     border: 1px solid var(--gold);
     border-radius: 12px;
-    background: rgba(245, 201, 91, 0.07);
+    background: rgba(114, 177, 222, 0.07);
     color: var(--text);
 }
 
@@ -2829,7 +2825,7 @@ input.input-bad {
     color: var(--text-muted);
     border: 1px solid var(--gold);
     border-radius: 12px;
-    background: rgba(245, 201, 91, 0.06);
+    background: rgba(114, 177, 222, 0.06);
 }
 
 .wallet-browser-note strong { color: var(--text); }
@@ -2897,7 +2893,7 @@ input.input-bad {
 .open-with-note { margin: 12px 0 0; font-size: 13px; font-weight: 800; line-height: 1.45; color: var(--gold); text-align: center; }
 .wc-card .wc-hint.open-with-note { font-size: 13px; font-weight: 800; color: var(--gold); }
 .home-balances { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 18px; }
-.home-bal { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(245,201,91,0.25); }
+.home-bal { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(114, 177, 222,0.25); }
 .home-bal-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--text-muted); }
 .home-bal-amt { font-size: 18px; font-weight: 800; color: var(--gold-bright); }
 #home-screen .balance-label, #home-screen .balance-amount, #home-screen .balance-subtitle { display: none; }
@@ -2922,3 +2918,10 @@ input.input-bad {
 }
 #confirm-payment-screen .summary-row { flex-wrap: wrap; }
 #confirm-payment-screen .summary-row span:last-child { text-align: right; flex: 1 1 0; min-width: 0; }
+
+/* One consistent, smaller corner radius on every button */
+#connect-wallet-screen button,
+#connect-wallet-screen a.primary-button,
+.wc-card button,
+.get-wallet-card a.primary-button,
+.more-wallets-list button { border-radius: 12px !important; }
