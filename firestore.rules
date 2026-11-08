@@ -1,20 +1,20 @@
 rules_version = '2';
 
 // =========================================================
-// VYRO — FIRESTORE SECURITY RULES
-// Deploy: Firebase Console → Firestore → Rules → paste → Publish
-//         (or `firebase deploy --only firestore:rules`)
+// VYRO (the payment app) — FIRESTORE SECURITY RULES
+// For the Firebase project "vyro-104df" ONLY. The Vyro Business ecosystem is a different Firebase project
+// ("vyrocontractor") with its own rules file; do not paste one into the other.
+// Deploy: Firebase Console -> Firestore Database -> Rules -> paste -> Publish
 //
 // Data model
-//   users/{uid}                    PRIVATE profile (email, verification word, flags)
-//   users/{uid}/transactions/{sig} PRIVATE payment history written by the sender's app
-//   usernames/{username}           PUBLIC-to-signed-in-users directory entry:
-//                                  { uid, walletAddress?, createdAt }
-//                                  This is what "send to @username" resolves against.
-//                                  It deliberately holds NO email or other private data.
+//   users/{uid}            PRIVATE profile (email, verification word, flags, favorites list)
+//   usernames/{name}       Directory: { uid, verificationWord, walletAddress?, receive?{USDC,SOL,ETH}, createdAt }
+//                          "send to @name" looks the name up here. No email or private data.
+//   usernameIndex/{name}   Name only, for the live "type part of a username" search and the "taken" check
+//   payments/{signature}   One receipt per payment (optional note up to 140 characters), written by the sender; sender and recipient can read it
+//   requests/{id}          "Please pay me" requests: { from, to, amount, usdCents?, asset, status }
 //
-// VYRO never holds funds or keys: nothing in here moves money. The directory only
-// maps a username to the PUBLIC address the user chose to receive at.
+// VYRO never holds funds or keys. Nothing here moves money.
 // =========================================================
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -22,10 +22,10 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
     function verified() { return signedIn() && request.auth.token.email_verified == true; }
-    function validAddress(a) {
-      return a is string && a.size() >= 32 && a.size() <= 44
-        && a.matches('^[1-9A-HJ-NP-Za-km-z]+$');
-    }
+    function isSolAddr(a) { return a is string && a.size() >= 32 && a.size() <= 44 && a.matches('^[1-9A-HJ-NP-Za-km-z]+$'); }
+    function isEvmAddr(a) { return a is string && a.matches('^0x[0-9a-fA-F]{40}$'); }
+    function nameOk(n) { return n.matches('^[a-z0-9_]{3,20}$'); }
+    function nameDoc(n) { return /databases/$(database)/documents/usernames/$(n); }
 
     // ---------- private profile ----------
     match /users/{uid} {
@@ -33,58 +33,119 @@ service cloud.firestore {
 
       allow create: if isOwner(uid)
         && request.resource.data.keys().hasOnly(
-             ['username', 'email', 'verificationWord', 'twoFactorEnabled',
-              'securitySetupComplete', 'createdAt'])
+             ['username', 'email', 'verificationWord', 'twoFactorEnabled', 'securitySetupComplete', 'createdAt'])
         && request.resource.data.username is string
-        && request.resource.data.username.matches('^[a-z0-9_]{3,20}$');
+        && nameOk(request.resource.data.username);
 
-      // The username can never be changed after creation (it is the payment identity).
+      // The username can never change after creation (it is the payment identity).
       allow update: if isOwner(uid)
-        && !request.resource.data.diff(resource.data).affectedKeys()
-             .hasAny(['username', 'createdAt']);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['username', 'createdAt']);
 
       allow delete: if false;
-
-      // ---------- payment history (sender-side record) ----------
-      match /transactions/{signature} {
-        allow read: if isOwner(uid);
-
-        allow create: if isOwner(uid)
-          && request.resource.data.keys().hasOnly(
-               ['recipient', 'recipientAddress', 'amount', 'asset', 'network',
-                'fromWallet', 'status', 'type', 'id', 'createdAt'])
-          && request.resource.data.status == 'Submitted'
-          && request.resource.data.id == signature;
-
-        // Only the status may change afterwards (Submitted → Confirmed / Failed).
-        allow update: if isOwner(uid)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-          && request.resource.data.status in ['Submitted', 'Confirmed', 'Failed'];
-
-        allow delete: if false;
-      }
     }
 
     // ---------- username directory ----------
     match /usernames/{username} {
-      // Exact-name lookup only. No listing, so the directory cannot be scraped.
+      // Exact-name lookup only, for signed-in verified people. No listing, so the directory cannot be scraped.
       allow get: if verified();
       allow list: if false;
 
-      // First come, first served: `create` only succeeds if the document does not exist yet.
+      // First come, first served: `create` only works while the name does not exist.
       allow create: if isOwner(request.resource.data.uid)
-        && username.matches('^[a-z0-9_]{3,20}$')
-        && request.resource.data.keys().hasOnly(['uid', 'walletAddress', 'createdAt'])
-        && (!('walletAddress' in request.resource.data)
-            || validAddress(request.resource.data.walletAddress));
+        && nameOk(username)
+        && request.resource.data.keys().hasOnly(['uid', 'verificationWord', 'walletAddress', 'createdAt'])
+        && (!('verificationWord' in request.resource.data)
+            || (request.resource.data.verificationWord is string && request.resource.data.verificationWord.size() <= 40))
+        && (!('walletAddress' in request.resource.data) || isSolAddr(request.resource.data.walletAddress));
 
-      // The owner may only change the receiving address (and must be email-verified).
+      // The owner can change only: the receiving address, the per-coin receiving addresses, the verification word.
       allow update: if verified()
         && resource.data.uid == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress'])
-        && validAddress(request.resource.data.walletAddress);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress', 'receive', 'verificationWord'])
+        && (!('walletAddress' in request.resource.data) || isSolAddr(request.resource.data.walletAddress))
+        && (!('verificationWord' in request.resource.data)
+            || (request.resource.data.verificationWord is string && request.resource.data.verificationWord.size() <= 40))
+        && (!('receive' in request.resource.data)
+            || (request.resource.data.receive is map
+                && request.resource.data.receive.keys().hasOnly(['USDC', 'SOL', 'ETH'])
+                && (!('USDC' in request.resource.data.receive) || isSolAddr(request.resource.data.receive.USDC))
+                && (!('SOL' in request.resource.data.receive) || isSolAddr(request.resource.data.receive.SOL))
+                && (!('ETH' in request.resource.data.receive) || isEvmAddr(request.resource.data.receive.ETH))));
 
       allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // ---------- search index (names only) ----------
+    match /usernameIndex/{name} {
+      // The sign-up screen checks "is this name taken?" before the person has an account, so a single lookup is open.
+      allow get: if true;
+      // Partial-name search while typing: signed-in people, at most 10 results per search.
+      allow list: if signedIn() && request.query.limit <= 10;
+
+      // Only the person who owns the matching directory name can add its search entry (created in the same batch).
+      allow create: if signedIn()
+        && nameOk(name)
+        && request.resource.data.keys().hasOnly(['username'])
+        && request.resource.data.username == name
+        && existsAfter(nameDoc(name))
+        && getAfter(nameDoc(name)).data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ---------- payment receipts ----------
+    match /payments/{id} {
+      allow read: if signedIn() && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+
+      // Written by the sender's app after the wallet signs. The blockchain stays the source of truth.
+      allow create: if signedIn()
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.id == id
+        && request.resource.data.status == 'Submitted'
+        && request.resource.data.keys().hasOnly(
+             ['id', 'fromUid', 'fromUsername', 'toUid', 'toUsername', 'fromWallet', 'recipientAddress', 'amount', 'asset',
+              'network', 'status', 'type', 'createdAt', 'usdCents', 'priceUsd', 'businessPayment', 'invoice', 'note'])
+        && request.resource.data.asset in ['USDC', 'SOL', 'ETH']
+        && request.resource.data.amount is string && request.resource.data.amount.size() <= 40
+        && (!('note' in request.resource.data) || (request.resource.data.note is string && request.resource.data.note.size() <= 140))
+        && (!('usdCents' in request.resource.data) || (request.resource.data.usdCents is int && request.resource.data.usdCents > 0))
+        && (!('priceUsd' in request.resource.data) || request.resource.data.priceUsd == null || request.resource.data.priceUsd is number);
+
+      // Only the sender can update, and only the status (Submitted -> Confirmed / Failed).
+      allow update: if signedIn() && resource.data.fromUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['Submitted', 'Confirmed', 'Failed'];
+
+      allow delete: if false;
+    }
+
+    // ---------- payment requests ----------
+    match /requests/{id} {
+      allow read: if signedIn() && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+
+      allow create: if signedIn()
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toUid != request.auth.uid
+        && request.resource.data.status == 'Pending'
+        && request.resource.data.keys().hasOnly(
+             ['fromUid', 'fromUsername', 'toUid', 'toUsername', 'amount', 'usdCents', 'asset', 'network', 'status', 'createdAt'])
+        && request.resource.data.asset in ['USDC', 'SOL', 'ETH']
+        && request.resource.data.amount is string && request.resource.data.amount.size() <= 40
+        && (!('usdCents' in request.resource.data) || (request.resource.data.usdCents is int && request.resource.data.usdCents >= 100));
+
+      // The person asked to pay can decline, or mark it paid (with the payment's signature).
+      // The person who asked can cancel. A request that is no longer Pending cannot change again.
+      allow update: if signedIn() && resource.data.status == 'Pending'
+        && (
+          (resource.data.toUid == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'paymentId'])
+            && request.resource.data.status in ['Declined', 'Paid'])
+          ||
+          (resource.data.fromUid == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+            && request.resource.data.status == 'Cancelled')
+        );
+
+      allow delete: if false;
     }
   }
 }

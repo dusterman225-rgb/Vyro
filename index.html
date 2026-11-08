@@ -831,6 +831,8 @@
                 Recipient
             </label>
 
+            <div id="favorites-strip" class="fav-strip" aria-label="Favorite people"></div>
+
 
             <div class="input-wrapper">
 
@@ -878,6 +880,8 @@
                     Check that this matches what the recipient sees in their VYQIL profile.
                 </small>
 
+                <button id="fav-toggle" class="fav-btn" type="button">&#9734; Add to favorites</button>
+
             </div>
 
         </div>
@@ -902,6 +906,27 @@
 
             <p class="min-note" id="send-min-note">
                 Enter dollars. Minimum payment: $1.00. VYQIL adds a 1% service fee on top.
+            </p>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="send-note">
+                Note <span class="opt-label">(optional)</span>
+            </label>
+
+            <input
+                id="send-note"
+                type="text"
+                maxlength="140"
+                placeholder="What is this for?"
+                autocomplete="off"
+            >
+
+            <p class="min-note">
+                Seen by you and the recipient in VYQIL. It is not written on the blockchain.
             </p>
 
         </div>
@@ -982,6 +1007,18 @@
 
                 <strong id="confirm-amount">
                     0.00 USDC
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row" id="confirm-note-row" style="display:none">
+
+                <span>
+                    NOTE
+                </span>
+
+                <strong id="confirm-note" style="word-break:break-word">
                 </strong>
 
             </div>
@@ -1846,6 +1883,13 @@
             >
                 —
             </p>
+
+
+            <div id="transaction-detail-note-label" class="auth-card-title" style="display:none">
+                NOTE
+            </div>
+
+            <p id="transaction-detail-note" class="auth-card-text" style="display:none;word-break:break-word"></p>
 
 
             <div class="auth-card-title">
