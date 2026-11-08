@@ -3004,3 +3004,22 @@ h1, h2 { color: #FFFFFF; }
     background: var(--vyro-wordmark) center / contain no-repeat;
 }
 .global-logo-btn { min-width: 132px; height: 44px; }
+
+
+/* =========================================================
+   FAVORITES AND PAYMENT NOTE
+   ========================================================= */
+
+.fav-strip { display: flex; gap: 8px; overflow-x: auto; margin: 6px 0 10px; padding-bottom: 2px; }
+.fav-strip:empty { display: none; }
+.fav-chip {
+    flex: 0 0 auto; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 14px; cursor: pointer; white-space: nowrap;
+}
+.fav-chip:active { background: rgba(148, 207, 249, 0.12); }
+.fav-btn {
+    margin-top: 10px; padding: 8px 14px; border-radius: 12px; border: 1px solid var(--border);
+    background: transparent; color: var(--text); font-size: 14px; cursor: pointer;
+}
+.fav-btn.on { border-color: #f5c542; color: #f5c542; }
+.opt-label { font-weight: 400; opacity: .7; font-size: 13px; }
