@@ -320,7 +320,9 @@
                 type: "Send"
             };
             if (p.usdCents) { record.usdCents = p.usdCents; record.priceUsd = p.priceUsd || null; }
-            saveRecord(record);
+            const cleanNote = typeof p.note === "string" ? p.note.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 140) : "";
+            if (cleanNote) record.note = cleanNote;
+            const savedP = saveRecord(record);
             if (p.requestId) markRequestPaid(p.requestId, id);
 
             // Ethereum: the VYQIL fee is a second approval, asked for right after the payment.
@@ -333,6 +335,11 @@
             stage("Confirming on " + pv.coin.network + "…");
             const final = asset === "ETH" ? await waitForEthConfirmation(id) : await waitForConfirmation(id, lastValidBlockHeight);
             if (final !== "Submitted") updateRecordStatus(id, final);
+
+            try {
+                const sv = await Promise.race([savedP, new Promise(function (r) { setTimeout(function () { r(null); }, 4000); })]);
+                if (sv && sv.noteDropped) feeNote = (feeNote ? feeNote + " " : "") + "Your note could not be saved, so the recipient will not see it.";
+            } catch (e) { /* history is best-effort */ }
 
             clearPendingPayment();
             return Object.assign({}, record, {
@@ -373,19 +380,22 @@
     // signing; the sender and the recipient can both read it. Nobody else can.
     function paymentsCol() { return firebaseDB.collection("payments"); }
 
+    // Resolves to { noteDropped } so the sender can be told if the note could not be saved.
     function saveRecord(record) {
         try {
             const full = Object.assign({}, record, { createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-            paymentsCol().doc(record.id).set(full)
+            return paymentsCol().doc(record.id).set(full).then(function () { return { noteDropped: false }; })
                 .catch(function (e) {
-                    // If the database rules do not know the dollar fields yet, save the receipt without them.
-                    if (record.usdCents && e && e.code === "permission-denied") {
-                        const plain = Object.assign({}, full); delete plain.usdCents; delete plain.priceUsd;
-                        return paymentsCol().doc(record.id).set(plain).catch(function (e2) { console.warn("VYQIL: could not save history", e2); });
+                    // If the database rules do not know the newer fields yet, save the receipt without them.
+                    if ((record.usdCents || record.note) && e && e.code === "permission-denied") {
+                        const plain = Object.assign({}, full); delete plain.usdCents; delete plain.priceUsd; delete plain.note;
+                        return paymentsCol().doc(record.id).set(plain).then(function () { return { noteDropped: !!record.note }; })
+                            .catch(function (e2) { console.warn("VYQIL: could not save history", e2); return { noteDropped: !!record.note }; });
                     }
                     console.warn("VYQIL: could not save history", e);
+                    return { noteDropped: !!record.note };
                 });
-        } catch (e) { console.warn("VYQIL: could not save history", e); }
+        } catch (e) { console.warn("VYQIL: could not save history", e); return Promise.resolve({ noteDropped: !!record.note }); }
     }
     function updateRecordStatus(signature, status) {
         try { paymentsCol().doc(signature).update({ status: status }).catch(function (e) { console.warn("VYQIL: status update failed", e); }); }

@@ -1029,7 +1029,8 @@ if (continueSendButton) {
             fromWallet: sendingWallet.address,
             walletType: sendingWallet.type || "solana",
             walletProvider: sendingWallet.provider || sendingWallet.type || "External Wallet",
-            type: "Send"
+            type: "Send",
+            note: ((document.getElementById("send-note") || {}).value || "").trim().slice(0, 140)
         });
 
         // Look up the recipient and check balances BEFORE showing the confirm screen.
@@ -1074,6 +1075,10 @@ function renderConfirmScreen(q, wallet) {
     const asset = q.asset || "USDC";
     const coin = VYROCoins.get(asset);
     const dec = coin.decimals;
+    (function () {
+        const row = document.getElementById("confirm-note-row");
+        if (row) { row.style.display = q.note ? "" : "none"; set("confirm-note", q.note || ""); }
+    })();
     set("confirm-recipient", q.recipient + (q.recipientAddress ? "  \u2192  " + q.recipientAddress.slice(0, 6) + "..." + q.recipientAddress.slice(-6) : ""));
     const feeUnits = BigInt(q.feeUnits || "0");
     const totalUnits = BigInt(q.totalUnits || q.units);
@@ -1206,6 +1211,7 @@ if (confirmPaymentButton) {
 }
 
 function showPaymentResult(result) {
+    const noteBox = document.getElementById("send-note"); if (noteBox && result.status !== "Failed") noteBox.value = "";
     if (result.status === "Failed") {
         showPaymentFailed("The transaction failed on " + result.network + ". No " + result.asset + " was moved.", result);
         return;
@@ -1321,6 +1327,99 @@ function attachUserSearch(input, list, onPick) {
 
 attachUserSearch(document.getElementById("send-recipient"), document.getElementById("recipient-suggestions"));
 attachUserSearch(document.getElementById("request-username"), document.getElementById("request-suggestions"));
+
+// =========================================================
+// VYQIL — FAVORITES (people you pay often)
+// Saved on your private profile (users/{uid}.favorites), so they follow you to every device.
+// =========================================================
+
+const VYRO_MAX_FAVORITES = 30;
+let favoriteNames = [];
+let favoritesLoadedFor = null;
+
+async function loadFavorites() {
+    const user = firebaseAuth.currentUser;
+    if (!user) { favoriteNames = []; favoritesLoadedFor = null; renderFavorites(); return; }
+    if (favoritesLoadedFor === user.uid) { renderFavorites(); return; }
+    try {
+        const snap = await firebaseDB.collection("users").doc(user.uid).get();
+        const list = snap.exists && Array.isArray(snap.data().favorites) ? snap.data().favorites : [];
+        favoriteNames = list.filter(function (n) { return typeof n === "string" && VYROTransfer.isValidUsername(n); }).slice(0, VYRO_MAX_FAVORITES);
+        favoritesLoadedFor = user.uid;
+    } catch (error) { console.warn("VYQIL: could not load favorites", error); }
+    renderFavorites();
+}
+
+async function saveFavorites(next) {
+    const user = firebaseAuth.currentUser;
+    if (!user) return false;
+    try {
+        await firebaseDB.collection("users").doc(user.uid).update({ favorites: next });
+        favoriteNames = next;
+        return true;
+    } catch (error) {
+        console.warn("VYQIL: could not save favorites", error);
+        alert("Could not save your favorites. Check your connection and try again.");
+        return false;
+    }
+}
+
+function renderFavorites() {
+    const strip = document.getElementById("favorites-strip");
+    if (strip) {
+        strip.innerHTML = "";
+        favoriteNames.forEach(function (name) {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "fav-chip";
+            b.textContent = "\u2605 @" + name;
+            b.addEventListener("click", function () {
+                const input = document.getElementById("send-recipient");
+                if (!input) return;
+                input.value = name;
+                suppressSearchOnce = true;
+                input.dispatchEvent(new Event("input"));
+                suppressSearchOnce = false;
+                const list = document.getElementById("recipient-suggestions");
+                if (list) { list.innerHTML = ""; list.classList.remove("visible"); }
+                const amt = document.getElementById("send-amount"); if (amt) amt.focus();
+            });
+            strip.appendChild(b);
+        });
+    }
+    updateFavoriteButton();
+}
+
+function updateFavoriteButton() {
+    const btn = document.getElementById("fav-toggle");
+    const input = document.getElementById("send-recipient");
+    if (!btn || !input) return;
+    const name = VYROTransfer.normalizeUsername(input.value);
+    const on = favoriteNames.indexOf(name) !== -1;
+    btn.classList.toggle("on", on);
+    btn.textContent = on ? "\u2605 In your favorites (tap to remove)" : "\u2606 Add to favorites";
+}
+
+(function () {
+    const btn = document.getElementById("fav-toggle");
+    const input = document.getElementById("send-recipient");
+    const result = document.getElementById("recipient-result");
+    if (!btn || !input) return;
+    btn.addEventListener("click", async function () {
+        const name = VYROTransfer.normalizeUsername(input.value);
+        if (!VYROTransfer.isValidUsername(name)) return;
+        if (favoritesLoadedFor !== (firebaseAuth.currentUser || {}).uid) await loadFavorites();
+        const has = favoriteNames.indexOf(name) !== -1;
+        if (!has && favoriteNames.length >= VYRO_MAX_FAVORITES) { alert("You can keep up to " + VYRO_MAX_FAVORITES + " favorites. Remove one first."); return; }
+        btn.disabled = true;
+        await saveFavorites(has ? favoriteNames.filter(function (n) { return n !== name; }) : favoriteNames.concat([name]));
+        btn.disabled = false;
+        renderFavorites();
+    });
+    input.addEventListener("input", updateFavoriteButton);
+    if (result && window.MutationObserver) new MutationObserver(updateFavoriteButton).observe(result, { attributes: true, attributeFilter: ["class"] });
+    firebaseAuth.onAuthStateChanged(function () { favoritesLoadedFor = null; loadFavorites(); });
+})();
 
 // =========================================================
 // VYQIL — PAYMENT REQUESTS
@@ -3463,6 +3562,10 @@ function openTransactionDetails(transaction) {
     set("transaction-detail-asset", transaction.asset || "USDC");
     set("transaction-detail-network", transaction.network || "Solana");
     set("transaction-detail-id", transaction.id || "Pending");
+    ["transaction-detail-note-label", "transaction-detail-note"].forEach(function (id) {
+        const el = document.getElementById(id); if (el) el.style.display = transaction.note ? "" : "none";
+    });
+    set("transaction-detail-note", transaction.note || "");
 
     const link = document.getElementById("transaction-detail-link");
     if (link) {
