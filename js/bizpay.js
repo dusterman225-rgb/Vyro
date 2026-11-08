@@ -2,9 +2,9 @@
 // VYQIL — PAY A BUSINESS (scan a Vyqil Business invoice QR)
 // =========================================================
 // The business's QR says how much the customer pays in total. This app splits it in ONE transaction:
-//   98% to the business wallet, 2% to VYQIL's own fee wallet (taken from js/config.js, never from the QR).
+//   99% to the business wallet, 1% to VYQIL's own fee wallet (taken from js/config.js, never from the QR).
 // A one-time "reference" key from the QR is added to the payment so the business can find it on chain.
-// No extra sender fee is added on these payments: the business pays the 2%.
+// No extra sender fee is added on these payments: the business pays the 1%.
 // VYQIL never holds funds or keys. The user's own wallet shows and signs the payment.
 (function () {
     "use strict";
@@ -13,7 +13,7 @@
     const SOL = CFG.solana || {};
     const COINS = window.VYROCoins;
     const T = window.VYROTransfer;
-    const BIZ_FEE_BPS = 200;            // 2%, paid by the business out of the payment
+    const BIZ_FEE_BPS = 100;            // 1%, paid by the business out of the payment
     const $ = function (id) { return document.getElementById(id); };
 
     let conn = null, pending = null, stream = null, timer = null, busy = false, jsqrLoading = null;
@@ -124,7 +124,7 @@
             $("bizpay-to").textContent = short(r.d.to);
             $("bizpay-wallet").textContent = (wallet.provider || wallet.type || "Wallet") + " - " + short(wallet.address);
             $("bizpay-note").textContent = "You pay " + T.formatUnits(r.d.units, dec) + " " + coin + " in total. " +
-                T.formatUnits(s.biz, dec) + " goes to the business and " + T.formatUnits(s.fee, dec) + " is VYQIL's 2% fee, which the business pays. " +
+                T.formatUnits(s.biz, dec) + " goes to the business and " + T.formatUnits(s.fee, dec) + " is VYQIL's 1% fee, which the business pays. " +
                 "Network fee: about 0.000005 SOL from your wallet." +
                 (built.createsRecipientAccount ? " About " + (built.rentLamports / 1e9).toFixed(5) + " SOL is also needed once to open the business's USDC account." : "");
             say("bizpay-confirm-msg", "", false);
