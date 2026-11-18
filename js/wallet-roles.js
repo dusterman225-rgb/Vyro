@@ -59,8 +59,7 @@
 
         // One address line per network: a wallet has a different address on Solana and on Ethereum.
         const sendNet = VYROCoins.get(sendCoin) ? VYROCoins.get(sendCoin).chain : "solana";
-        [["solana", "SOLANA (USDC, SOL)", VYROCoins.walletAddressFor(w, "USDC")],
-         ["ethereum", "ETHEREUM (ETH)", VYROCoins.walletAddressFor(w, "ETH")]].forEach(function (r) {
+        [["solana", "SOLANA (USDC)", VYROCoins.walletAddressFor(w, "USDC")]].forEach(function (r) {
             if (!r[2]) return;
             const line = document.createElement("div");
             line.className = "wallet-card-address" + (isSend && sendNet === r[0] ? " in-use" : "");
@@ -76,45 +75,15 @@
             el.appendChild(line);
         });
 
-        // Which of VYQIL's coins this wallet can use (a wallet only offers what it shares over WalletConnect).
-        const can = VYROCoins.list().filter(function (c) { return VYROCoins.walletCan(w, c.id); }).map(function (c) { return c.label; });
-        const cannot = VYROCoins.list().filter(function (c) { return !VYROCoins.walletCan(w, c.id); }).map(function (c) { return c.label; });
-        const avail = document.createElement("div");
-        avail.className = "coin-avail";
-        avail.textContent = "Works with: " + (can.join(", ") || "none") + (cannot.length ? ". Not shared by this wallet: " + cannot.join(", ") + "." : "");
-        el.appendChild(avail);
-
-        // ---- SENDS: the coin this wallet pays with ----
-        const sendRow = document.createElement("div");
-        sendRow.className = "coin-row";
-        const sendLabel = document.createElement("span");
-        sendLabel.className = "coin-row-label";
-        sendLabel.textContent = "SENDS";
-        const sel = document.createElement("select");
-        sel.className = "coin-select";
-        VYROCoins.list().forEach(function (c) {
-            const o = document.createElement("option");
-            const ok = VYROCoins.walletCan(w, c.id);
-            o.value = c.id;
-            o.textContent = c.label + (ok ? "" : " (not shared by this wallet)");
-            o.disabled = !ok;
-            sel.appendChild(o);
-        });
-        sel.value = sendCoin;
-        sel.addEventListener("change", function () {
-            VYROCoins.setSendCoin(w, sel.value);
-            VYROWallet.setActiveWallet(w.address);   // choosing what a wallet sends makes it the sending wallet
-        });
-        sendRow.appendChild(sendLabel);
-        sendRow.appendChild(sel);
-        el.appendChild(sendRow);
+        // Sending is always USDC on Solana, so there is nothing to choose.
+        try { if (sendCoin !== "USDC") VYROCoins.setSendCoin(w, "USDC"); } catch (e) {}
 
         // ---- RECEIVES: tap a coin to receive it in this wallet ----
         const recRow = document.createElement("div");
         recRow.className = "coin-row";
         const recLabel = document.createElement("span");
         recLabel.className = "coin-row-label";
-        recLabel.textContent = "RECEIVES";
+        recLabel.textContent = "RECEIVE USDC HERE";
         const chips = document.createElement("div");
         chips.className = "coin-chips";
         VYROCoins.list().forEach(function (c) {
@@ -124,7 +93,7 @@
             const chip = document.createElement("button");
             chip.type = "button";
             chip.className = "coin-chip" + (on ? " on" : "");
-            chip.textContent = c.label;
+            chip.textContent = on ? "ON" : "TURN ON";
             chip.disabled = !VYROCoins.walletCan(w, c.id) || !VYROWallet.getUsername();
             chip.title = on ? "Receiving " + c.label + " here. Tap to turn off."
                 : (elsewhere ? c.label + " currently goes to another wallet. Tap to receive it here instead." : "Tap to receive " + c.label + " here.");
