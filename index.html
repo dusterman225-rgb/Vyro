@@ -743,7 +743,7 @@
             <p style="margin:8px 0 0"><strong>One simple fee.</strong> Sending to a person adds a 1% Vyqil fee on top. Send $100 and you need $101 in your wallet. Send $50 and you need $50.50. The person you pay receives the full amount.</p>
             <p style="margin:8px 0 0"><strong>Businesses:</strong> when you pay a Vyqil business, you pay exactly the amount on the invoice. The business covers a 2% Vyqil fee out of that payment.</p>
             <p style="margin:8px 0 0"><strong>First payment to a new wallet:</strong> a brand-new wallet needs a one-time account setup. Vyqil pays for it, and about $0.40 is taken from that person's first payment to cover it. It only happens once.</p>
-            <p style="margin:8px 0 0"><strong>Smallest payment:</strong> $0.50.</p>
+            <p style="margin:8px 0 0"><strong>Smallest payment:</strong> $1.00.</p>
         </div>
 
 
@@ -806,33 +806,13 @@
         </div>
 
 
-        <div class="form-group">
-
-            <label for="send-asset">
-                Coin to send
-            </label>
-
-            <select id="send-asset">
-                <option value="USDC">USDC</option>
-            </select>
-
+        <div class="form-group" hidden>
+            <select id="send-asset"><option value="USDC">USDC</option></select>
             <p class="min-note" id="send-coin-note"></p>
-
+            <select id="send-network" disabled><option value="solana">Solana</option></select>
         </div>
 
-
-        <div class="form-group">
-
-            <label for="send-network">
-                Network
-            </label>
-
-            <select id="send-network" disabled>
-                <option value="solana">Solana</option>
-            </select>
-
-        </div>
-
+        <p class="auth-card-text" style="margin:0 0 14px">Paying in <strong>USDC on Solana</strong>. No network fee: Vyqil pays it.</p>
 
         <div class="form-group">
 
@@ -1395,14 +1375,7 @@
 
         <div class="form-group">
 
-            <label for="request-asset">
-                Coin to request
-            </label>
-
-            <select id="request-asset">
-                <option value="USDC">USDC</option>
-            </select>
-
+            <select id="request-asset" hidden><option value="USDC">USDC</option></select>
             <label for="request-amount" style="margin-top:14px;display:block">
                 Amount <span id="request-amount-unit">(USD)</span>
             </label>
