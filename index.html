@@ -736,6 +736,16 @@
             <span id="home-requests-badge" class="requests-badge" hidden>0</span>
         </button>
 
+        <div class="verification-box" id="home-info" style="margin-top:22px">
+            <div class="verification-title">HOW VYQILPAY WORKS</div>
+            <p style="margin:8px 0 0"><strong>One coin, one network.</strong> VyqilPay uses USDC (a digital dollar) on Solana only. $1 of USDC is always worth about $1.</p>
+            <p style="margin:8px 0 0"><strong>No gas fees.</strong> You never need SOL or any other coin. Vyqil pays the network fee on every payment.</p>
+            <p style="margin:8px 0 0"><strong>One simple fee.</strong> Sending to a person adds a 1% Vyqil fee on top. Send $100 and you need $101 in your wallet. Send $50 and you need $50.50. The person you pay receives the full amount.</p>
+            <p style="margin:8px 0 0"><strong>Businesses:</strong> when you pay a Vyqil business, you pay exactly the amount on the invoice. The business covers a 2% Vyqil fee out of that payment.</p>
+            <p style="margin:8px 0 0"><strong>First payment to a new wallet:</strong> a brand-new wallet needs a one-time account setup. Vyqil pays for it, and about $0.40 is taken from that person's first payment to cover it. It only happens once.</p>
+            <p style="margin:8px 0 0"><strong>Smallest payment:</strong> $0.50.</p>
+        </div>
+
 
     </div>
 
@@ -819,7 +829,6 @@
 
             <select id="send-network" disabled>
                 <option value="solana">Solana</option>
-                <option value="ethereum">Ethereum</option>
             </select>
 
         </div>
@@ -830,8 +839,6 @@
             <label for="send-recipient">
                 Recipient
             </label>
-
-            <div id="favorites-strip" class="fav-strip" aria-label="Favorite people"></div>
 
 
             <div class="input-wrapper">
@@ -880,8 +887,6 @@
                     Check that this matches what the recipient sees in their VYQIL profile.
                 </small>
 
-                <button id="fav-toggle" class="fav-btn" type="button">&#9734; Add to favorites</button>
-
             </div>
 
         </div>
@@ -906,27 +911,6 @@
 
             <p class="min-note" id="send-min-note">
                 Enter dollars. Minimum payment: $1.00. VYQIL adds a 1% service fee on top.
-            </p>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label for="send-note">
-                Note <span class="opt-label">(optional)</span>
-            </label>
-
-            <input
-                id="send-note"
-                type="text"
-                maxlength="140"
-                placeholder="What is this for?"
-                autocomplete="off"
-            >
-
-            <p class="min-note">
-                Seen by you and the recipient in VYQIL. It is not written on the blockchain.
             </p>
 
         </div>
@@ -1007,18 +991,6 @@
 
                 <strong id="confirm-amount">
                     0.00 USDC
-                </strong>
-
-            </div>
-
-
-            <div class="summary-row" id="confirm-note-row" style="display:none">
-
-                <span>
-                    NOTE
-                </span>
-
-                <strong id="confirm-note" style="word-break:break-word">
                 </strong>
 
             </div>
@@ -1885,13 +1857,6 @@
             </p>
 
 
-            <div id="transaction-detail-note-label" class="auth-card-title" style="display:none">
-                NOTE
-            </div>
-
-            <p id="transaction-detail-note" class="auth-card-text" style="display:none;word-break:break-word"></p>
-
-
             <div class="auth-card-title">
                 ASSET
             </div>
@@ -2493,6 +2458,7 @@
 
 <script src="js/nacl-fast.min.js"></script>
 <script src="js/transfer.js"></script>
+<script src="js/sponsor.js"></script>
 <script src="js/coins.js"></script>
 <script src="js/price.js"></script>
 
