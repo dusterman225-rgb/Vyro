@@ -452,8 +452,21 @@
     async function connectWalletConnect(deepLinkBase, label) {
         const client = await ensureWcClient();
         if (!client) return null;
-        const solNs = { methods: ["solana_signTransaction", "solana_signMessage"], chains: solanaChains(), events: [] };
-        const ethNs = null;   // VyqilPay is USDC on Solana only
+        
+const solNs = {
+    methods: ["solana_signTransaction", "solana_signMessage"],
+    chains: solanaChains(),
+    events: []
+};
+
+const ethNs = (CFG.ethereum && CFG.ethereum.chainId)
+    ? {
+        methods: ["eth_sendTransaction"],
+        chains: [CFG.ethereum.chainId],
+        events: []
+    }
+    : null;
+
         // Trust Wallet keeps its original request: Solana required, Ethereum optional.
         // Every other wallet is asked for Solana AND Ethereum as optional, so a wallet that shares only
         // one of them (for example Ethereum only) can still connect.
