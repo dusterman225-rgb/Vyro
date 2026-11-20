@@ -2,9 +2,9 @@
 // VYQIL — PAY A BUSINESS (scan a Vyqil Business invoice QR)
 // =========================================================
 // The business's QR says how much the customer pays in total. This app splits it in ONE transaction:
-//   99% to the business wallet, 1% to VYQIL's own fee wallet (taken from js/config.js, never from the QR).
+//   98% to the business wallet, 2% to VYQIL's own fee wallet (taken from js/config.js, never from the QR).
 // A one-time "reference" key from the QR is added to the payment so the business can find it on chain.
-// No extra sender fee is added on these payments: the business pays the 1%.
+// No extra sender fee is added on these payments: the business pays the 2%.
 // VYQIL never holds funds or keys. The user's own wallet shows and signs the payment.
 (function () {
     "use strict";
@@ -13,7 +13,7 @@
     const SOL = CFG.solana || {};
     const COINS = window.VYROCoins;
     const T = window.VYROTransfer;
-    const BIZ_FEE_BPS = 100;            // 1%, paid by the business out of the payment
+    const BIZ_FEE_BPS = 200;            // 2%, paid by the business out of the payment
     const $ = function (id) { return document.getElementById(id); };
 
     let conn = null, pending = null, stream = null, timer = null, busy = false, jsqrLoading = null;
@@ -26,6 +26,11 @@
     function bad(message) { return { ok: false, error: message }; }
     function clean(s, n) { return String(s || "").replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, n || 60); }
     function short(a) { return a ? a.slice(0, 6) + "..." + a.slice(-4) : ""; }
+    function walletFeeHint(msg) {
+        return /\bsol\b|network fee|gas|fee payer|insufficient (funds|balance)/i.test(String(msg || ""))
+            ? msg + " (Vyqil pays the network fee for this payment. This message came from your wallet app, which checks your SOL balance anyway. Try Phantom or Solflare, or put about $0.50 of SOL in this wallet.)"
+            : msg;
+    }
     function userError(m) { const e = new Error(m); e.userFacing = true; return e; }
 
     // ---------- read and check the QR text ----------
@@ -37,7 +42,7 @@
         if (q.get("v") !== "1") return bad("This payment code is from a newer version. Please update VYQIL.");
         if (q.get("net") !== "mainnet") return bad("This is a TEST payment code (test network). VYQIL pays on Solana mainnet only, so nothing was paid. Ask the business to switch to live payments.");
         const coin = String(q.get("coin") || "").toUpperCase();
-        if (coin !== "USDC" && coin !== "SOL") return bad("This payment code uses a coin VYQIL can't pay yet.");
+        if (coin !== "USDC") return bad("Vyqil pays in USDC on Solana only. This payment code uses a different coin.");
         if (!COINS || !COINS.usable(coin)) return bad(coin + " payments are not set up in this app yet.");
         const to = q.get("to") || "", ref = q.get("ref") || "";
         if (!T.isValidSolanaAddress(to)) return bad("The business wallet in this code is not valid.");
@@ -68,13 +73,13 @@
         if (sender === treasury) throw userError("This wallet is VYQIL's own fee wallet. Pick a different wallet to pay with.");
         if (d.to === treasury) throw userError("This payment code is not valid (it pays VYQIL's fee wallet).");
         if (d.to === sender) throw userError("You can't pay your own wallet.");
-        const s = split(d);
-        if (s.biz <= 0n) throw userError("This amount is too small to split.");
-        const common = { connection: getConn(), sender: sender, recipient: d.to, units: s.biz, feeUnits: s.fee, feeRecipient: treasury, reference: d.ref };
         let built;
         try {
-            built = d.coin === "SOL" ? await T.buildSolTransfer(common) : await T.buildUsdcTransfer(Object.assign({ config: SOL }, common));
+            const q = await window.VYROSponsor.quote(d.to);
+            built = await T.buildSponsoredUsdc({ config: SOL, connection: getConn(), sender: sender, recipient: d.to, units: d.units, mode: "biz",
+                feeRecipient: treasury, gasWallet: q.gasWallet, newAccount: q.newAccount, startupUnits: q.startupUnits, reference: d.ref });
         } catch (e) {
+            if (e.code && !/^INSUFFICIENT/.test(e.code) && e.code !== "network" && e.message) throw userError(e.message);
             if (e.code === "INSUFFICIENT_USDC" || e.code === "INSUFFICIENT_SOL") throw userError(e.message);
             console.error("VYQIL biz build error:", e);
             throw userError("Could not reach the Solana network. Please try again in a moment.");
@@ -115,7 +120,6 @@
         try {
             const wallet = activeWalletFor(r.d.coin);
             const built = await build(r.d, wallet.address);
-            const s = split(r.d);
             pending = { d: r.d, wallet: wallet, built: built, at: Date.now() };
             const dec = r.d.dec, coin = r.d.coin;
             $("bizpay-biz").textContent = r.d.biz;
@@ -123,10 +127,8 @@
             $("bizpay-amount").textContent = T.formatUnits(r.d.units, dec) + " " + coin + (r.d.usd != null ? "  (about $" + (r.d.usd / 100).toFixed(2) + ")" : "");
             $("bizpay-to").textContent = short(r.d.to);
             $("bizpay-wallet").textContent = (wallet.provider || wallet.type || "Wallet") + " - " + short(wallet.address);
-            $("bizpay-note").textContent = "You pay " + T.formatUnits(r.d.units, dec) + " " + coin + " in total. " +
-                T.formatUnits(s.biz, dec) + " goes to the business and " + T.formatUnits(s.fee, dec) + " is VYQIL's 1% fee, which the business pays. " +
-                "Network fee: about 0.000005 SOL from your wallet." +
-                (built.createsRecipientAccount ? " About " + (built.rentLamports / 1e9).toFixed(5) + " SOL is also needed once to open the business's USDC account." : "");
+            $("bizpay-note").textContent = "You pay " + T.formatUnits(r.d.units, dec) + " " + coin + " in total. There is no network fee for you. " +
+                "The 2% Vyqil fee (" + T.formatUnits(built.feeUnits, dec) + " " + coin + ") is paid by the business out of this payment.";
             say("bizpay-confirm-msg", "", false);
             view("confirm");
         } catch (e) {
@@ -154,17 +156,15 @@
             } else built = await build(d, sender);
             stage("Approve in your wallet...");
             let result;
-            try { result = await VYROWallet.requestSignature(built.transaction, sender, { rebuild: async function () { built = await build(d, sender); return built.transaction; } }); }
+            try { result = await VYROWallet.requestSignature(built.transaction, sender, { signOnly: true, rebuild: async function () { built = await build(d, sender); return built.transaction; } }); }
             catch (e) {
                 if (VYROWallet.isUserRejection(e)) throw userError("You declined the request in your wallet. No payment was made.");
-                throw userError(e.message || "Your wallet could not sign this payment.");
+                throw userError(walletFeeHint(e.message || "Your wallet could not sign this payment."));
             }
-            let id = result.signature;
-            if (!id) {
-                stage("Submitting...");
-                try { id = await VYROWallet.sendSigned(getConn(), result.signedRaw, built.lastValidBlockHeight); }
-                catch (e) { console.error("VYQIL biz send error:", e); if (/time window ran out/.test(e.message || "")) throw userError(e.message); throw userError("The network rejected this payment: " + String(e.message || "unknown error").split(". Logs:")[0] + ". No funds were moved."); }
-            }
+            let id;
+            stage("Submitting...");
+            try { id = (await window.VYROSponsor.send(result.signedRaw, "biz")).signature; }
+            catch (e) { console.error("VYQIL biz send error:", e); throw userError(e.message || "Vyqil could not send this payment. No funds were moved."); }
             saveRecord(d, id, sender);
             stage("Confirming...");
             const final = await waitForConfirmation(id, built.lastValidBlockHeight);
