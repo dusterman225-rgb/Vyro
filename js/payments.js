@@ -129,7 +129,6 @@
             feeWaived: !!built.feeWaived,
             totalUnits: built.totalUnits.toString(),
             feeBps: built.feeUnits > 0n ? FEE.bps : 0,
-            startupUnits: built.startupUnits ? built.startupUnits.toString() : "0",
             rentLamports: built.rentLamports || 0,
             feeLamports: built.feeLamports || 0,
             gasWei: built.gasWei ? built.gasWei.toString() : ""
@@ -146,14 +145,6 @@
         return VYROTransfer.feeUnits(units, FEE.bps);
     }
 
-
-    // Some wallet apps (Trust Wallet especially) check the user's own SOL balance before signing, even though Vyqil pays the network fee.
-    function walletFeeHint(msg) {
-        return /\bsol\b|network fee|gas|fee payer|insufficient (funds|balance)/i.test(String(msg || ""))
-            ? msg + " (Vyqil pays the network fee for this payment. This message came from your wallet app, which checks your SOL balance anyway. Try Phantom or Solflare, or put about $0.50 of SOL in this wallet.)"
-            : msg;
-    }
-
     async function buildForAsset(asset, wallet, recipientAddress, units) {
         if (asset === "ETH") return buildEth(COINS.walletAddressFor(wallet, "ETH"), recipientAddress, units);
         return buildWithFriendlyErrors(asset, wallet.address, recipientAddress, units);
@@ -161,16 +152,14 @@
 
     async function buildWithFriendlyErrors(asset, sender, recipient, units) {
         try {
-            if (asset !== "USDC") throw userError("Vyqil pays in USDC on Solana only.");
-            const q = await VYROSponsor.quote(recipient);
-            return await VYROTransfer.buildSponsoredUsdc({
-                config: SOL, connection: getConnection(), sender: sender, recipient: recipient, units: units, mode: "person",
-                feeRecipient: COINS.feeAddress("USDC"), gasWallet: q.gasWallet, newAccount: q.newAccount, startupUnits: q.startupUnits
-            });
+            const common = {
+                connection: getConnection(), sender: sender, recipient: recipient, units: units,
+                feeUnits: feeFor(sender, units, asset), feeRecipient: COINS.feeAddress(asset)
+            };
+            if (asset === "SOL") return await VYROTransfer.buildSolTransfer(common);
+            return await VYROTransfer.buildUsdcTransfer(Object.assign({ config: SOL }, common));
         } catch (e) {
-            if (e.userFacing) throw e;
             if (e.code === "INSUFFICIENT_USDC" || e.code === "INSUFFICIENT_SOL") throw userError(e.message);
-            if (e.code && e.code !== "network" && e.message) throw userError(e.message);
             console.error("VYQIL build error:", e);
             throw userError("Could not reach the Solana network. Please try again in a moment.");
         }
@@ -283,26 +272,33 @@
                 try { id = await requestEthSend(sender, from, to.address, pv.units); }
                 catch (e) {
                     if (VYROWallet.isUserRejection(e)) throw userError("You declined the request in your wallet. No payment was made.");
-                    throw userError(walletFeeHint(e.message || "Your wallet could not sign this payment."));
+                    throw userError(e.message || "Your wallet could not sign this payment.");
                 }
             } else {
                 stage("Approve in your wallet…");
                 let result;
                 try {
                     result = await VYROWallet.requestSignature(built.transaction, sender, {
-                        signOnly: true,
                         // If the wallet has to be reconnected, build again so the transaction is fresh.
                         rebuild: async function () { built = await buildForAsset(asset, wv.wallet, to.address, pv.units); return built.transaction; }
                     });
                 }
                 catch (e) {
                     if (VYROWallet.isUserRejection(e)) throw userError("You declined the request in your wallet. No payment was made.");
-                    throw userError(walletFeeHint(e.message || "Your wallet could not sign this payment."));
+                    throw userError(e.message || "Your wallet could not sign this payment.");
                 }
+                id = result.signature;
                 if (verifying) { try { await verifying; } catch (e) { throw userError(e.message || "The recipient could not be re-checked. Nothing was sent."); } }
-                stage("Submitting…");
-                try { id = (await VYROSponsor.send(result.signedRaw, "person")).signature; }
-                catch (e) { console.error("VYQIL send error:", e); throw userError(e.message || "Vyqil could not send this payment. No funds were moved."); }
+                if (!id) {
+                    stage("Submitting…");
+                    try {
+                        id = await VYROWallet.sendSigned(getConnection(), result.signedRaw, built.lastValidBlockHeight);
+                    } catch (e) {
+                        console.error("VYQIL send error:", e);
+                        if (/time window ran out/.test(e.message || "")) throw userError(e.message);
+                        throw userError("The network rejected this payment: " + String(e.message || "unknown error").split(". Logs:")[0] + ". No funds were moved.");
+                    }
+                }
                 lastValidBlockHeight = built.lastValidBlockHeight;
             }
 
@@ -324,7 +320,9 @@
                 type: "Send"
             };
             if (p.usdCents) { record.usdCents = p.usdCents; record.priceUsd = p.priceUsd || null; }
-            saveRecord(record);
+            const cleanNote = typeof p.note === "string" ? p.note.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 140) : "";
+            if (cleanNote) record.note = cleanNote;
+            const savedP = saveRecord(record);
             if (p.requestId) markRequestPaid(p.requestId, id);
 
             // Ethereum: the VYQIL fee is a second approval, asked for right after the payment.
@@ -337,6 +335,11 @@
             stage("Confirming on " + pv.coin.network + "…");
             const final = asset === "ETH" ? await waitForEthConfirmation(id) : await waitForConfirmation(id, lastValidBlockHeight);
             if (final !== "Submitted") updateRecordStatus(id, final);
+
+            try {
+                const sv = await Promise.race([savedP, new Promise(function (r) { setTimeout(function () { r(null); }, 4000); })]);
+                if (sv && sv.noteDropped) feeNote = (feeNote ? feeNote + " " : "") + "Your note could not be saved, so the recipient will not see it.";
+            } catch (e) { /* history is best-effort */ }
 
             clearPendingPayment();
             return Object.assign({}, record, {
@@ -377,19 +380,22 @@
     // signing; the sender and the recipient can both read it. Nobody else can.
     function paymentsCol() { return firebaseDB.collection("payments"); }
 
+    // Resolves to { noteDropped } so the sender can be told if the note could not be saved.
     function saveRecord(record) {
         try {
             const full = Object.assign({}, record, { createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-            paymentsCol().doc(record.id).set(full)
+            return paymentsCol().doc(record.id).set(full).then(function () { return { noteDropped: false }; })
                 .catch(function (e) {
-                    // If the database rules do not know the dollar fields yet, save the receipt without them.
-                    if (record.usdCents && e && e.code === "permission-denied") {
-                        const plain = Object.assign({}, full); delete plain.usdCents; delete plain.priceUsd;
-                        return paymentsCol().doc(record.id).set(plain).catch(function (e2) { console.warn("VYQIL: could not save history", e2); });
+                    // If the database rules do not know the newer fields yet, save the receipt without them.
+                    if ((record.usdCents || record.note) && e && e.code === "permission-denied") {
+                        const plain = Object.assign({}, full); delete plain.usdCents; delete plain.priceUsd; delete plain.note;
+                        return paymentsCol().doc(record.id).set(plain).then(function () { return { noteDropped: !!record.note }; })
+                            .catch(function (e2) { console.warn("VYQIL: could not save history", e2); return { noteDropped: !!record.note }; });
                     }
                     console.warn("VYQIL: could not save history", e);
+                    return { noteDropped: !!record.note };
                 });
-        } catch (e) { console.warn("VYQIL: could not save history", e); }
+        } catch (e) { console.warn("VYQIL: could not save history", e); return Promise.resolve({ noteDropped: !!record.note }); }
     }
     function updateRecordStatus(signature, status) {
         try { paymentsCol().doc(signature).update({ status: status }).catch(function (e) { console.warn("VYQIL: status update failed", e); }); }
