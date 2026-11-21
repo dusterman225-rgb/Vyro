@@ -1030,7 +1030,8 @@ if (continueSendButton) {
             fromWallet: sendingWallet.address,
             walletType: sendingWallet.type || "solana",
             walletProvider: sendingWallet.provider || sendingWallet.type || "External Wallet",
-            type: "Send"
+            type: "Send",
+            note: (function () { const n = document.getElementById("send-note"); return n ? String(n.value || "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 140) : ""; })()
         });
 
         // Look up the recipient and check balances BEFORE showing the confirm screen.
@@ -2227,6 +2228,19 @@ if (securityBackButton) {
 
 
 // =========================================================
+// PROFILE MENU — RECENT TRANSACTIONS
+// =========================================================
+(function () {
+    const btn = document.getElementById("profile-menu-history");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+        if (typeof closeProfileMenu === "function") closeProfileMenu();
+        loadTransactionHistory();
+        showScreen(transactionHistoryScreen);
+    });
+})();
+
+// =========================================================
 // PROFILE MENU — WALLETS
 // =========================================================
 
@@ -3395,10 +3409,13 @@ function buildTransactionRow(transaction) {
     const status = transaction.status || "Pending";
     subtitle.textContent = (when ? when + " · " : "") + status;
     if (status === "Failed" || status === "Unverified") subtitle.classList.add("status-bad");
+    const noteLine = transaction.note ? document.createElement("div") : null;
+    if (noteLine) { noteLine.className = "transaction-row-subtitle"; noteLine.textContent = "\u201C" + String(transaction.note).slice(0, 80) + "\u201D"; }
 
     main.appendChild(kind);
     main.appendChild(title);
     main.appendChild(subtitle);
+    if (noteLine) main.appendChild(noteLine);
 
     const amount = document.createElement("div");
     amount.className = "transaction-row-amount";
@@ -3462,6 +3479,9 @@ function openTransactionDetails(transaction) {
     set("transaction-detail-asset", transaction.asset || "USDC");
     set("transaction-detail-network", transaction.network || "Solana");
     set("transaction-detail-id", transaction.id || "Pending");
+    const noteText = transaction.note ? String(transaction.note) : "";
+    set("transaction-detail-note", noteText);
+    ["transaction-detail-note", "transaction-detail-note-label"].forEach(function (id) { const el = document.getElementById(id); if (el) el.style.display = noteText ? "" : "none"; });
 
     const link = document.getElementById("transaction-detail-link");
     if (link) {

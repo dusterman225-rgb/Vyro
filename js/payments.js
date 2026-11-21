@@ -326,7 +326,7 @@
             if (p.usdCents) { record.usdCents = p.usdCents; record.priceUsd = p.priceUsd || null; }
             const cleanNote = typeof p.note === "string" ? p.note.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 140) : "";
             if (cleanNote) record.note = cleanNote;
-            const savedP = saveRecord(record);
+            const savedP = saveRecord(record); try { const ni = document.getElementById("send-note"); if (ni) ni.value = ""; } catch (e) { /* optional */ }
             if (p.requestId) markRequestPaid(p.requestId, id);
 
             // Ethereum: the VYQIL fee is a second approval, asked for right after the payment.
