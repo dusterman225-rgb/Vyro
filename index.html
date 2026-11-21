@@ -102,6 +102,14 @@
                 WALLETS
             </button>
 
+            <button
+                id="profile-menu-history"
+                class="profile-menu-item"
+                type="button"
+            >
+                RECENT TRANSACTIONS
+            </button>
+
             <div class="profile-menu-divider"></div>
 
             <button
@@ -891,6 +899,27 @@
 
             <p class="min-note" id="send-min-note">
                 Enter dollars. Minimum payment: $1.00. VYQIL adds a 1% service fee on top.
+            </p>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="send-note">
+                Message (optional)
+            </label>
+
+            <input
+                id="send-note"
+                type="text"
+                maxlength="140"
+                autocomplete="off"
+                placeholder="Add a short message, e.g. Rent for November"
+            >
+
+            <p class="min-note">
+                Up to 140 characters. The person you pay can see it in their transactions.
             </p>
 
         </div>
@@ -1803,6 +1832,18 @@
                 class="auth-card-text"
             >
                 —
+            </p>
+
+
+            <div id="transaction-detail-note-label" class="auth-card-title" style="display:none">
+                MESSAGE
+            </div>
+
+            <p
+                id="transaction-detail-note"
+                class="auth-card-text"
+                style="display:none"
+            >
             </p>
 
 
