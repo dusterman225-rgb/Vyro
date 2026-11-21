@@ -336,12 +336,14 @@
                 if (window.VYROPayments) VYROPayments.clearPendingPayment();
                 if (!firstAuthEvent && !registering) go("welcome-screen");   // signed out elsewhere
                 firstAuthEvent=false;
+                if (window.vqBootDone) window.vqBootDone();
                 return;
             }
             if (window.VYROWallet) VYROWallet.setUser(user.uid);
             if (!firstAuthEvent) return;
             firstAuthEvent=false;
-            await routeAuthenticatedUser(user);
+            try { await routeAuthenticatedUser(user); }
+            finally { if (window.vqBootDone) window.vqBootDone(); }
         });
     }
 

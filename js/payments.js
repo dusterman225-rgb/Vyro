@@ -267,6 +267,9 @@
             if (fast) {
                 stage("Preparing…");
                 to = quoted.to; built = quoted.built;
+                // Wake the wallet connection FIRST (slow on low-memory phones), then take the fresh blockhash, so the
+                // payment's short validity window is not spent while the phone is still starting things up.
+                try { await VYROWallet.prewarm(); } catch (e) { /* surfaced at sign time */ }
                 await refreshBlockhash(built);
                 verifying = verifyRecipient(to); verifying.catch(function () { /* reported below, before sending */ });
             } else {
@@ -288,6 +291,7 @@
             } else {
                 stage("Approve in your wallet…");
                 let result; VYROSponsor.setMode("person");
+                const tAsked = Date.now();
                 try {
                     result = await VYROWallet.requestSignature(built.transaction, sender, {
                         signOnly: true,
@@ -301,8 +305,15 @@
                 }
                 if (verifying) { try { await verifying; } catch (e) { throw userError(e.message || "The recipient could not be re-checked. Nothing was sent."); } }
                 stage("Submitting…");
+                const waited = Math.round((Date.now() - tAsked) / 1000);
                 try { id = (await VYROSponsor.send(result.signedRaw, "person")).signature; }
-                catch (e) { console.error("VYQIL send error:", e); throw userError(e.message || "Vyqil could not send this payment. No funds were moved."); }
+                catch (e) {
+                    console.error("VYQIL send error:", e, "wallet took", waited, "s");
+                    const m = String(e.message || "");
+                    if (/blockhash|expired|too old|not found/i.test(m))
+                        throw userError("Your wallet took " + waited + " seconds to approve, and a payment is only valid for about a minute. Nothing was sent. Please try again; for a slow phone, close other apps first, or use Phantom or Solflare, which return faster.");
+                    throw userError(m || "Vyqil could not send this payment. No funds were moved.");
+                }
                 lastValidBlockHeight = built.lastValidBlockHeight;
             }
 
@@ -549,7 +560,7 @@
         return { units: units, coin: coin, usdCents: usd.cents, price: px.price };
     }
 
-    async function createRequest(rawUsername, usdText, asset) {
+    async function createRequest(rawUsername, usdText, asset, noteText) {
         asset = asset || "USDC";
         const me = firebaseAuth.currentUser;
         if (!me) throw userError("Please log in again.");
@@ -579,12 +590,14 @@
             asset: asset, network: ap.coin.network, status: "Pending",
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
+        const reqNote = String(noteText || "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 140);
+        if (reqNote) doc.note = reqNote;
         const ref = requestsCol().doc();
         try { await ref.set(doc); }
         catch (e) {
             // If the database rules do not know the dollar field yet, send the request without it (it then stays a fixed coin amount).
             if (e && e.code === "permission-denied") {
-                const plain = Object.assign({}, doc); delete plain.usdCents;
+                const plain = Object.assign({}, doc); delete plain.usdCents; delete plain.note;
                 try { await ref.set(plain); return Object.assign({ id: ref.id }, plain); } catch (e2) { e = e2; }
             }
             console.error("VYQIL request save error:", e); throw userError("Could not send the request. Please try again.");
@@ -610,6 +623,24 @@
                 time: millis(r.createdAt)
             });
         }).sort(function (a, b) { return b.time - a.time; });
+    }
+
+    // Lightweight: recent payments sent TO me that carry a message (for the home "New Transaction with Message" button).
+    async function loadMessages() {
+        const me = firebaseAuth.currentUser;
+        if (!me) return [];
+        const snap = await firebaseDB.collection("payments").where("toUid", "==", me.uid).limit(30).get();
+        const out = [];
+        snap.docs.forEach(function (d) {
+            const r = Object.assign({ id: d.id }, d.data());
+            if (!r.note) return;
+            let rec = r;
+            try { if (typeof decorate === "function") rec = decorate(r, me.uid) || r; } catch (e) { rec = r; }
+            rec.id = rec.id || d.id;
+            rec._t = millis(r.createdAt);
+            out.push(rec);
+        });
+        return out.sort(function (a, b) { return b._t - a._t; });
     }
 
     // Payer declines (status Declined) or requester withdraws (status Cancelled).
@@ -676,6 +707,6 @@
         setPendingPayment, getPendingPayment, clearPendingPayment,
         validatePayment, validateWallet, resolveRecipient,
         quote, submit, loadHistory, getBalances, explorerUrl,
-        searchUsernames, createRequest, loadRequests, respondToRequest
+        searchUsernames, createRequest, loadRequests, loadMessages, respondToRequest
     };
 })();

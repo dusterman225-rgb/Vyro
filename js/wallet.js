@@ -326,10 +326,34 @@
         x.addEventListener("click", function () { bar.remove(); }); bar.appendChild(x); document.body.appendChild(bar);
     }
 
+    // The WalletConnect library is big. It is loaded only when needed (not on every page open), which keeps
+    // low-memory phones responsive until a wallet is actually used.
+    const WC_SRC = "https://unpkg.com/@walletconnect/sign-client@2.23.4/dist/index.umd.js";
+    let wcLibPromise = null;
+    function loadWcLibrary() {
+        if (resolveSignClient()) return Promise.resolve();
+        if (wcLibPromise) return wcLibPromise;
+        wcLibPromise = new Promise(function (resolve, reject) {
+            const s = document.createElement("script");
+            s.src = WC_SRC; s.crossOrigin = "anonymous"; s.async = true;
+            s.onload = function () { resolve(); };
+            s.onerror = function () { wcLibPromise = null; reject(new Error("Could not load the wallet connection library. Check your connection and try again.")); };
+            document.head.appendChild(s);
+        });
+        return wcLibPromise;
+    }
+    // Called when the confirm screen opens so the wallet connection is already awake when you tap Approve.
+    function prewarm() {
+        const active = getActiveWallet();
+        if (!active || active.type !== "walletconnect") return Promise.resolve();
+        return ensureWcClient().catch(function () { /* surfaced at sign time */ });
+    }
+
     async function ensureWcClient() {
         if (wcClient) return wcClient;
         const projectId = CFG.walletConnectProjectId;
         if (!projectId) return null;
+        await loadWcLibrary();
         const SC = resolveSignClient();
         if (!SC) throw new Error("WalletConnect library is unavailable.");
         // "redirect" tells the wallet where to send the user back to after they approve.
@@ -804,7 +828,14 @@
     // ---------- restore ----------
     async function restoreConnection() {
         const active = getActiveWallet();
-        if (active && active.type === "walletconnect") { try { await ensureWcClient(); } catch (e) { /* surfaced at sign time */ } }
+        // Wake WalletConnect straight away only when a payment or connection is waiting to be finished; otherwise it
+        // starts later (confirm screen / sign time) so the home screen opens fast on low-memory phones.
+        let waiting = false;
+        try { waiting = !!localStorage.getItem(SIGNREQ) || !!readPending(); } catch (e) { /* ignore */ }
+        if (active && active.type === "walletconnect") {
+            if (waiting) { try { await ensureWcClient(); } catch (e) { /* surfaced at sign time */ } }
+            else setTimeout(function () { ensureWcClient().catch(function () { /* surfaced at sign time */ }); }, 4000);
+        }
         updateUI();
         return active;
     }
@@ -858,7 +889,7 @@
     function init() { bind(); updateUI(); }
 
     window.VYROWallet = {
-        init, connect, disconnect, restoreConnection,
+        init, connect, disconnect, restoreConnection, prewarm,
         setUser, setUsername, setReceivingWallet, getReceivingAddress, getUsername,
         getWallets, getActiveWallet, setActiveWallet, addWallet, removeWallet,
         getAddress, getActiveAddress: getAddress, isConnected, getWalletType, getProvider,

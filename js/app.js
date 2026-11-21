@@ -1072,6 +1072,7 @@ function checkBuild() {
 }
 
 function renderConfirmScreen(q, wallet) {
+    try { if (window.VYROWallet && VYROWallet.prewarm) VYROWallet.prewarm(); } catch (e) { /* optional */ }
     const set = function (id, text) { const el = document.getElementById(id); if (el) el.textContent = text; };
     const asset = q.asset || "USDC";
     const coin = VYROCoins.get(asset);
@@ -1333,16 +1334,46 @@ const requestsScreen = document.getElementById("requests-screen");
 async function refreshRequestsBadge() {
     const badge = document.getElementById("home-requests-badge");
     if (!badge || !window.VYROPayments || !firebaseAuth.currentUser) return;
+    refreshMessageButton();
     try {
         const list = await VYROPayments.loadRequests();
         const n = list.filter(function (r) { return r.direction === "incoming" && r.status === "Pending"; }).length;
         badge.textContent = String(n);
         badge.hidden = n === 0;
+        const rb = document.getElementById("home-requests-btn");
+        if (rb) rb.classList.toggle("has-pending", n > 0);
     } catch (error) {
         console.warn("VYQIL: could not load requests:", error);
     }
 }
 window.refreshRequestsBadge = refreshRequestsBadge;
+
+// "New Transaction with Message": shown for received payments that carry a note you have not opened yet.
+function seenKey() { const u = firebaseAuth.currentUser; return "vq_msgseen_" + (u ? u.uid : ""); }
+function readSeen() { try { return JSON.parse(localStorage.getItem(seenKey()) || "[]"); } catch (e) { return []; } }
+function markSeen(id) { try { const s = readSeen(); if (s.indexOf(id) < 0) s.push(id); localStorage.setItem(seenKey(), JSON.stringify(s.slice(-200))); } catch (e) { /* storage blocked */ } }
+let unseenMessage = null;
+async function refreshMessageButton() {
+    const btn = document.getElementById("home-message-btn");
+    if (!btn || !window.VYROPayments || !VYROPayments.loadMessages || !firebaseAuth.currentUser) return;
+    try {
+        const seen = readSeen();
+        const fresh = (await VYROPayments.loadMessages()).filter(function (m) { return seen.indexOf(m.id) < 0; });
+        unseenMessage = fresh[0] || null;
+        btn.hidden = !unseenMessage;
+    } catch (error) { console.warn("VYQIL: could not load messages:", error); }
+}
+(function () {
+    const btn = document.getElementById("home-message-btn");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+        const m = unseenMessage;
+        if (!m) return;
+        markSeen(m.id); btn.hidden = true; unseenMessage = null;
+        openTransactionDetails(m);
+        setTimeout(refreshMessageButton, 300);
+    });
+})();
 
 function requestRow(r) {
     const incoming = r.direction === "incoming";
@@ -1362,6 +1393,13 @@ function requestRow(r) {
 
     row.appendChild(title);
     row.appendChild(sub);
+    if (r.note) {
+        const nt = document.createElement("div");
+        nt.className = "request-sub";
+        nt.style.fontStyle = "italic";
+        nt.textContent = "\u201C" + r.note + "\u201D";
+        row.appendChild(nt);
+    }
 
     if (r.status === "Pending") {
         const actions = document.createElement("div");
@@ -1478,6 +1516,7 @@ async function payRequest(r, button) {
         walletType: wallet.type || "solana",
         walletProvider: wallet.provider || wallet.type || "External Wallet",
         type: "Send",
+        note: r.note || undefined,
         requestId: r.id
     });
 
@@ -1520,7 +1559,8 @@ if (sendRequestButton) {
         sendRequestButton.textContent = "SENDING…";
         try {
             const reqCoin = (document.getElementById("request-asset").value || "USDC").toUpperCase();
-            const req = await VYROPayments.createRequest(who, amount, reqCoin);
+            const req = await VYROPayments.createRequest(who, amount, reqCoin, (document.getElementById("request-note") || {}).value);
+            const rn = document.getElementById("request-note"); if (rn) rn.value = "";
             document.getElementById("request-username").value = "";
             document.getElementById("request-amount").value = "";
             alert("Request sent to @" + req.toUsername + " for " + (req.usdCents ? VYROPrice.fmtUsd(req.usdCents) + " (paid in " + req.asset + ")" : req.amount + " " + req.asset) + ". They will see it under Payment Requests.");
