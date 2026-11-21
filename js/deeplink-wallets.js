@@ -144,7 +144,7 @@
                 const rpc = window.VYRO_CONFIG && VYRO_CONFIG.solana && VYRO_CONFIG.solana.rpcUrl;
                 if (!rpc || !window.solanaWeb3 || !window.VYROWallet) throw new Error("Approved in the wallet, but VYQIL could not send it. Nothing was sent. Please try the payment again.");
                 const conn2 = new solanaWeb3.Connection(rpc, "confirmed");
-                const sig = await VYROWallet.sendSigned(conn2, signed, null);
+                const sig = window.VYROSponsor ? (await VYROSponsor.send(signed, VYROSponsor.mode())).signature : await VYROWallet.sendSigned(conn2, signed, null);
                 banner("Payment sent. Reference: " + sig + ". It may take a few seconds to confirm. (This page was reloaded, so the receipt is not in your history; the blockchain has it.)", true);
             }
         } catch (e) {

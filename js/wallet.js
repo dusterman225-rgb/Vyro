@@ -284,10 +284,10 @@
         if (Date.now() - rec.at > 10 * 60000) { disarmRecovery(); return; }
         recovering = true;
         try {
-            // Wait for the wallet's answer to arrive (up to about 75 seconds), because a phone that just reopened the page
+            // Wait for the wallet's answer to arrive (up to 5 minutes), because a phone that just reopened the page
             // may take a while to reconnect. A signed payment goes stale after roughly a minute.
             let found = null;
-            const until = Date.now() + 75000;
+            const until = Date.now() + 300000;
             do {
                 await new Promise(function (r) { setTimeout(r, 2000); });
                 try { if (!localStorage.getItem(SIGNREQ)) return; } catch (e) { /* ignore */ }   // the live page already handled it
@@ -311,7 +311,7 @@
             const raw = VYROTransfer.base64ToBytes(res.transaction);
             const conn = new solanaWeb3.Connection(rpc, "confirmed");
             let sig;
-            try { sig = await sendSigned(conn, raw, null); }
+            try { sig = window.VYROSponsor ? (await VYROSponsor.send(raw, VYROSponsor.mode())).signature : await sendSigned(conn, raw, null); }
             catch (e) { notice("Your wallet approved the payment, but VYQIL could not send it: " + String((e && e.message) || e).split(". Logs:")[0] + ". No funds were moved.", false); return; }
             notice("Payment sent. Reference: " + sig + ". It may take a few seconds to confirm. The blockchain has the receipt.", true);
         } catch (e) { /* nothing to recover */ }
@@ -392,7 +392,7 @@
             return "intent://wc#Intent;scheme=trust;package=com.wallet.crypto.trustapp;S.browser_fallback_url=" + encodeURIComponent("https://link.trustwallet.com/") + ";end";
         return "trust://";
     }
-    const BUILD = "pay-7";
+    const BUILD = "pay-9";
 
     // There is no box. VYQIL opens the wallet itself the moment Confirm is tapped. Only if the wallet is STILL waiting after
     // 12 seconds (the phone refused to open it) does a small plain-text link appear, which disappears again on its own.
@@ -453,8 +453,7 @@
         const client = await ensureWcClient();
         if (!client) return null;
         const solNs = { methods: ["solana_signTransaction", "solana_signMessage"], chains: solanaChains(), events: [] };
-        const ethNs = (CFG.ethereum && CFG.ethereum.chainId)
-            ? { methods: ["eth_sendTransaction"], chains: [CFG.ethereum.chainId], events: [] } : null;
+        const ethNs = null;   // VyqilPay is USDC on Solana only
         // Trust Wallet keeps its original request: Solana required, Ethereum optional.
         // Every other wallet is asked for Solana AND Ethereum as optional, so a wallet that shares only
         // one of them (for example Ethereum only) can still connect.
@@ -581,8 +580,8 @@
                 try { const r = client.core && client.core.relayer; relay = r && r.connected ? "connected" : "disconnected"; } catch (e) { /* ignore */ }
                 const meta = session && session.peer && session.peer.metadata;
                 const ageMin = session && session.expiry ? Math.round((session.expiry * 1000 - Date.now()) / 60000) : "?";
-                reject(new Error("Your wallet did not answer within 2 minutes. Open the wallet app, check for a waiting request, or remove the wallet in VYQIL and connect it again. Tip: open VYQIL inside Trust Wallet's own browser. [wallet: " + ((meta && meta.name) || "?") + "; relay: " + relay + "; connection expires in " + ageMin + " min]"));
-            }, 120000);
+                reject(new Error("Your wallet did not answer within 5 minutes. Open the wallet app, check for a waiting request, or remove the wallet in VYQIL and connect it again. Tip: open VYQIL inside Trust Wallet's own browser. [wallet: " + ((meta && meta.name) || "?") + "; relay: " + relay + "; connection expires in " + ageMin + " min]"));
+            }, 300000);
         });
         const cancelled = new Promise(function (_, reject) {
             cancelWait = function () { const e = new Error("You cancelled the wallet request. Nothing was sent."); e.vyroCancelled = true; reject(e); };
@@ -768,7 +767,7 @@
             if (result && result.transaction) return { signedRaw: VYROTransfer.base64ToBytes(result.transaction) };
             if (result && result.signature) {
                 curTx.addSignature(new solanaWeb3.PublicKey(expectedAddress), solanaWeb3.Buffer ? solanaWeb3.Buffer.from(VYROTransfer.base58Decode(result.signature)) : VYROTransfer.base58Decode(result.signature));
-                return { signedRaw: curTx.serialize() };
+                return { signedRaw: curTx.serialize({ requireAllSignatures: false, verifySignatures: false }) };
             }
             throw new Error("The wallet returned no signature.");
         }
@@ -788,7 +787,7 @@
             throw new Error("Your wallet is now on a different account. Switch back to " + expectedAddress.slice(0, 6) + "…" + expectedAddress.slice(-4) + " in the wallet and try again.");
         }
 
-        const preferSignOnly = w.type === "trust-wallet" && typeof provider.signTransaction === "function";
+        const preferSignOnly = ((opts && opts.signOnly) || w.type === "trust-wallet") && typeof provider.signTransaction === "function";
         if (!preferSignOnly && typeof provider.signAndSendTransaction === "function") {
             const r = await provider.signAndSendTransaction(tx);
             const sig = typeof r === "string" ? r : r && r.signature;
@@ -797,7 +796,7 @@
         }
         if (typeof provider.signTransaction === "function") {
             const signed = await provider.signTransaction(tx);
-            return { signedRaw: signed.serialize() };
+            return { signedRaw: signed.serialize({ requireAllSignatures: false, verifySignatures: false }) };
         }
         throw new Error(w.provider + " does not support signing transactions.");
     }

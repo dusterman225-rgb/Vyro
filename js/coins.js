@@ -36,8 +36,7 @@
     // USDC and SOL are always on. ETH turns on only when an Ethereum RPC is configured.
     function enabled(id) {
         if (!defs[id]) return false;
-        if (id === "ETH") return !!(ETHC.rpcUrl && ETHC.chainId);
-        return true;
+        return id === "USDC";   // Vyqil pays in USDC on Solana only
     }
 
     function feeAddress(id) {

@@ -472,8 +472,9 @@ window.populateWalletSelectors = populateWalletSelectors;
 
 function receivePrimary() {
     const map = (window.VYROCoins && VYROCoins.getReceive()) || {};
-    for (let i = 0; i < VYROCoins.ORDER.length; i++) {
-        const id = VYROCoins.ORDER[i];
+    const onIds = VYROCoins.list().map(function (c) { return c.id; });
+    for (let i = 0; i < onIds.length; i++) {
+        const id = onIds[i];
         if (map[id]) return { coin: id, address: map[id] };
     }
     return null;
@@ -502,7 +503,7 @@ function updateReceiveWalletDisplay() {
     const box = document.getElementById("receive-coins");
     if (box && window.VYROCoins) {
         box.innerHTML = "";
-        VYROCoins.ORDER.forEach(function (id) {
+        VYROCoins.list().map(function (c) { return c.id; }).forEach(function (id) {
             if (!map[id]) return;
             const w = walletForReceiveAddress(id, map[id]);
             const line = document.createElement("div");

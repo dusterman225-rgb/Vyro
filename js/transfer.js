@@ -249,6 +249,60 @@
         };
     }
 
+    // ---------- sponsored USDC payment (Vyqil pays the network fee) ----------
+    // The Vyqil gas wallet is the transaction's fee payer and pays to open any new USDC account. The sender only
+    // signs the USDC transfers. A one-time "startup fee" (the cost of opening a new receiver's account, in USDC)
+    // is taken from that receiver's FIRST payment and sent to Vyqil together with the service fee.
+    //   mode "person": 1% on top. The receiver gets the full amount (minus startup fee once); sender pays amount + fee.
+    //   mode "biz":    2% out of the payment. The payer pays exactly the amount; the business gets amount - fee (- startup once).
+    async function buildSponsoredUsdc(opts) {
+        const w = web3();
+        const cfg = opts.config, connection = opts.connection;
+        const sender = new w.PublicKey(opts.sender);
+        const recipient = new w.PublicKey(opts.recipient);
+        const feeOwner = new w.PublicKey(opts.feeRecipient);
+        const gas = new w.PublicKey(opts.gasWallet);
+        const mint = new w.PublicKey(cfg.usdcMint);
+        const units = BigInt(opts.units);
+        const mode = opts.mode === "biz" ? "biz" : "person";
+        const bps = mode === "biz" ? 200n : 100n;
+        const startup = opts.newAccount ? BigInt(opts.startupUnits || 0) : 0n;
+        const fee = (units * bps + 9999n) / 10000n;
+        const receive = mode === "person" ? units - startup : units - fee - startup;
+        const total = mode === "person" ? units + fee : units;
+        const dec = cfg.usdcDecimals;
+        if (sender.toBase58() === feeOwner.toBase58()) { const e = new Error("This wallet cannot send a payment."); e.code = "INSUFFICIENT_USDC"; throw e; }
+        if (units < 500000n) { const e = new Error("The smallest payment is $0.50."); e.code = "INSUFFICIENT_USDC"; throw e; }
+        if (receive < 100000n) { const e = new Error("This payment is too small to cover the one-time account startup fee. Send a little more."); e.code = "INSUFFICIENT_USDC"; throw e; }
+
+        const senderAta = deriveAta(sender, mint), recipientAta = deriveAta(recipient, mint), feeAta = deriveAta(feeOwner, mint);
+        let senderUnits = 0n;
+        try { senderUnits = BigInt((await connection.getTokenAccountBalance(senderAta, "confirmed")).value.amount); } catch (e) { senderUnits = 0n; }
+        if (senderUnits < total) {
+            const e = new Error("Not enough USDC. This payment needs " + formatUnits(total, dec) + " USDC" +
+                (mode === "person" ? " (" + formatUnits(units, dec) + " + " + formatUnits(fee, dec) + " Vyqil fee)" : "") +
+                " and this wallet holds " + formatUnits(senderUnits, dec) + " USDC.");
+            e.code = "INSUFFICIENT_USDC"; throw e;
+        }
+        const needsFeeAta = !(await connection.getAccountInfo(feeAta, "confirmed"));
+        const ixs = [];
+        if (opts.newAccount) ixs.push(createAtaInstruction(w, gas, recipientAta, recipient, mint));
+        if (needsFeeAta) ixs.push(createAtaInstruction(w, gas, feeAta, feeOwner, mint));
+        const payIx = transferInstruction(w, senderAta, mint, recipientAta, sender, receive, dec);
+        addReference(w, payIx, opts.reference);
+        ixs.push(payIx);
+        ixs.push(transferInstruction(w, senderAta, mint, feeAta, sender, fee + startup, dec));
+        const latest = await connection.getLatestBlockhash("confirmed");
+        const tx = new w.Transaction({ feePayer: gas, recentBlockhash: latest.blockhash });
+        tx.add.apply(tx, ixs);
+        return {
+            transaction: tx, lastValidBlockHeight: latest.lastValidBlockHeight,
+            recipientTokenAccount: recipientAta.toBase58(), createsRecipientAccount: !!opts.newAccount, createsFeeAccount: needsFeeAta,
+            rentLamports: 0, feeLamports: 0, feeUnits: fee, startupUnits: startup, receiveUnits: receive, totalUnits: total,
+            sponsored: true, mode: mode
+        };
+    }
+
     // ---------- native SOL transfer ----------
     // System Program Transfer = instruction index 2 (u32 LE), then u64 LE lamports.
     function solTransferData(lamports) {
@@ -346,7 +400,7 @@
         base58Encode, base58Decode, isValidSolanaAddress,
         transferCheckedData, createAtaIdempotentData,
         bytesToBase64, base64ToBytes,
-        buildUsdcTransfer, buildSolTransfer, solTransferData, deriveAta, feeUnits,
+        buildUsdcTransfer, buildSponsoredUsdc, buildSolTransfer, solTransferData, deriveAta, feeUnits,
         TOKEN_PROGRAM_ID, ATA_PROGRAM_ID
     };
 

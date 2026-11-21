@@ -29,6 +29,9 @@
     async function quote(ownerAddress) { return call("/pay/quote", { to: ownerAddress }); }
     function toB64(bytes) { let s = ""; for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s); }
     async function send(signedRaw, mode) { return call("/pay/send", { tx: toB64(signedRaw), mode: mode === "biz" ? "biz" : "person" }); }
-    root.VYROSponsor = { quote: quote, send: send, feeUnits: feeUnits, BPS: BPS };
+    // Remembers person-to-person vs business mode, so a payment approved after the page was reloaded is still sent the right way.
+    function setMode(m) { try { localStorage.setItem("vyro:paymode", m === "biz" ? "biz" : "person"); } catch (e) { /* optional */ } }
+    function mode() { try { return localStorage.getItem("vyro:paymode") === "biz" ? "biz" : "person"; } catch (e) { return "person"; } }
+    root.VYROSponsor = { quote: quote, send: send, feeUnits: feeUnits, BPS: BPS, setMode: setMode, mode: mode };
     if (typeof module !== "undefined" && module.exports) module.exports = root.VYROSponsor;
 })(typeof window !== "undefined" ? window : globalThis);

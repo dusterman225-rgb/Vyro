@@ -75,6 +75,11 @@
             el.appendChild(line);
         });
 
+        const only = document.createElement("div");
+        only.className = "coin-avail";
+        only.textContent = "Wallet Sends & Receives USDC on Solana";
+        el.appendChild(only);
+
         // Sending is always USDC on Solana, so there is nothing to choose.
         try { if (sendCoin !== "USDC") VYROCoins.setSendCoin(w, "USDC"); } catch (e) {}
 
